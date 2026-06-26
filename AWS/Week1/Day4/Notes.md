@@ -2,7 +2,9 @@
 
 ## What is AWS Global Infrastructure?
 
-[View AWS Global Infrastructure Diagram](#typical-enterprise-architecture)
+![AWS Global Infrastructure Diagram](images/AWS_Global_Infrastructure-1.png)
+![AWS Global Infrastructure Diagram](images/AWS_Global_Infrastructure-2.png)
+![AWS Global Infrastructure Diagram](images/AWS_Global_Infrastructure-3.png)
 
 AWS Global Infrastructure is the worldwide network of AWS data centers, networking services, and edge locations that deliver AWS cloud services with high availability, low latency, scalability, and resilience.
 
