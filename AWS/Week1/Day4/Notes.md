@@ -174,4 +174,4 @@ For the AWS Solutions Architect Associate or Professional exams, remember these 
 	• Use CloudFront and Edge Locations to reduce latency for global users. 
 	• Use Route 53 or Global Accelerator to route users to the healthiest and closest application endpoints. 
 	• Keep data close to users while meeting compliance and data residency requirements.
-<img width="1110" height="6861" alt="image" src="https://github.com/user-attachments/assets/dd1bc27a-f57d-4ed5-a287-ab6af40e212f" />
+
