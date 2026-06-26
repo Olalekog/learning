@@ -167,6 +167,7 @@ Answer:
 Edge Locations cache content closer to users, reducing latency and improving application performance. They are also used by services such as CloudFront, Route 53, AWS WAF, and AWS Shield to deliver content, resolve DNS queries, and protect applications from attacks.
 
 Solution Architect Tip
+
 For the AWS Solutions Architect Associate or Professional exams, remember these design principles:
 	• Use multiple AZs for high availability. 
 	• Use multiple Regions for disaster recovery or global applications. 
