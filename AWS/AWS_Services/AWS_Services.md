@@ -6,6 +6,123 @@ AWS provides cloud services used to design, deploy, secure, monitor, and scale m
 
 A strong AWS engineer should understand what each service does, when to use it, and how it fits into a secure, scalable, highly available cloud architecture.
 
+
+---
+
+## AWS Services Architecture Diagram
+
+```mermaid
+flowchart TB
+    Users[Users / Clients] --> R53[Amazon Route 53
+DNS]
+    R53 --> CF[Amazon CloudFront
+CDN]
+    CF --> WAF[AWS WAF
+Web protection]
+    WAF --> ALB[Application Load Balancer]
+
+    ALB --> APP[Compute Layer
+EC2 / ECS / EKS / Lambda]
+    APP --> DB[Database Layer
+RDS / Aurora / DynamoDB]
+    APP --> S3[Storage Layer
+S3 / EBS / EFS / FSx]
+
+    IAM[IAM / IAM Identity Center
+Access control] --> APP
+    KMS[AWS KMS
+Encryption keys] --> DB
+    KMS --> S3
+    SM[Secrets Manager
+Secrets and credentials] --> APP
+
+    CW[CloudWatch
+Metrics, logs, alarms] --> APP
+    CT[CloudTrail
+API audit logs] --> IAM
+    CFG[AWS Config
+Compliance tracking] --> DB
+    SH[Security Hub / GuardDuty
+Security findings] --> IAM
+```
+
+---
+
+## Secure 3-Tier AWS Application Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant DNS as Route 53
+    participant CDN as CloudFront + WAF
+    participant ALB as Application Load Balancer
+    participant App as App Tier: EC2/ECS/EKS/Lambda
+    participant DB as Data Tier: RDS/DynamoDB
+    participant Logs as CloudWatch/CloudTrail
+
+    User->>DNS: Request application URL
+    DNS->>CDN: Resolve domain and route traffic
+    CDN->>ALB: Forward allowed HTTPS request
+    ALB->>App: Route request to healthy target
+    App->>DB: Read/write application data
+    DB-->>App: Return response
+    App-->>ALB: Return application response
+    ALB-->>User: Return HTTPS response
+    App->>Logs: Send metrics and logs
+    ALB->>Logs: Send access logs
+```
+
+---
+
+## AWS DevOps Deployment Flow
+
+```mermaid
+flowchart LR
+    Dev[Developer] --> Git[GitHub / CodeCommit]
+    Git --> CI[CI Pipeline
+GitHub Actions / CodeBuild]
+    CI --> Scan[Security Checks
+SAST, IaC scan, dependency scan]
+    Scan --> Build[Build Artifact
+Container image or package]
+    Build --> ECR[Amazon ECR / S3 Artifact Bucket]
+    ECR --> Deploy[Deploy
+ECS / EKS / Lambda / EC2]
+    Deploy --> Monitor[CloudWatch + X-Ray
+Monitoring and tracing]
+    Monitor --> Feedback[Feedback to team]
+```
+
+---
+
+## AWS Security and Governance Flow
+
+```mermaid
+flowchart TB
+    ORG[AWS Organizations] --> SCP[Service Control Policies
+Prevent risky actions]
+    ORG --> CTOWER[AWS Control Tower
+Landing zone]
+    CTOWER --> ACCOUNTS[Workload Accounts
+Dev / Test / Prod / Security / Logging]
+    SCP --> ACCOUNTS
+
+    IAM[IAM Identity Center
+Centralized access] --> ACCOUNTS
+    CLOUDTRAIL[CloudTrail
+API audit logs] --> LOGGING[Logging Account]
+    CONFIG[AWS Config
+Resource compliance] --> SECURITY[Security Account]
+    GUARDDUTY[GuardDuty
+Threat detection] --> SECURITY
+    SECURITYHUB[Security Hub
+Central findings] --> SECURITY
+
+    SECURITY --> SNOW[Ticketing / Alerting
+ServiceNow, SNS, EventBridge]
+```
+
+
 ---
 
 ## 1. Compute Services
