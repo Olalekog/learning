@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560">
+  <defs>
+    <style>
+      .title{font:700 34px Arial;fill:#102a43}.principal{fill:#ecfdf5;stroke:#16a34a;stroke-width:2;rx:14}.policy{fill:#f8fafc;stroke:#334155;stroke-width:2;rx:14}.resource{fill:#eff6ff;stroke:#2563eb;stroke-width:2;rx:14}.decision{fill:#fff7ed;stroke:#f59e0b;stroke-width:2;rx:14}.allow{fill:#f0fdf4;stroke:#22c55e;stroke-width:2;rx:12}.deny{fill:#fef2f2;stroke:#ef4444;stroke-width:2;rx:12}.txt{font:600 20px Arial;fill:#111827}.small{font:16px Arial;fill:#374151}.arrow{stroke:#111827;stroke-width:3;fill:none;marker-end:url(#arrow)}.dash{stroke:#16a34a;stroke-width:3;fill:none;stroke-dasharray:7 7;marker-end:url(#arrow)}
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#111827"/></marker>
+  </defs>
+  <text x="600" y="45" text-anchor="middle" class="title">IAM ABAC Architecture — Attribute-Based Access Control</text>
+  <rect x="45" y="95" width="285" height="180" class="principal"/>
+  <text x="187" y="130" text-anchor="middle" class="txt">Principal</text>
+  <text x="80" y="175" class="small">User / Role Tags:</text>
+  <text x="80" y="210" class="small">Project = Payments</text>
+  <text x="80" y="240" class="small">Environment = Dev</text>
+  <rect x="455" y="95" width="290" height="180" class="policy"/>
+  <text x="600" y="130" text-anchor="middle" class="txt">IAM Policy</text>
+  <text x="490" y="175" class="small">Condition:</text>
+  <text x="490" y="210" class="small">PrincipalTag/Project</text>
+  <text x="490" y="240" class="small">matches ResourceTag/Project</text>
+  <rect x="870" y="95" width="285" height="180" class="resource"/>
+  <text x="1012" y="130" text-anchor="middle" class="txt">AWS Resource</text>
+  <text x="905" y="175" class="small">Resource Tags:</text>
+  <text x="905" y="210" class="small">Project = Payments</text>
+  <text x="905" y="240" class="small">Environment = Dev</text>
+  <rect x="455" y="345" width="290" height="95" class="decision"/>
+  <text x="600" y="385" text-anchor="middle" class="txt">Policy Evaluation</text>
+  <text x="600" y="415" text-anchor="middle" class="small">Do the tags match?</text>
+  <rect x="840" y="330" width="150" height="55" class="allow"/>
+  <text x="915" y="365" text-anchor="middle" class="txt">Allow</text>
+  <rect x="840" y="420" width="150" height="55" class="deny"/>
+  <text x="915" y="455" text-anchor="middle" class="txt">Deny</text>
+  <path d="M330 185 H455" class="arrow"/><path d="M745 185 H870" class="dash"/><path d="M600 275 V345" class="arrow"/><path d="M745 380 H840" class="arrow"/><path d="M745 430 H840" class="arrow"/>
+  <rect x="70" y="495" width="1060" height="45" fill="#f8fafc" stroke="#94a3b8" stroke-width="2" rx="12"/>
+  <text x="600" y="524" text-anchor="middle" class="small">ABAC grants access dynamically by comparing principal attributes with resource attributes, usually AWS tags.</text>
+</svg>
