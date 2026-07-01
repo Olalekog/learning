@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#334155" />
+    </marker>
+    <style>
+      .title { font: 700 30px Arial, sans-serif; fill:#0f172a; }
+      .box { fill:#f8fafc; stroke:#2563eb; stroke-width:2; rx:16; }
+      .box2 { fill:#ecfeff; stroke:#0891b2; stroke-width:2; rx:16; }
+      .box3 { fill:#fefce8; stroke:#ca8a04; stroke-width:2; rx:16; }
+      .box4 { fill:#f0fdf4; stroke:#16a34a; stroke-width:2; rx:16; }
+      .label { font: 700 18px Arial, sans-serif; fill:#111827; }
+      .sub { font: 14px Arial, sans-serif; fill:#374151; }
+      .arrow { stroke:#334155; stroke-width:2.4; fill:none; marker-end:url(#arrow); }
+      .note { font: 13px Arial, sans-serif; fill:#475569; }
+    </style>
+  </defs>
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="40" y="48" class="title">AWS KMS Architecture Overview</text>
+  <rect x="40" y="110" width="240" height="110" class="box" rx="16"/>
+  <text x="58" y="145" class="label">Application / User</text>
+  <text x="58" y="172" class="sub">EC2, Lambda, ECS, EKS</text>
+  <text x="58" y="192" class="sub">AWS CLI or SDK request</text>
+  <rect x="360" y="110" width="240" height="110" class="box2" rx="16"/>
+  <text x="378" y="145" class="label">IAM Authorization</text>
+  <text x="378" y="172" class="sub">IAM policy</text>
+  <text x="378" y="192" class="sub">SCP / permission boundary</text>
+  <rect x="690" y="95" width="300" height="140" class="box3" rx="16"/>
+  <text x="708" y="130" class="label">AWS KMS</text>
+  <text x="708" y="157" class="sub">KMS key metadata</text>
+  <text x="708" y="177" class="sub">Key policy, grants, aliases</text>
+  <text x="708" y="197" class="sub">HSM-protected key material</text>
+  <rect x="420" y="330" width="260" height="100" class="box4" rx="16"/>
+  <text x="438" y="365" class="label">AWS CloudTrail</text>
+  <text x="438" y="392" class="sub">Logs KMS API calls</text>
+  <text x="438" y="412" class="sub">Encrypt, Decrypt, GenerateDataKey</text>
+  <rect x="40" y="500" width="310" height="120" class="box" rx="16"/>
+  <text x="58" y="535" class="label">Integrated AWS Services</text>
+  <text x="58" y="562" class="sub">S3, EBS, RDS, EFS, Lambda</text>
+  <text x="58" y="582" class="sub">CloudWatch Logs, Secrets Manager</text>
+  <rect x="450" y="500" width="300" height="120" class="box2" rx="16"/>
+  <text x="468" y="535" class="label">Customer Managed Key</text>
+  <text x="468" y="562" class="sub">Lifecycle control</text>
+  <text x="468" y="582" class="sub">Rotation, key policy, deletion</text>
+  <rect x="850" y="500" width="300" height="120" class="box3" rx="16"/>
+  <text x="868" y="535" class="label">Multi-Region Key</text>
+  <text x="868" y="562" class="sub">Primary and replica keys</text>
+  <text x="868" y="582" class="sub">Decrypt across Regions</text>
+  <path d="M280,165 L360,165" class="arrow"/>
+  <text x="328.0" y="157.0" class="note">request</text>
+  <path d="M600,165 L690,165" class="arrow"/>
+  <text x="653.0" y="157.0" class="note">authorized</text>
+  <path d="M840,235 L550,330" class="arrow"/>
+  <text x="703.0" y="274.5" class="note">audit</text>
+  <path d="M190,500 L760,235" class="arrow"/>
+  <text x="483.0" y="359.5" class="note">uses KMS</text>
+  <path d="M600,500 L795,235" class="arrow"/>
+  <text x="705.5" y="359.5" class="note">key material protected</text>
+  <path d="M990,500 L880,235" class="arrow"/>
+  <text x="943.0" y="359.5" class="note">replicated key ID</text>
+</svg>

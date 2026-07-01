@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#334155" />
+    </marker>
+    <style>
+      .title { font: 700 30px Arial, sans-serif; fill:#0f172a; }
+      .box { fill:#f8fafc; stroke:#2563eb; stroke-width:2; rx:16; }
+      .box2 { fill:#ecfeff; stroke:#0891b2; stroke-width:2; rx:16; }
+      .box3 { fill:#fefce8; stroke:#ca8a04; stroke-width:2; rx:16; }
+      .box4 { fill:#f0fdf4; stroke:#16a34a; stroke-width:2; rx:16; }
+      .label { font: 700 18px Arial, sans-serif; fill:#111827; }
+      .sub { font: 14px Arial, sans-serif; fill:#374151; }
+      .arrow { stroke:#334155; stroke-width:2.4; fill:none; marker-end:url(#arrow); }
+      .note { font: 13px Arial, sans-serif; fill:#475569; }
+    </style>
+  </defs>
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="40" y="48" class="title">AWS KMS Envelope Encryption Flow</text>
+  <rect x="40" y="120" width="240" height="110" class="box" rx="16"/>
+  <text x="58" y="155" class="label">Application</text>
+  <text x="58" y="182" class="sub">Needs to encrypt data</text>
+  <text x="58" y="202" class="sub">Requests data key</text>
+  <rect x="360" y="120" width="270" height="120" class="box2" rx="16"/>
+  <text x="378" y="155" class="label">AWS KMS</text>
+  <text x="378" y="182" class="sub">GenerateDataKey using KMS key</text>
+  <text x="378" y="202" class="sub">Returns plaintext + encrypted data key</text>
+  <rect x="720" y="120" width="320" height="120" class="box3" rx="16"/>
+  <text x="738" y="155" class="label">Application Encrypts Data</text>
+  <text x="738" y="182" class="sub">Plaintext data key encrypts data</text>
+  <text x="738" y="202" class="sub">Then plaintext key is discarded</text>
+  <rect x="360" y="420" width="320" height="120" class="box4" rx="16"/>
+  <text x="378" y="455" class="label">Storage Location</text>
+  <text x="378" y="482" class="sub">Encrypted object / database field</text>
+  <text x="378" y="502" class="sub">Encrypted data key stored beside data</text>
+  <rect x="750" y="420" width="300" height="100" class="box" rx="16"/>
+  <text x="768" y="455" class="label">CloudTrail</text>
+  <text x="768" y="482" class="sub">Records KMS API activity</text>
+  <text x="768" y="502" class="sub">Do not log plaintext secrets</text>
+  <path d="M280,175 L360,175" class="arrow"/>
+  <text x="328.0" y="167.0" class="note">1 GenerateDataKey</text>
+  <path d="M630,175 L720,175" class="arrow"/>
+  <text x="683.0" y="167.0" class="note">2 data key</text>
+  <path d="M880,240 L520,420" class="arrow"/>
+  <text x="708.0" y="322.0" class="note">3 store ciphertext</text>
+  <path d="M630,205 L810,420" class="arrow"/>
+  <text x="728.0" y="304.5" class="note">4 audit</text>
+</svg>

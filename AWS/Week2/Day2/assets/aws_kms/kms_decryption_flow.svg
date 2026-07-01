@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#334155" />
+    </marker>
+    <style>
+      .title { font: 700 30px Arial, sans-serif; fill:#0f172a; }
+      .box { fill:#f8fafc; stroke:#2563eb; stroke-width:2; rx:16; }
+      .box2 { fill:#ecfeff; stroke:#0891b2; stroke-width:2; rx:16; }
+      .box3 { fill:#fefce8; stroke:#ca8a04; stroke-width:2; rx:16; }
+      .box4 { fill:#f0fdf4; stroke:#16a34a; stroke-width:2; rx:16; }
+      .label { font: 700 18px Arial, sans-serif; fill:#111827; }
+      .sub { font: 14px Arial, sans-serif; fill:#374151; }
+      .arrow { stroke:#334155; stroke-width:2.4; fill:none; marker-end:url(#arrow); }
+      .note { font: 13px Arial, sans-serif; fill:#475569; }
+    </style>
+  </defs>
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="40" y="48" class="title">AWS KMS Decryption Flow</text>
+  <rect x="40" y="120" width="250" height="120" class="box" rx="16"/>
+  <text x="58" y="155" class="label">Application</text>
+  <text x="58" y="182" class="sub">Reads encrypted data</text>
+  <text x="58" y="202" class="sub">and encrypted data key</text>
+  <rect x="390" y="120" width="280" height="120" class="box2" rx="16"/>
+  <text x="408" y="155" class="label">AWS KMS Decrypt</text>
+  <text x="408" y="182" class="sub">Validates key policy, IAM, grants</text>
+  <text x="408" y="202" class="sub">Decrypts encrypted data key</text>
+  <rect x="770" y="120" width="300" height="120" class="box3" rx="16"/>
+  <text x="788" y="155" class="label">Plaintext Data Key</text>
+  <text x="788" y="182" class="sub">Returned over TLS to caller</text>
+  <text x="788" y="202" class="sub">Used in memory only</text>
+  <rect x="390" y="430" width="300" height="110" class="box4" rx="16"/>
+  <text x="408" y="465" class="label">Decrypted Data</text>
+  <text x="408" y="492" class="sub">Application decrypts ciphertext</text>
+  <text x="408" y="512" class="sub">Then discards plaintext key</text>
+  <rect x="780" y="430" width="280" height="100" class="box" rx="16"/>
+  <text x="798" y="465" class="label">CloudTrail</text>
+  <text x="798" y="492" class="sub">Logs Decrypt request</text>
+  <text x="798" y="512" class="sub">Includes encryption context</text>
+  <path d="M290,180 L390,180" class="arrow"/>
+  <text x="348.0" y="172.0" class="note">1 Decrypt</text>
+  <path d="M670,180 L770,180" class="arrow"/>
+  <text x="728.0" y="172.0" class="note">2 plaintext key</text>
+  <path d="M920,240 L540,430" class="arrow"/>
+  <text x="738.0" y="327.0" class="note">3 decrypt locally</text>
+  <path d="M670,215 L830,430" class="arrow"/>
+  <text x="758.0" y="314.5" class="note">4 audit</text>
+</svg>

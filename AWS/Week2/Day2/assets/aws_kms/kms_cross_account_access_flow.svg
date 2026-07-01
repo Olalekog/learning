@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#334155" />
+    </marker>
+    <style>
+      .title { font: 700 30px Arial, sans-serif; fill:#0f172a; }
+      .box { fill:#f8fafc; stroke:#2563eb; stroke-width:2; rx:16; }
+      .box2 { fill:#ecfeff; stroke:#0891b2; stroke-width:2; rx:16; }
+      .box3 { fill:#fefce8; stroke:#ca8a04; stroke-width:2; rx:16; }
+      .box4 { fill:#f0fdf4; stroke:#16a34a; stroke-width:2; rx:16; }
+      .label { font: 700 18px Arial, sans-serif; fill:#111827; }
+      .sub { font: 14px Arial, sans-serif; fill:#374151; }
+      .arrow { stroke:#334155; stroke-width:2.4; fill:none; marker-end:url(#arrow); }
+      .note { font: 13px Arial, sans-serif; fill:#475569; }
+    </style>
+  </defs>
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="40" y="48" class="title">AWS KMS Cross-Account Access Flow</text>
+  <rect x="40" y="120" width="260" height="120" class="box" rx="16"/>
+  <text x="58" y="155" class="label">Account A Principal</text>
+  <text x="58" y="182" class="sub">Role or user needs to use</text>
+  <text x="58" y="202" class="sub">KMS key in Account B</text>
+  <rect x="380" y="120" width="260" height="120" class="box2" rx="16"/>
+  <text x="398" y="155" class="label">Account A IAM Policy</text>
+  <text x="398" y="182" class="sub">Allows kms:Encrypt / Decrypt</text>
+  <text x="398" y="202" class="sub">on target key ARN</text>
+  <rect x="730" y="120" width="320" height="120" class="box3" rx="16"/>
+  <text x="748" y="155" class="label">Account B KMS Key Policy</text>
+  <text x="748" y="182" class="sub">Trusts Account A principal</text>
+  <text x="748" y="202" class="sub">or Account A root + IAM</text>
+  <rect x="400" y="440" width="300" height="110" class="box4" rx="16"/>
+  <text x="418" y="475" class="label">AWS Service / App</text>
+  <text x="418" y="502" class="sub">Uses permitted KMS action</text>
+  <text x="418" y="522" class="sub">with encryption context</text>
+  <rect x="780" y="440" width="280" height="100" class="box" rx="16"/>
+  <text x="798" y="475" class="label">CloudTrail</text>
+  <text x="798" y="502" class="sub">Events in both accounts</text>
+  <text x="798" y="522" class="sub">depending on usage pattern</text>
+  <path d="M300,180 L380,180" class="arrow"/>
+  <text x="348.0" y="172.0" class="note">permission</text>
+  <path d="M640,180 L730,180" class="arrow"/>
+  <text x="693.0" y="172.0" class="note">trusted by key policy</text>
+  <path d="M890,240 L550,440" class="arrow"/>
+  <text x="728.0" y="332.0" class="note">use key</text>
+  <path d="M690,490 L780,490" class="arrow"/>
+  <text x="743.0" y="482.0" class="note">audit</text>
+</svg>

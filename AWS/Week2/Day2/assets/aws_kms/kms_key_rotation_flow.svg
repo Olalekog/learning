@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#334155" />
+    </marker>
+    <style>
+      .title { font: 700 30px Arial, sans-serif; fill:#0f172a; }
+      .box { fill:#f8fafc; stroke:#2563eb; stroke-width:2; rx:16; }
+      .box2 { fill:#ecfeff; stroke:#0891b2; stroke-width:2; rx:16; }
+      .box3 { fill:#fefce8; stroke:#ca8a04; stroke-width:2; rx:16; }
+      .box4 { fill:#f0fdf4; stroke:#16a34a; stroke-width:2; rx:16; }
+      .label { font: 700 18px Arial, sans-serif; fill:#111827; }
+      .sub { font: 14px Arial, sans-serif; fill:#374151; }
+      .arrow { stroke:#334155; stroke-width:2.4; fill:none; marker-end:url(#arrow); }
+      .note { font: 13px Arial, sans-serif; fill:#475569; }
+    </style>
+  </defs>
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="40" y="48" class="title">AWS KMS Key Rotation Flow</text>
+  <rect x="40" y="130" width="250" height="110" class="box" rx="16"/>
+  <text x="58" y="165" class="label">Security / Cloud Admin</text>
+  <text x="58" y="192" class="sub">Enables automatic or</text>
+  <text x="58" y="212" class="sub">on-demand key rotation</text>
+  <rect x="380" y="120" width="300" height="130" class="box2" rx="16"/>
+  <text x="398" y="155" class="label">AWS KMS Key</text>
+  <text x="398" y="182" class="sub">Same key ID and ARN</text>
+  <text x="398" y="202" class="sub">New key material version</text>
+  <rect x="780" y="90" width="310" height="110" class="box3" rx="16"/>
+  <text x="798" y="125" class="label">Old Key Material</text>
+  <text x="798" y="152" class="sub">Retained to decrypt</text>
+  <text x="798" y="172" class="sub">previous ciphertext</text>
+  <rect x="780" y="270" width="310" height="110" class="box4" rx="16"/>
+  <text x="798" y="305" class="label">New Key Material</text>
+  <text x="798" y="332" class="sub">Used for new cryptographic</text>
+  <text x="798" y="352" class="sub">operations after rotation</text>
+  <rect x="390" y="500" width="300" height="100" class="box" rx="16"/>
+  <text x="408" y="535" class="label">Applications</text>
+  <text x="408" y="562" class="sub">Continue using alias / key ARN</text>
+  <text x="408" y="582" class="sub">No application rewrite needed</text>
+  <path d="M290,185 L380,185" class="arrow"/>
+  <text x="343.0" y="177.0" class="note">enable rotation</text>
+  <path d="M680,165 L780,145" class="arrow"/>
+  <text x="738.0" y="147.0" class="note">retain</text>
+  <path d="M680,190 L780,325" class="arrow"/>
+  <text x="738.0" y="249.5" class="note">create</text>
+  <path d="M530,500 L530,250" class="arrow"/>
+  <text x="538.0" y="367.0" class="note">same key reference</text>
+</svg>
