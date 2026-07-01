@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#34495e"/>
+    </marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+  <rect width="100%" height="100%" fill="#fbfcfe"/>
+  <text x="600.0" y="45" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#17202a">AWS STS OIDC Federation Flow</text>
+
+<line x1="250" y1="170.0" x2="320" y2="170.0" stroke="#34495e" stroke-width="2.5" marker-end="url(#arrow)" />
+<rect x="180.0" y="144.0" width="210" height="28" rx="14" fill="#ffffff" stroke="#d5d8dc"/>
+<text x="285.0" y="163.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#2c3e50">1. Request token</text>
+<line x1="530" y1="170.0" x2="600" y2="170.0" stroke="#34495e" stroke-width="2.5" marker-end="url(#arrow)" />
+<rect x="460.0" y="144.0" width="210" height="28" rx="14" fill="#ffffff" stroke="#d5d8dc"/>
+<text x="565.0" y="163.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#2c3e50">2. Present token</text>
+<line x1="820" y1="170.0" x2="880" y2="170.0" stroke="#34495e" stroke-width="2.5" marker-end="url(#arrow)" />
+<rect x="745.0" y="144.0" width="210" height="28" rx="14" fill="#ffffff" stroke="#d5d8dc"/>
+<text x="850.0" y="163.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#2c3e50">3. Check trust</text>
+<line x1="820" y1="170.0" x2="600" y2="410.0" stroke="#34495e" stroke-width="2.5" marker-end="url(#arrow)" />
+<rect x="605.0" y="264.0" width="210" height="28" rx="14" fill="#ffffff" stroke="#d5d8dc"/>
+<text x="710.0" y="283.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#2c3e50">4. Return credentials</text>
+<line x1="820" y1="410.0" x2="880" y2="410.0" stroke="#34495e" stroke-width="2.5" marker-end="url(#arrow)" />
+<rect x="745.0" y="384.0" width="210" height="28" rx="14" fill="#ffffff" stroke="#d5d8dc"/>
+<text x="850.0" y="403.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#2c3e50">5. Deploy resources</text>
+<rect x="40" y="120" width="210" height="100" rx="16" fill="#eaf2ff" stroke="#2e86de" stroke-width="2" filter="url(#shadow)"/>
+<text x="145.0" y="159.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#17202a">GitHub Actions</text>
+<text x="145.0" y="183.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="400" fill="#17202a">or Web App</text>
+<rect x="320" y="120" width="210" height="100" rx="16" fill="#f4ecf7" stroke="#8e44ad" stroke-width="2" filter="url(#shadow)"/>
+<text x="425.0" y="159.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#17202a">OIDC Provider</text>
+<text x="425.0" y="183.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="400" fill="#17202a">Identity token</text>
+<rect x="600" y="120" width="220" height="100" rx="16" fill="#eafaf1" stroke="#229954" stroke-width="2" filter="url(#shadow)"/>
+<text x="710.0" y="159.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#17202a">AWS STS</text>
+<text x="710.0" y="183.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="400" fill="#17202a">AssumeRoleWithWebIdentity</text>
+<rect x="880" y="120" width="230" height="100" rx="16" fill="#fff8e1" stroke="#f39c12" stroke-width="2" filter="url(#shadow)"/>
+<text x="995.0" y="159.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#17202a">IAM Role</text>
+<text x="995.0" y="183.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="400" fill="#17202a">OIDC trust conditions</text>
+<rect x="600" y="360" width="220" height="100" rx="16" fill="#e8f8f5" stroke="#16a085" stroke-width="2" filter="url(#shadow)"/>
+<text x="710.0" y="399.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#17202a">Temporary Credentials</text>
+<text x="710.0" y="423.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="400" fill="#17202a">Used by workflow</text>
+<rect x="880" y="360" width="230" height="100" rx="16" fill="#fdf2e9" stroke="#d35400" stroke-width="2" filter="url(#shadow)"/>
+<text x="995.0" y="399.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#17202a">AWS Deployment</text>
+<text x="995.0" y="423.0" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="400" fill="#17202a">Terraform / CLI / SDK</text>
+</svg>
