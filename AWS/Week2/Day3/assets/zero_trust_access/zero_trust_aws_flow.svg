@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#334155" /></marker><style>.title{font:700 30px Arial;fill:#0f172a}.box{fill:#f8fafc;stroke:#2563eb;stroke-width:2;rx:16}.box2{fill:#ecfeff;stroke:#0891b2;stroke-width:2;rx:16}.box3{fill:#fef3c7;stroke:#d97706;stroke-width:2;rx:16}.lbl{font:700 18px Arial;fill:#111827}.sub{font:14px Arial;fill:#334155}.arrow{stroke:#334155;stroke-width:2.5;fill:none;marker-end:url(#arrow)}.note{font:13px Arial;fill:#475569}</style></defs>
+<rect width="100%" height="100%" fill="white"/>
+<text x="40" y="55" class="title">Zero Trust Access Pattern on AWS</text>
+<rect x="40" y="130" width="160" height="100" class="box" rx="16"/>
+<text x="120.0" y="162" text-anchor="middle" class="lbl">User</text>
+<text x="120.0" y="188" text-anchor="middle" class="sub">Developer or</text>
+<text x="120.0" y="206" text-anchor="middle" class="sub">application owner</text>
+<rect x="245" y="130" width="190" height="110" class="box2" rx="16"/>
+<text x="340.0" y="162" text-anchor="middle" class="lbl">IAM Identity Center</text>
+<text x="340.0" y="188" text-anchor="middle" class="sub">Workforce identity,</text>
+<text x="340.0" y="206" text-anchor="middle" class="sub">groups, permission</text>
+<text x="340.0" y="224" text-anchor="middle" class="sub">sets</text>
+<rect x="480" y="130" width="170" height="110" class="box2" rx="16"/>
+<text x="565.0" y="162" text-anchor="middle" class="lbl">AWS STS</text>
+<text x="565.0" y="188" text-anchor="middle" class="sub">Temporary role</text>
+<text x="565.0" y="206" text-anchor="middle" class="sub">credentials</text>
+<rect x="700" y="130" width="170" height="110" class="box3" rx="16"/>
+<text x="785.0" y="162" text-anchor="middle" class="lbl">IAM Policies</text>
+<text x="785.0" y="188" text-anchor="middle" class="sub">Least privilege,</text>
+<text x="785.0" y="206" text-anchor="middle" class="sub">ABAC tags,</text>
+<text x="785.0" y="224" text-anchor="middle" class="sub">permission</text>
+<text x="785.0" y="242" text-anchor="middle" class="sub">boundaries</text>
+<rect x="920" y="130" width="210" height="110" class="box" rx="16"/>
+<text x="1025.0" y="162" text-anchor="middle" class="lbl">AWS Resource</text>
+<text x="1025.0" y="188" text-anchor="middle" class="sub">S3, EC2, RDS, EKS,</text>
+<text x="1025.0" y="206" text-anchor="middle" class="sub">Lambda, Secrets Manager</text>
+<rect x="700" y="320" width="170" height="100" class="box3" rx="16"/>
+<text x="785.0" y="352" text-anchor="middle" class="lbl">Organizations SCPs</text>
+<text x="785.0" y="378" text-anchor="middle" class="sub">Prevent risky</text>
+<text x="785.0" y="396" text-anchor="middle" class="sub">actions across</text>
+<text x="785.0" y="414" text-anchor="middle" class="sub">accounts</text>
+<rect x="920" y="320" width="210" height="100" class="box2" rx="16"/>
+<text x="1025.0" y="352" text-anchor="middle" class="lbl">CloudTrail / GuardDuty</text>
+<text x="1025.0" y="378" text-anchor="middle" class="sub">Audit, detection,</text>
+<text x="1025.0" y="396" text-anchor="middle" class="sub">investigation</text>
+<path d="M200,180.0 L245,185.0" class="arrow"/>
+<text x="222.5" y="174.5" text-anchor="middle" class="note">SSO + MFA</text>
+<path d="M435,185.0 L480,185.0" class="arrow"/>
+<text x="457.5" y="177.0" text-anchor="middle" class="note">assume role</text>
+<path d="M650,185.0 L700,185.0" class="arrow"/>
+<text x="675.0" y="177.0" text-anchor="middle" class="note">evaluate request</text>
+<path d="M870,185.0 L920,185.0" class="arrow"/>
+<text x="895.0" y="177.0" text-anchor="middle" class="note">allowed action</text>
+<path d="M700,370.0 L870,185.0" class="arrow"/>
+<text x="785.0" y="269.5" text-anchor="middle" class="note">guardrails</text>
+<path d="M920,185.0 L1130,370.0" class="arrow"/>
+<text x="1025.0" y="269.5" text-anchor="middle" class="note">logs</text>
+<path d="M920,370.0 L870,185.0" class="arrow"/>
+<text x="895.0" y="269.5" text-anchor="middle" class="note">risk signal</text>
+</svg>
