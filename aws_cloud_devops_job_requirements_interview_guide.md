@@ -1,3 +1,5 @@
+<a id="top"></a>
+
 # AWS Cloud/DevOps Job Requirements and Interview Preparation Guide
 
 ## Table of Contents
@@ -42,6 +44,8 @@
 ### Reference
 
 1. [AWS Services and Tools Glossary](#aws-services-and-tools-glossary)
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -138,6 +142,8 @@ Quick one-line reference for every service, tool, and language mentioned in this
 | **ArcGIS Pro** | Esri's desktop GIS application for mapping, spatial analysis, and publishing. |
 | **FME Core / FME Engine** | Tooling for geospatial data transformation, format conversion, and integration automation. |
 
+[⬆ Back to top](#top)
+
 ---
 
 # Overview of the Job Requirements
@@ -156,6 +162,8 @@ The most important areas are:
 8. Containers, serverless applications, databases, and storage
 9. DevSecOps, documentation, and disaster recovery
 10. ArcGIS and GIS platform support
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -263,6 +271,8 @@ Each workspace can have its own variables, credentials, state, execution history
 - Avoid hard-coded values
 - Keep secrets out of Terraform files
 - Review `terraform plan` before `terraform apply`
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -372,6 +382,8 @@ mainSteps:
           - sudo systemctl status application
 ```
 
+[⬆ Back to top](#top)
+
 ---
 
 # 3. CI/CD Using CodePipeline, CodeBuild, Azure DevOps, and GitHub
@@ -468,6 +480,8 @@ Important GitHub concepts:
 - Manual production approvals
 - Rollback procedures
 - Audit logging
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -570,6 +584,8 @@ A secure design may allow:
 - PostgreSQL only from application servers
 - NFS only from approved systems
 
+[⬆ Back to top](#top)
+
 ---
 
 # 5. AWS Networking
@@ -608,6 +624,8 @@ VPC endpoints provide private access to services such as S3, Systems Manager, EC
 ## VPC Flow Logs
 
 VPC Flow Logs record network metadata and help troubleshoot rejected traffic, unexpected destinations, and security-control issues.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -666,6 +684,8 @@ Collects memory, disk, process metrics, Linux logs, and Windows Event Logs.
 
 CloudTrail records AWS API activity and helps determine who changed a resource, when it happened, from which source, and with which role.
 
+[⬆ Back to top](#top)
+
 ---
 
 # 7. Secrets Manager and Parameter Store
@@ -707,6 +727,8 @@ Used for:
 - Rotate sensitive credentials
 - Audit access using CloudTrail
 
+[⬆ Back to top](#top)
+
 ---
 
 # 8. Amazon ECS and ECR
@@ -747,6 +769,8 @@ Defines:
 
 The execution role lets ECS pull images, retrieve referenced secrets, and write logs. The task role gives the running application permission to call AWS services.
 
+[⬆ Back to top](#top)
+
 ---
 
 # 9. Automation Languages
@@ -766,6 +790,8 @@ Used for Linux configuration, deployment, validation, log collection, and user d
 ## PowerShell
 
 Used for Windows Server administration, services, IIS, Event Logs, registry changes, patching, and scheduled tasks.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -806,6 +832,8 @@ firewall-cmd --list-all
 getenforce
 ```
 
+[⬆ Back to top](#top)
+
 ---
 
 # 11. Windows Server 2022 Administration
@@ -838,6 +866,8 @@ Test-NetConnection server.example.com -Port 443
 Get-HotFix
 ```
 
+[⬆ Back to top](#top)
+
 ---
 
 # 12. Lambda and Step Functions
@@ -859,6 +889,8 @@ Common uses:
 
 Step Functions coordinates tasks using sequential steps, parallel processing, retries, branching, waiting, and error handling.
 
+[⬆ Back to top](#top)
+
 ---
 
 # 13. Amazon S3
@@ -878,6 +910,8 @@ Important areas:
 - Object Lock
 - Storage classes
 - Presigned URLs
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -911,6 +945,8 @@ Common issues:
 - Storage limitations
 - Locks and blocking
 
+[⬆ Back to top](#top)
+
 ---
 
 # 15. DynamoDB
@@ -931,6 +967,8 @@ Important concepts:
 - Encryption
 - Point-in-time recovery
 
+[⬆ Back to top](#top)
+
 ---
 
 # 16. SonarQube and JFrog
@@ -950,6 +988,8 @@ SonarQube checks code for:
 ## JFrog Artifactory
 
 JFrog stores and manages versioned artifacts such as Java, Python, Node.js, .NET, Helm, Docker, and binary packages.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -984,6 +1024,8 @@ Possible tools:
 - CloudTrail
 - CloudWatch
 
+[⬆ Back to top](#top)
+
 ---
 
 # 18. ArcGIS, Esri, FME, and AppStream
@@ -1015,6 +1057,8 @@ Used for geospatial data transformation, conversion, integration, and automation
 ## AWS AppStream 2.0
 
 Streams desktop applications to users through a browser.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -1142,6 +1186,8 @@ Integrate security throughout the delivery lifecycle using reviews, scans, least
 
 My strongest experience is AWS infrastructure, Terraform, automation, CI/CD, Linux, Windows, networking, security, and operations. These skills are directly applicable to ArcGIS environments, and I can quickly learn the product-specific architecture and support processes.
 
+[⬆ Back to top](#top)
+
 ---
 
 # Behavioral Interview Questions
@@ -1184,6 +1230,8 @@ I gather application, security, availability, and deployment requirements, trans
 
 My experience aligns with the role’s main requirements: AWS, Terraform, Systems Manager, CI/CD, Linux, Windows, IAM, KMS, networking, monitoring, containers, databases, scripting, and technical documentation.
 
+[⬆ Back to top](#top)
+
 ---
 
 # Topics to Study Before the Interview
@@ -1205,6 +1253,8 @@ My experience aligns with the role’s main requirements: AWS, Terraform, System
 15. Disaster recovery runbooks
 16. ArcGIS Enterprise architecture
 
+[⬆ Back to top](#top)
+
 ---
 
 # Strong Interview Introduction
@@ -1212,3 +1262,5 @@ My experience aligns with the role’s main requirements: AWS, Terraform, System
 I am an AWS Cloud and DevOps Engineer with experience designing, automating, securing, and supporting cloud infrastructure. My background includes Terraform, AWS Systems Manager, CI/CD pipelines, EC2, networking, IAM, KMS, S3, RDS, ECS, ECR, CloudWatch, CloudTrail, Linux, Windows Server, and automation using Python, Bash, PowerShell, and YAML.
 
 I focus on reusable infrastructure, secure deployment processes, operational automation, monitoring, and clear technical documentation. My experience aligns strongly with the cloud and DevOps responsibilities of this role, and I am prepared to apply those skills to the organization’s GIS and enterprise application environment.
+
+[⬆ Back to top](#top)
