@@ -1,0 +1,86 @@
+schemaVersion: "0.3"
+description: |-
+  Check status, start, or stop a single EC2 instance on demand.
+  Pass Action = Status | Start | Stop.
+assumeRole: "{{ AutomationAssumeRole }}"
+
+parameters:
+  InstanceId:
+    type: String
+    description: "The ID of the EC2 instance to manage (e.g. i-0123456789abcdef0)."
+
+  Action:
+    type: String
+    description: "The operation to perform on the instance."
+    allowedValues:
+      - Status
+      - Start
+      - Stop
+
+  AutomationAssumeRole:
+    type: String
+    description: "(Optional) ARN of the IAM role Automation assumes to run this document. Leave blank to run as the calling user/role."
+    default: ""
+
+mainSteps:
+  - name: BranchOnAction
+    action: aws:branch
+    inputs:
+      Choices:
+        - NextStep: StartInstance
+          Variable: "{{ Action }}"
+          StringEquals: Start
+        - NextStep: StopInstance
+          Variable: "{{ Action }}"
+          StringEquals: Stop
+      Default: GetInstanceStatus
+
+  - name: StartInstance
+    action: aws:changeInstanceState
+    maxAttempts: 1
+    timeoutSeconds: 600
+    onFailure: Abort
+    inputs:
+      InstanceIds:
+        - "{{ InstanceId }}"
+      DesiredState: running
+    nextStep: GetInstanceStatus
+
+  - name: StopInstance
+    action: aws:changeInstanceState
+    maxAttempts: 1
+    timeoutSeconds: 600
+    onFailure: Abort
+    inputs:
+      InstanceIds:
+        - "{{ InstanceId }}"
+      DesiredState: stopped
+    nextStep: GetInstanceStatus
+
+  - name: GetInstanceStatus
+    action: aws:executeAwsApi
+    maxAttempts: 2
+    inputs:
+      Service: ec2
+      Api: DescribeInstances
+      InstanceIds:
+        - "{{ InstanceId }}"
+    outputs:
+      - Name: InstanceState
+        Selector: "$.Reservations[0].Instances[0].State.Name"
+        Type: String
+      - Name: InstanceType
+        Selector: "$.Reservations[0].Instances[0].InstanceType"
+        Type: String
+      - Name: PrivateIp
+        Selector: "$.Reservations[0].Instances[0].PrivateIpAddress"
+        Type: String
+      - Name: PublicIp
+        Selector: "$.Reservations[0].Instances[0].PublicIpAddress"
+        Type: String
+
+outputs:
+  - GetInstanceStatus.InstanceState
+  - GetInstanceStatus.InstanceType
+  - GetInstanceStatus.PrivateIp
+  - GetInstanceStatus.PublicIp
