@@ -419,6 +419,59 @@ drift, and computes diffs on the next `plan`.
 
 **Never edit the state file by hand.** Use `terraform state` subcommands.
 
+## State File Anatomy
+
+A simplified look at what's actually inside `terraform.tfstate`:
+
+```json
+{
+  "version": 4,
+  "terraform_version": "1.9.0",
+  "serial": 27,
+  "lineage": "a1b2c3d4-5678-90ab-cdef-1234567890ab",
+  "outputs": {
+    "vpc_id": {
+      "value": "vpc-0abc123",
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "mode": "managed",
+      "type": "aws_instance",
+      "name": "web",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "id": "i-0123456789abcdef0",
+            "ami": "ami-0c101f26f147fa7fd",
+            "instance_type": "t3.micro"
+          },
+          "dependencies": []
+        }
+      ]
+    }
+  ]
+}
+```
+
+| Field | Meaning |
+|---|---|
+| `version` | State file format version (an internal schema, not the Terraform version) |
+| `terraform_version` | Terraform CLI version that last wrote this state |
+| `serial` | Monotonically incremented on every state write — the basis for detecting a stale/conflicting write |
+| `lineage` | A UUID identifying this state's history; changes only if state is fundamentally replaced (e.g., `state push` of an unrelated file) |
+| `resources[].instances[].attributes` | Every attribute of the resource **as last recorded**, including secrets, in plaintext |
+| `resources[].instances[].dependencies` | The dependency edges used to build the graph |
+
+Two state files with the same `lineage` but different `serial` values are
+comparable (one is simply newer); different `lineage` values mean the
+backend is being asked to reconcile two unrelated histories, which is why
+`terraform state push` of the wrong file is dangerous — it can silently
+overwrite an unrelated lineage if you bypass the safety checks.
+
 ## State Commands
 
 ```bash
@@ -439,6 +492,143 @@ Local state (the default, a file on your machine) does not work for teams:
 - Secrets in state live unencrypted on a laptop.
 
 This is why real projects use a [remote backend](#8-remote-backends).
+
+## State Versioning
+
+Versioning means every write to the state file is preserved, not just the
+latest one — so a bad `apply`, an accidental `state rm`, or a corrupting
+concurrent write can be undone by going back to a known-good copy.
+
+### S3 Backend
+
+Enable bucket versioning on the backend bucket — every `apply` writes a new
+object version instead of overwriting in place:
+
+```hcl
+resource "aws_s3_bucket_versioning" "state" {
+  bucket = aws_s3_bucket.state.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+```
+
+List and inspect prior versions:
+
+```bash
+aws s3api list-object-versions \
+  --bucket company-terraform-state \
+  --prefix app/prod/terraform.tfstate
+
+aws s3api get-object \
+  --bucket company-terraform-state \
+  --key app/prod/terraform.tfstate \
+  --version-id <VERSION_ID> \
+  state-old.json
+```
+
+Pair versioning with:
+
+- **SSE-KMS encryption** (`aws_s3_bucket_server_side_encryption_configuration`) —
+  state at rest is encrypted, and every read/write is auditable via
+  CloudTrail against the KMS key.
+- **MFA delete** or a bucket policy denying `s3:DeleteObject`/
+  `s3:DeleteObjectVersion` for anyone but a break-glass role, so a version
+  history can't itself be deleted.
+- **Lifecycle rules** that move old versions to cheaper storage after N days
+  rather than expiring them outright — state history is small and cheap to
+  keep indefinitely.
+
+### Terraform Cloud / Enterprise
+
+State versioning is automatic and built in — every run creates a new,
+retrievable state version visible in the workspace's **States** tab, each
+tagged with the run that produced it, with one-click rollback to any prior
+version via the UI or API.
+
+### Local Backend
+
+Terraform itself keeps exactly **one** local backup automatically:
+`terraform.tfstate.backup`, overwritten on every subsequent apply — this is
+not real version history, just a single-step undo, and is one more reason
+local state doesn't belong in a team workflow.
+
+## Backup and Restore
+
+### Manual, Point-in-Time Backup
+
+Regardless of backend, you can always snapshot the current state on demand:
+
+```bash
+terraform state pull > "backups/terraform.tfstate.$(date +%Y%m%d%H%M%S)"
+```
+
+Do this before any risky operation — a bulk `state mv`/`state rm`, a backend
+migration, or a manual `state push`.
+
+### Restoring After a Bad Apply or Corruption (S3 Backend)
+
+```bash
+# 1. Identify the last known-good version
+aws s3api list-object-versions \
+  --bucket company-terraform-state \
+  --prefix app/prod/terraform.tfstate \
+  --query 'Versions[*].[VersionId,LastModified]' \
+  --output table
+
+# 2. Download it for inspection first — don't restore blind
+aws s3api get-object \
+  --bucket company-terraform-state \
+  --key app/prod/terraform.tfstate \
+  --version-id <GOOD_VERSION_ID> \
+  state-restore-candidate.json
+
+# 3. Push it back as the current state (acquires the lock, so no
+#    concurrent apply can be running)
+terraform state push state-restore-candidate.json
+
+# 4. Verify — expect either no diff, or a diff you understand and intend
+terraform plan
+```
+
+`terraform state push` refuses to push a state with a different `lineage`
+than the currently configured backend expects unless you force it
+(`-force`) — treat that refusal as a hard stop, not an obstacle to push
+past, until you're certain the file you're restoring is actually meant for
+this backend/configuration.
+
+### Restoring in Terraform Cloud/Enterprise
+
+Use the workspace's **States** tab (or the State Versions API) to select a
+prior version and roll back — no manual `pull`/`push` required, and the
+rollback itself is recorded in the run history.
+
+### Recovering When State Is Gone Entirely
+
+If no backup/version exists at all:
+
+1. Re-create empty state in the correct backend (`terraform init`).
+2. Re-establish tracking per resource with `terraform import` or an
+   `import` block — `terraform plan -generate-config-out=generated.tf` can
+   scaffold matching HCL for each imported resource in 1.5+.
+3. Run `terraform plan` after each import batch and resolve any diff before
+   moving on — a diff means the written configuration doesn't yet match the
+   real resource's attributes exactly.
+4. Prioritize importing resources in dependency order (network before
+   compute before application) so cross-resource references resolve
+   correctly as you go.
+
+### Disaster Recovery Checklist for State
+
+- [ ] Backend bucket/store has versioning enabled and verified (test a
+      restore before you need one for real).
+- [ ] State is encrypted at rest, with access restricted to the
+      roles/people who need it.
+- [ ] A recent `state pull` backup exists before any bulk state operation.
+- [ ] The restore procedure has been rehearsed at least once, not just
+      documented.
+- [ ] Locking is confirmed working (a concurrent apply attempt correctly
+      blocks) before relying on it in production.
 
 ## Sensitive Data in State
 
