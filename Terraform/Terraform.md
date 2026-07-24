@@ -1460,7 +1460,7 @@ controlled backend (see [State Management](#7-state-management)).
 
 ---
 
-# 21. Security Best Practices
+# 21. Terraform Security Best Practices
 
 - Store state remotely, encrypted (SSE-KMS on S3), with access restricted by
   IAM to the roles/people who need it.
