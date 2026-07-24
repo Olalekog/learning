@@ -1469,7 +1469,7 @@ TF_LOG=DEBUG terraform plan
 
 ---
 
-# 25. Interview Questions
+# 25. Terraform Interview Questions
 
 ## Basic
 
