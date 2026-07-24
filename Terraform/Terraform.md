@@ -32,6 +32,8 @@ troubleshooting guide organized by topic.
 22. [Troubleshooting Guide by Topic](#22-troubleshooting-guide-by-topic)
 23. [CLI Command Cheat Sheet](#23-cli-command-cheat-sheet)
 24. [Study Checklist](#24-study-checklist)
+25. [Interview Questions](#25-interview-questions)
+26. [Reference Links](#26-reference-links)
 
 ---
 
@@ -1462,5 +1464,264 @@ TF_LOG=DEBUG terraform plan
       plan, manual approval, apply).
 - [ ] Explain what Terraform Cloud/Enterprise adds over open-source Terraform
       (remote execution, Sentinel/OPA, private registry).
+
+[⬆ Back to top](#top)
+
+---
+
+# 25. Interview Questions
+
+## Basic
+
+**1. What is Terraform, and how does it differ from a configuration management tool like Ansible?**
+Terraform is a declarative Infrastructure as Code tool focused on provisioning
+and managing the *lifecycle* of infrastructure resources. Ansible is primarily
+an imperative configuration management tool focused on installing software
+and configuring existing servers. They're often used together: Terraform
+creates the instance, Ansible/SSM configures what runs on it.
+
+**2. What is the difference between Terraform and AWS CloudFormation?**
+Terraform is multi-cloud and provider-based, with a large community module
+ecosystem; CloudFormation is AWS-native with tighter AWS service integration
+and no separate state file to manage (AWS manages the "state").
+
+**3. What is a provider?**
+A plugin that lets Terraform talk to an API (AWS, Azure, GitHub, Kubernetes,
+Datadog, etc.) — it translates HCL resource blocks into API calls.
+
+**4. What is the Terraform state file, and why does it matter?**
+It's a JSON record mapping configuration resources to real infrastructure
+IDs. Terraform uses it to compute diffs on `plan` and to know what it
+manages. Losing or corrupting it breaks Terraform's ability to safely manage
+existing resources.
+
+**5. What's the difference between `terraform plan` and `terraform apply`?**
+`plan` shows a preview of proposed changes without making them; `apply`
+executes the plan against real infrastructure via provider APIs.
+
+**6. What happens if you delete the state file?**
+Terraform "forgets" everything it manages. The next `plan` will propose
+creating every resource from scratch, likely erroring on "already exists" for
+resources that are still real. Recovery requires re-importing resources or
+restoring state from a backup/version.
+
+**7. What is idempotency, and how does Terraform achieve it?**
+Idempotency means applying the same configuration repeatedly produces the
+same end state without unintended side effects. Terraform achieves this by
+comparing desired configuration against state and real infrastructure, only
+changing what's actually different.
+
+## Intermediate
+
+**8. What's the difference between `count` and `for_each`?**
+`count` creates N near-identical copies indexed numerically (`resource[0]`);
+inserting/removing an item in the middle shifts every following index,
+forcing unrelated resources to be destroyed and recreated. `for_each` keys
+resources by a stable string (map key or set member), so adding/removing one
+entry doesn't disturb the others — preferred for named, distinguishable
+resources.
+
+**9. When would you use a data source instead of a resource?**
+When you need to read something Terraform doesn't manage — an existing VPC,
+the latest AMI, the caller's account ID — without taking ownership of its
+lifecycle.
+
+**10. What is a module, and why use one?**
+A reusable, parameterized bundle of resources. Modules let you avoid
+duplicating the same VPC/ECS-service/RDS configuration across environments
+and centralize the "correct" pattern in one versioned place.
+
+**11. How do you manage secrets in Terraform?**
+Pull them at apply time from Secrets Manager/Parameter Store/Vault via a data
+source rather than hard-coding them; mark relevant variables/outputs
+`sensitive = true`; store state encrypted with restricted access, since
+secrets end up in state regardless.
+
+**12. Explain remote state and why it matters for teams.**
+Remote state stores `terraform.tfstate` in a shared, versioned location (S3,
+Terraform Cloud, etc.) instead of a local file, so every team member and CI
+job plans against the same source of truth, with locking to prevent
+simultaneous conflicting applies.
+
+**13. What is state locking, and why is it needed?**
+A mechanism (DynamoDB conditional writes, S3 native locking, cloud-managed
+locks) that prevents two `apply`/`plan -refresh-only` operations from writing
+state at the same time, which would otherwise corrupt it.
+
+**14. What's the difference between `variables.tf`, `terraform.tfvars`, and `TF_VAR_*` environment variables?**
+`variables.tf` *declares* variables (type, default, validation).
+`terraform.tfvars` (and `*.auto.tfvars`) *supplies values*, auto-loaded on
+every run. `TF_VAR_<name>` environment variables also supply values, useful
+for secrets in CI without a file on disk. Precedence: CLI `-var`/`-var-file` >
+`*.auto.tfvars` > `terraform.tfvars` > environment variables > declared
+default.
+
+**15. What is the `lifecycle` block used for?**
+Customizing how Terraform handles a resource's create/update/destroy
+behavior: `create_before_destroy` (avoid downtime on replacement),
+`prevent_destroy` (safety rail), `ignore_changes` (stop fighting drift on
+specific attributes, e.g. autoscaler-managed fields).
+
+**16. Explain `depends_on` vs implicit dependencies.**
+Terraform infers most dependencies automatically when one resource
+references another's attribute. `depends_on` is an explicit override for
+dependencies invisible in the configuration itself — e.g., IAM permission
+propagation delays, or ordering relative to a provisioner's side effect.
+
+## Advanced
+
+**17. How would you handle multi-region or multi-account deployments?**
+Use provider aliases (`provider "aws" { alias = "west" }`) for multiple
+regions within one configuration, or `assume_role` plus separate
+configurations/workspaces per account for genuinely separate account
+boundaries. Pass aliased providers into modules via the `providers = {}`
+map.
+
+**18. What's the difference between the `import` block and the `terraform import` CLI command?**
+The `import` block (1.5+) is declarative — it's part of the configuration,
+shows up in `plan` before anything happens, and can generate config with
+`-generate-config-out`. `terraform import` is an imperative, one-off CLI
+command that immediately links a resource address to a real object ID; you
+still must write the matching `resource` block by hand.
+
+**19. How do you detect and handle drift?**
+`terraform plan -refresh-only` shows differences between state and real
+infrastructure without modifying either. From there, either
+`apply -refresh-only` to accept the drift into state, or a normal `apply` to
+push the configured value back onto the real resource.
+
+**20. What is Sentinel/OPA, and how does it relate to Terraform?**
+Policy-as-code frameworks (Sentinel is HashiCorp's own, OPA is
+open-source/CNCF) that run against a Terraform plan in Terraform
+Cloud/Enterprise pipelines to block applies that violate organizational
+rules — e.g., no public S3 buckets, mandatory cost-center tags.
+
+**21. How would you structure Terraform code for a large, multi-team organization?**
+Small, focused, versioned modules in a shared registry; separate state per
+environment (and often per layer — network, data, application) rather than
+one monolithic state; consistent remote backend and tagging conventions;
+CI-enforced `fmt`/`validate`/scan/plan review before any apply; environment
+promotion via pinned module versions rather than shared mutable code.
+
+**22. What are the risks of `-target` and `-auto-approve`, and when would you still use them?**
+`-target` only reasons about the targeted resource and its dependencies,
+which can produce a plan inconsistent with the full configuration if used
+repeatedly — it's an escape hatch for incident response, not routine
+workflow, and usually signals the configuration should be split up.
+`-auto-approve` skips the human review step; acceptable in CI pipelines where
+the plan itself was already reviewed and gated, risky when run ad hoc against
+production.
+
+**23. Explain `create_before_destroy`, and describe a case where a resource is still destroyed and recreated despite it.**
+It creates the replacement before destroying the original, avoiding downtime.
+It doesn't help when the resource has a uniqueness constraint that conflicts
+with having two copies simultaneously (e.g., a resource named by a fixed,
+non-generated string) — the create step itself fails, so the old resource
+never gets a chance to be safely retired first.
+
+**24. What is a Terraform workspace, and what are its limitations versus directory-per-environment?**
+A CLI workspace lets one configuration manage multiple named state files
+using the same backend and code, varying only by `terraform.workspace` value
+and separate variable inputs. It cannot give different environments
+different backend configs or account boundaries — for that, most teams use
+separate directories/configurations (or Terraform Cloud's own, larger
+workspace concept) instead.
+
+**25. How does Terraform decide the order to create/destroy resources?**
+It builds a dependency graph from resource references (and any explicit
+`depends_on`), then walks it — creating/updating in dependency order and
+destroying in reverse dependency order — parallelizing independent branches
+up to `-parallelism` (default 10).
+
+## Troubleshooting-Focused
+
+**26. A `terraform apply` fails with a state lock error. How do you resolve it safely?**
+First confirm no other apply/plan is actually running (check CI, check with
+teammates). Only then run `terraform force-unlock <LOCK_ID>` — force-unlocking
+during a genuinely concurrent run can corrupt state.
+
+**27. `terraform plan` shows a resource will be destroyed and recreated unexpectedly. How do you investigate?**
+Read the plan's `# forces replacement` annotation, which names the exact
+attribute that triggered it. Check whether that attribute is genuinely
+immutable for the resource type, or whether it's a computed value that
+shouldn't have changed — often a provider version issue or an upstream data
+source returning a new value.
+
+**28. How do you fix a "resource already exists" error?**
+The object exists in the real infrastructure but not in Terraform's state
+(created manually, or state was lost). Bring it under management with
+`terraform import` (or an `import` block) instead of trying to recreate it.
+
+**29. How would you migrate Terraform state to a new backend without downtime?**
+Update the `backend` block to point at the new location, then run
+`terraform init -migrate-state`, which copies existing state to the new
+backend. No resources are touched — only where the *state file* lives
+changes. Verify with `terraform plan` (expect no changes) immediately after.
+
+**30. How do you debug a provider authentication failure in a CI pipeline?**
+Confirm the CI job actually has credentials available (`aws sts
+get-caller-identity` as a pipeline step), check whether an `assume_role` trust
+policy allows the CI role, and compare against a local run using the same
+credentials to isolate whether it's a CI environment issue or a genuine
+permissions gap.
+
+## Behavioral / Scenario Questions
+
+**31. Tell me about a time Terraform state got out of sync with real infrastructure.**
+Frame around: how you detected it (drift in `plan`, or an out-of-band
+console change), how you used `plan -refresh-only` to see the full picture
+before acting, and what you changed afterward (tagging conventions, SCPs,
+or process) to prevent manual changes going forward.
+
+**32. Describe how you introduced Terraform to a team that previously made manual changes.**
+Frame around: starting with import of existing resources rather than a
+risky recreate, building confidence with a low-risk environment first,
+and the review/approval process you put in place before touching production.
+
+**33. How do you handle a disagreement about using a module versus copy-pasting a resource block?**
+Frame around: the tradeoff (a module adds indirection but prevents drift
+between "copies" of the same pattern), and how you'd decide based on how
+many places the pattern is duplicated and how likely it is to change.
+
+**34. Tell me about a production incident caused by a `terraform apply`.**
+Use STAR: the situation (what broke and why — often an unreviewed plan, a
+destructive replacement, or a wrong `-target`), the immediate action taken,
+and the lasting process change (mandatory plan review, `prevent_destroy` on
+critical resources, removing `-auto-approve` from prod pipelines).
+
+[⬆ Back to top](#top)
+
+---
+
+# 26. Reference Links
+
+## Official Documentation
+
+- [Terraform Documentation](https://developer.hashicorp.com/terraform/docs) — full language, CLI, and provider documentation hub
+- [Terraform Language Reference](https://developer.hashicorp.com/terraform/language) — resources, variables, expressions, functions
+- [Terraform CLI Reference](https://developer.hashicorp.com/terraform/cli) — every subcommand and flag
+- [Terraform Cloud Documentation](https://developer.hashicorp.com/terraform/cloud-docs) — workspaces, VCS-driven runs, Sentinel
+- [Terraform Registry](https://registry.terraform.io/) — public providers and modules
+- [AWS Provider Documentation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs) — every AWS resource/data source Terraform supports
+
+## Learning and Tutorials
+
+- [HashiCorp Developer Tutorials — Terraform](https://developer.hashicorp.com/terraform/tutorials) — official guided tutorials by topic
+- [Terraform Best Practices](https://www.terraform-best-practices.com/) — community-maintained style and structure guide
+- [HashiCorp Certified: Terraform Associate](https://developer.hashicorp.com/certifications/infrastructure-automation) — certification exam details and study guide
+
+## Source and Issue Tracking
+
+- [Terraform Core (GitHub)](https://github.com/hashicorp/terraform) — CLI/engine source and issue tracker
+- [Terraform AWS Provider (GitHub)](https://github.com/hashicorp/terraform-provider-aws) — provider source, changelog, and known issues
+- [Terraform CDK (CDKTF)](https://github.com/hashicorp/terraform-cdk) — define Terraform using TypeScript/Python/Go instead of HCL
+
+## Tooling
+
+- [tflint](https://github.com/terraform-linters/tflint) — provider-aware linting
+- [Checkov](https://github.com/bridgecrewio/checkov) — static analysis for security/compliance misconfigurations
+- [Trivy](https://github.com/aquasecurity/trivy) — vulnerability and misconfiguration scanner (absorbed tfsec)
+- [Terragrunt](https://terragrunt.gruntwork.io/) — DRY wrapper for multi-environment Terraform
+- [Terratest](https://terratest.gruntwork.io/) — Go library for writing real infrastructure integration tests
 
 [⬆ Back to top](#top)
