@@ -194,6 +194,17 @@ lightweight version embedded in PR templates works well:
 SAST scans source code (without executing it) for insecure patterns —
 SQL injection, hardcoded secrets, unsafe deserialization, XSS sinks.
 
+## Example SAST Tools
+
+| Tool | Short Description |
+|---|---|
+| **SonarQube** | Static analysis platform covering bugs, vulnerabilities, code smells, and duplication, with quality gates that can block a pipeline. |
+| **Semgrep** | Fast, rule-based scanner using lightweight pattern-matching rules (YAML); easy to write custom rules and run in seconds on a PR diff. |
+| **Checkmarx** | Enterprise SAST platform with deep, cross-file data-flow analysis across many languages; commonly used where compliance mandates a commercial tool. |
+| **Fortify (OpenText)** | Enterprise SAST with broad language support and detailed remediation guidance; often used in large regulated organizations. |
+| **CodeQL** | GitHub's semantic code analysis engine; queries code as if it were data, strong for finding complex data-flow vulnerabilities, integrates natively with GitHub Advanced Security. |
+| **Bandit** | Lightweight SAST scanner specifically for Python, checking for common security issues (e.g., use of `eval`, hardcoded passwords). |
+
 ## SonarQube Quality Gate Example
 
 ```yaml
@@ -272,6 +283,17 @@ semgrep --config "p/owasp-top-ten" src/   # use a curated public ruleset
 SCA identifies known vulnerabilities (CVEs) in third-party
 libraries/packages your application depends on — most real-world breaches
 trace back to a vulnerable dependency, not custom code.
+
+## Example SCA Tools
+
+| Tool | Short Description |
+|---|---|
+| **Snyk** | SaaS/CLI SCA scanner covering dependencies, containers, and IaC; tracks a project continuously (`snyk monitor`) and alerts on newly disclosed CVEs. |
+| **OWASP Dependency-Check** | Free, open-source SCA tool that cross-references dependencies against the National Vulnerability Database (NVD); strong default choice with no vendor lock-in. |
+| **Trivy** | Originally a container scanner, now also scans filesystems/lockfiles for dependency CVEs, IaC misconfigurations, and secrets in one tool. |
+| **npm audit / pip-audit** | Package-manager-native auditing for Node.js and Python respectively; fast, zero-setup first line of defense. |
+| **GitHub Dependabot** | Native GitHub feature that scans dependency manifests, opens automated PRs to bump vulnerable packages to a patched version. |
+| **Black Duck** | Enterprise SCA platform with license-compliance scanning alongside vulnerability detection, common where OSS license risk is also tracked. |
 
 ## OWASP Dependency-Check
 
@@ -631,6 +653,17 @@ spec:
 DAST tests a *running* application from the outside — the way an attacker
 would — catching issues SAST can't see (misconfigurations, auth flaws,
 runtime behavior).
+
+## Example DAST Tools
+
+| Tool | Short Description |
+|---|---|
+| **OWASP ZAP** | Free, open-source DAST proxy/scanner; supports quick baseline (passive) scans and deeper authenticated full scans, widely used in CI pipelines. |
+| **Burp Suite** | Industry-standard web app testing toolkit (manual + automated scanning); the Pro edition is a staple for manual pentesting alongside its automated crawler/scanner. |
+| **Nikto** | Lightweight, fast web server scanner focused on known-bad files, outdated server software, and common misconfigurations. |
+| **Acunetix** | Commercial DAST scanner with strong coverage of modern JavaScript-heavy single-page applications and APIs. |
+| **StackHawk** | DAST built specifically for CI/CD pipelines, designed to run automatically on every deploy with developer-friendly findings. |
+| **Nuclei** | Fast, template-based vulnerability scanner; community-maintained templates cover CVEs, misconfigurations, and exposed panels. |
 
 ## OWASP ZAP Baseline Scan
 
