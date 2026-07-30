@@ -21,11 +21,12 @@
 15. [AI, ML, and Generative AI](#10-ai-ml-and-generative-ai)
 16. [Application Integration](#11-application-integration)
 17. [Cost Management](#12-cost-management)
-18. [Azure Engineer Interview Questions](#azure-engineer-interview-questions)
-19. [Azure DevOps Engineer Interview Questions](#azure-devops-engineer-interview-questions)
-20. [Most Important Azure Services to Know First](#most-important-azure-services-to-know-first)
-21. [Simple Interview Answer](#simple-interview-answer)
-22. [Daily Learning Notes](#daily-learning-notes)
+18. [AZ-305: Solutions Architect Design Concepts](#az-305-solutions-architect-design-concepts)
+19. [Azure Engineer Interview Questions](#azure-engineer-interview-questions)
+20. [Azure DevOps Engineer Interview Questions](#azure-devops-engineer-interview-questions)
+21. [Most Important Azure Services to Know First](#most-important-azure-services-to-know-first)
+22. [Simple Interview Answer](#simple-interview-answer)
+23. [Daily Learning Notes](#daily-learning-notes)
 
 ---
 
@@ -170,6 +171,9 @@ ServiceNow, Logic Apps, Event Grid]
 | **Azure App Service** | PaaS for web apps/APIs; built-in deployment slots (blue/green), auto-scaling, managed OS/runtime patching. | Web applications, REST APIs, mobile backends. | You want a managed platform (no OS patching) for a standard web stack — faster time-to-deploy, at the cost of flexibility for unusual runtime requirements vs raw VMs. |
 | **Azure Batch** | Managed batch job scheduling/queuing across VM pools (including Spot/Low-Priority VMs); automatic pool scaling; built-in retries. | Large-scale parallel processing, rendering, scientific workloads. | The job runs longer than Functions' limits or needs large/specialized compute across many parallel nodes — pairing with Spot/Low-Priority VMs makes it the most cost-efficient option for large batch workloads. |
 | **Virtual Machine Scale Sets (VMSS)** | Auto-scaling group of identical VMs; integrates with Load Balancer/Application Gateway; supports a mixed Spot/on-demand pool. | Horizontally scalable VM-based workloads. | A VM-based workload needs automatic horizontal scaling based on metrics/schedule — the standard scaling mechanism for VM compute, analogous to an AWS Auto Scaling Group. |
+| **Availability Sets vs Availability Zones** | Availability Sets spread VMs across fault domains (separate power/network) and update domains within **one datacenter** — protects against rack-level failure. Availability Zones spread resources across **physically separate datacenters** within a region — protects against a full datacenter failure, a stronger guarantee. | Availability Sets for a legacy region without Availability Zone support; Availability Zones wherever the region offers them. | Availability Zones whenever available — the modern default; fall back to Availability Sets only in regions that don't yet support zones. |
+| **Azure Dedicated Host** | Physical server dedicated to a single customer, giving control over which VMs run on the same underlying hardware. | Compliance/licensing requirements mandating physical isolation, or per-core licensing that benefits from hardware affinity control. | Regulatory or licensing rules require guaranteed physical isolation that shared multi-tenant VM hosts can't provide. |
+| **Azure Virtual Desktop (AVD)** | Managed desktop and app virtualization (multi-session Windows 10/11); pooled or personal host pools; integrates with Entra ID and FSLogix profile containers. | Remote/hybrid workforce virtual desktops, secure access to legacy line-of-business apps without local install. | You need centrally managed, multi-session Windows desktops delivered remotely — vs standalone VMs per user, multi-session pooling cuts compute cost per user significantly. |
 
 ### Interview Keyword
 Use **Virtual Machines** when you need control over servers, **Functions** for event-driven serverless workloads, **Container Apps** for serverless containers, and **AKS** when Kubernetes is required.
@@ -182,16 +186,20 @@ Use **Virtual Machines** when you need control over servers, **Functions** for e
 
 | Service | Key Features & Characteristics | Use Cases | Preferred Over the Alternative When |
 |---|---|---|---|
+| **Storage Account** | The top-level resource container for Blob, Files, Queue, and Table storage — one account, one namespace, one set of redundancy/access settings shared by whichever services it holds. | The mandatory first step before creating any Blob container, File share, Queue, or Table. | Foundational — every other row in this table lives inside a Storage Account; not itself a choice between alternatives. |
+| **Storage Redundancy (LRS/ZRS/GRS/RA-GRS/GZRS)** | LRS = 3 copies in one datacenter; ZRS = synchronous copies across 3 availability zones in-region; GRS = LRS replicated async to a paired region; RA-GRS = GRS plus read access to the secondary; GZRS = ZRS + GRS combined (zone + region redundancy). | Choosing a durability/cost/RPO tradeoff for any Storage Account. | RA-GRS/GZRS when you need read availability during a regional outage; ZRS when only zone-level (not regional) failure protection is needed at lower cost than GRS. |
 | **Azure Blob Storage** | Object storage; Hot/Cool/Cold/Archive access tiers in one account; redundancy options (LRS/ZRS/GRS/RA-GRS); lifecycle management policies. | Backups, logs, data lakes, static websites. | You need internet-accessible, massively scalable object storage rather than a mountable filesystem — cheapest option for large, infrequently accessed data when paired with lifecycle tiering to Archive. |
 | **Azure Disk Storage (Managed Disks)** | Block storage attached to a single VM; Standard HDD/SSD, Premium SSD, and Ultra Disk tiers; provisioned IOPS on Premium/Ultra. | OS disks, database data disks. | You need low-latency block-level access from exactly one VM — most cost-efficient/performant choice for that pattern, but it doesn't share across VMs. |
 | **Azure Files** | Managed SMB/NFS file shares; mountable from on-prem via Azure File Sync or directly from VMs/AKS; shared concurrently across many clients. | Shared Windows/Linux file storage, lift-and-shift of on-prem file servers. | Multiple VMs/users need concurrent read/write access to the same files — Managed Disks can't do this (single-attach in most cases). |
+| **Azure Table Storage** | NoSQL key-value store (partition key + row key) inside a Storage Account; schemaless, massively scalable, lowest-cost NoSQL option in Azure. | Simple, high-volume key-value data (device state, session data) that doesn't need Cosmos DB's global distribution or multi-model APIs. | The access pattern is simple key-value lookups and cost matters more than Cosmos DB's low-latency SLA, multi-region writes, or richer query capability. |
 | **Azure NetApp Files** | Enterprise-grade NAS (NFS/SMB) with NetApp ONTAP features — snapshots, cloning, cross-region replication, extreme low-latency performance tiers. | Enterprise NetApp migrations, SAP/Oracle, high-performance file workloads. | You need NetApp-specific enterprise NAS features or the highest available Azure file-storage performance tier that Azure Files doesn't offer. |
 | **Azure Backup** | Centralized, policy-based backup across VMs, Azure Files, SQL/SAP HANA databases, and on-prem (via agent); cross-region restore support. | Backup VMs, Azure Files, and databases from one place. | You need one policy/schedule/audit trail across many resource types instead of managing backup schedules separately per service. |
 | **Blob Storage Archive Tier** | Lowest-cost storage tier within Blob Storage (not a separate service); rehydration takes hours; priced far below Hot/Cool. | Long-term compliance retention, rarely accessed backups. | Data is rarely accessed and a multi-hour rehydration delay is acceptable — dramatically lower storage cost is the driver, at the expense of retrieval speed. |
 | **Azure File Sync** | Caches Azure Files on-prem via Windows Server endpoints, tiering cold files to the cloud automatically while keeping hot files local. | Hybrid file server modernization without ripping out on-prem file servers. | On-prem systems must keep using local file-server interfaces while data is tiered to and protected in Azure. |
+| **Shared Access Signature (SAS) vs Account Keys** | Account keys grant full, unrestricted access to the entire Storage Account and don't expire until manually rotated. A SAS is a signed URI granting scoped, time-limited access (specific container/blob, specific permissions, specific IP range/protocol). | Granting a client temporary, limited access to specific blobs/containers. | You need least-privilege, temporary access for an external client — never hand out the account key itself when a scoped SAS will do. |
 
 ### Interview Keyword
-Use **Blob Storage** for object storage, **Managed Disks** for VM block storage, **Azure Files** for shared file storage, and **Azure NetApp Files** for high-performance enterprise NAS.
+Use **Blob Storage** for object storage, **Managed Disks** for VM block storage, **Azure Files** for shared file storage, **Table Storage** for simple key-value NoSQL, and **Azure NetApp Files** for high-performance enterprise NAS.
 
 [⬆ Back to top](#top)
 
@@ -221,22 +229,32 @@ Use **Azure SQL Database/Managed Instance** for relational workloads, **Cosmos D
 | Service | Key Features & Characteristics | Use Cases | Preferred Over the Alternative When |
 |---|---|---|---|
 | **Azure Virtual Network (VNet)** | Logically isolated private network — subnets, route tables, NSGs; private by default. | Network segmentation and workload isolation. | Foundational — every Azure network design starts here; no real alternative. |
-| **Subnets** | Divide a VNet's address space into segments, each with its own NSG/route table association; can be delegated to specific services. | Separating tiers (web/app/data), service delegation (e.g., App Service VNet Integration). | Any VNet design — this is the baseline pattern for controlling exposure and routing per tier. |
+| **Subnets (CIDR / IP range)** | Divide a VNet's CIDR address space (e.g., a `/24` subnet carved out of a `/16` VNet) into segments, each with its own NSG/route table association; can be delegated to specific services. | Separating tiers (web/app/data), service delegation (e.g., App Service VNet Integration), sizing the IP range to fit expected resource count. | Any VNet design — this is the baseline pattern for controlling exposure, routing, and available IP addresses per tier. |
 | **Route Tables (User-Defined Routes)** | Override Azure's default system routes to force traffic through a specific next hop (firewall, NVA, VPN gateway). | Forcing all outbound traffic through a central firewall (hub-and-spoke). | Traffic must be inspected/controlled centrally rather than taking Azure's default routing path. |
-| **NSGs / Application Security Groups** | Stateful, rule-based traffic filtering at the subnet or NIC level; ASGs group VMs logically for rule reuse instead of hardcoding IPs. | Primary segmentation/firewalling control inside a VNet. | You need cheap, stateful east-west filtering at the resource level — pair with Azure Firewall for centralized north-south inspection. |
+| **Network Security Group (NSG)** | Stateful, rule-based traffic filtering (allow/deny by port/protocol/source) at the subnet or NIC level — the default segmentation building block inside a VNet. | Primary segmentation/firewalling control inside a VNet. | The first layer nearly every subnet/NIC gets — cheap, stateful east-west filtering at the resource level; pair with Azure Firewall for centralized north-south inspection. |
+| **Application Security Group (ASG)** | Logical grouping of VM network interfaces (e.g., "WebServers," "DBServers") referenced *inside* NSG rules instead of hardcoded IP addresses. ASGs don't replace NSGs — they sit **on top of NSGs** as a labeling layer that makes rules reusable and readable as the environment scales. | Writing a rule like "allow WebServers → DBServers on 1433" instead of a rule tied to a hardcoded, constantly-changing list of IPs. | Managing NSG rules by raw IP address becomes unmanageable — ASG membership is tag-based, so rules don't need updating every time a VM is added or removed. |
+| **Agent Pool** | A pool of compute (VMSS-backed) deployed inside a specific VNet subnet to run workloads or CI/CD jobs with private network access. AKS "agent pools" (node pools) run Kubernetes workloads per pool (system vs user, GPU vs CPU); self-hosted Azure Pipelines or ACR Tasks agent pools let a pipeline reach private resources with no public endpoint. | Running AKS workloads split across differently-purposed node pools; giving a CI/CD pipeline private access to VNet resources without exposing them publicly. | You need compute placed inside your own VNet for private connectivity or workload isolation — a Microsoft-hosted pipeline agent or the default AKS node pool either can't reach private resources or can't separate workloads by purpose. |
+| **Azure Firewall** (Stateful, FQDN-based) | Managed, stateful network firewall; filters by FQDN (not just IP), applies threat-intelligence feeds, and centralizes logging across every spoke VNet from one hub — see full detail in [§5 Security](#5-security-identity-and-compliance). | Centralized, auditable egress/ingress policy across many VNets/subscriptions in a hub-and-spoke topology, handling every environment from one place. | You need one place to enforce and log policy across every environment — vs per-subnet NSGs, which are cheaper but don't centralize FQDN filtering or cross-VNet logging. |
+| **DoS / DDoS Protection** | DoS = a single attacker overwhelming a resource; DDoS = many coordinated sources doing the same. Azure DDoS Protection Basic is free and automatic at the network layer for every public IP; Standard adds adaptive tuning, attack analytics, and cost protection — see full detail in [§5 Security](#5-security-identity-and-compliance). | Protecting any internet-facing VNet resource (public IP, Load Balancer, Application Gateway) from volumetric attacks. | Standard over Basic: the business impact of a large-scale attack justifies adaptive protection and billing protection guarantees Basic doesn't include. |
 | **Azure NAT Gateway** | Managed, zone-resilient, outbound-only internet access for a subnet; replaces the increasingly restricted default outbound access model. | Private subnet outbound internet access (patching, updates) without inbound exposure. | You need a dedicated, SNAT-port-scalable outbound path — Azure is deprecating implicit default outbound access, making NAT Gateway the recommended pattern. |
 | **Azure Bastion** | Fully managed, browser-based (or native client) RDP/SSH access to VMs directly through the Azure portal, with no public IP required on the VM and no VPN client to install. | Secure administrative access to VMs in a VNet without exposing RDP/SSH to the internet. | You need to eliminate public RDP/SSH exposure entirely — vs a jump box you manage yourself, removes the patching burden and the open inbound port altogether. |
+| **Azure Private Link / Private Endpoint** | Assigns a PaaS service (Storage, SQL, Key Vault, etc.) a private IP address *inside your VNet*, so traffic to it never traverses the public internet — even for Microsoft's own backbone-routed traffic. | Accessing PaaS services privately from a VNet, or exposing your own service privately to other VNets/tenants (Private Link Service). | You need traffic to a PaaS service to stay entirely off the public internet with a dedicated private IP — Service Endpoints (below) only keep traffic on Microsoft's backbone, they don't give the PaaS resource a private IP in your VNet. |
+| **VNet Service Endpoints** | Extends VNet identity to a PaaS service's public endpoint, keeping traffic on Microsoft's backbone (not a private IP) and letting the service's firewall restrict access to specific subnets. | Locking down a PaaS resource (e.g., a Storage Account) to only specific VNets/subnets without deploying Private Link. | You want subnet-scoped access restriction without the added cost/complexity of provisioning a Private Endpoint per service — the service still keeps its public IP, just firewalled to approved subnets. |
 | **Azure Load Balancer** | L4 (TCP/UDP) load balancer; regional; extreme throughput and low latency; supports a static/Standard public or internal IP. | High-throughput, non-HTTP, or internal-only load balancing. | Raw L4 performance, a static IP, or internal-only traffic distribution matters more than content-based routing. |
 | **Azure Application Gateway** | L7 (HTTP/HTTPS) load balancer; regional; content-based routing by path/host; integrated Web Application Firewall (WAF) SKU. | Regional web application load balancing with routing rules and WAF. | Routing decisions depend on request content (path/host) and WAF protection is needed at the regional level, without requiring global scope. |
 | **Azure Front Door** | L7 global load balancer and CDN; edge caching, WAF, global routing/failover across regions via Microsoft's edge network. | Global-scale web applications needing low-latency edge delivery and cross-region failover. | Traffic/users are global and you need edge caching plus automatic failover across regions — Application Gateway is regional-only and can't do this. |
-| **Azure DNS** | Managed authoritative DNS hosting; supports both public DNS zones (internet-resolvable) and private DNS zones (VNet-internal resolution); alias records to Azure resources. | Domain hosting, DNS routing, and private name resolution inside a VNet. | You need alias records to Azure resources and private zone integration with VNets that a third-party DNS provider won't give you — public zones for internet-facing domains, private zones for internal-only name resolution. |
-| **Azure Virtual WAN** | Managed hub-and-spoke networking at global scale, connecting many VNets/branches/VPN/ExpressRoute circuits through Microsoft's backbone with transitive routing. | Large-scale global network topology connecting many VNets and on-prem sites. | Connecting more than a handful of VNets/sites — VNet Peering has no transitive routing and doesn't scale past a small mesh. |
+| **Azure Traffic Manager** | DNS-based global traffic routing (not a data-plane proxy like Front Door) — returns the best endpoint's IP/hostname via DNS response based on routing method (priority, weighted, performance, geographic). | Global routing/failover for non-HTTP protocols, or any workload where Front Door's proxy layer isn't needed/wanted. | Traffic isn't HTTP(S) (Front Door/App Gateway only handle web traffic), or you want pure DNS-level routing without proxying traffic through Microsoft's edge. |
+| **Azure Network Watcher** | Network diagnostics and monitoring toolset — IP flow verify, NSG diagnostics, connection troubleshoot, packet capture, topology view. | Diagnosing "why can't this VM reach that resource" connectivity problems. | You need to pinpoint exactly which NSG rule, route, or hop is blocking traffic — faster than manually testing each layer by hand. |
+| **Domain Name System (Azure DNS)** | Managed authoritative DNS hosting; alias records to Azure resources; the platform for both zone types below. | Domain hosting and DNS routing for any Azure-hosted domain. | You need DNS hosted natively in Azure with alias records to Azure resources — avoids a separate third-party DNS provider for Azure-integrated records. |
+| **DNS Zones (Private & Public)** | Public zones are internet-resolvable (standard domain hosting); private zones resolve only inside linked VNets, for internal-only name resolution that never touches the public internet. | Public zones for internet-facing domains; private zones for internal service discovery (e.g., resolving a private endpoint's name inside a VNet). | Public when the record must be reachable from the internet; private when the name should only ever resolve inside your VNet(s) — many designs need both simultaneously. |
+| **Azure Virtual WAN** | Managed hub-and-spoke networking at global scale, connecting many VNets, branch/LAN sites, VPN, and ExpressRoute circuits through Microsoft's backbone with transitive routing. | Large-scale global network topology connecting many VNets and on-prem branch/LAN sites. | Connecting more than a handful of VNets/sites — VNet Peering has no transitive routing and doesn't scale past a small mesh. |
+| **Hub-and-Spoke Topology** | An architectural pattern, not a single service — a central "hub" VNet hosts shared resources (Azure Firewall, VPN/ExpressRoute gateway, DNS), and "spoke" VNets (per app/team) peer to the hub, routing traffic through it via User-Defined Routes. | Centralizing security policy enforcement and shared connectivity instead of duplicating a firewall/gateway per application VNet. | You need centralized traffic inspection/policy enforcement across many application VNets — a flat mesh of directly peered VNets gives connectivity but no central inspection point. |
 | **VNet Peering** | Direct, non-transitive connection between two VNets (can be cross-region as "Global Peering"). | Connecting a small number of VNets directly. | You're only connecting a couple of VNets and want to avoid Virtual WAN's added hub cost/complexity. |
 | **Azure ExpressRoute** | Dedicated private connection to Microsoft's network, bypassing the public internet; consistent low latency/high throughput. | Hybrid connectivity requiring predictable performance at scale. | You need predictable performance and high sustained throughput and can accept a longer provisioning lead time and higher fixed cost. |
 | **Azure VPN Gateway** (Site-to-Site / Point-to-Site) | Encrypted IPsec tunnel over the public internet. | Site-to-site and remote-user VPN connectivity. | You need to connect quickly and cheaply and can tolerate variable, internet-dependent latency, vs ExpressRoute's predictability and cost. |
 
 ### Interview Keyword
-A secure Azure network usually includes **VNet, subnets, NSGs, route tables, NAT Gateway, Azure Bastion (instead of open RDP/SSH), Application Gateway/Load Balancer, and Azure DNS**.
+A secure Azure network usually includes **VNet, subnets (CIDR-sized), NSGs + ASGs, route tables, Azure Firewall, NAT Gateway, Azure Bastion (instead of open RDP/SSH), Application Gateway/Load Balancer/Front Door, and Azure DNS (public + private zones)**.
 
 [⬆ Back to top](#top)
 
@@ -247,6 +265,9 @@ A secure Azure network usually includes **VNet, subnets, NSGs, route tables, NAT
 | Service | Key Features & Characteristics | Use Cases | Preferred Over the Alternative When |
 |---|---|---|---|
 | **Microsoft Entra ID** (formerly Azure AD) | Cloud identity provider — users, groups, app registrations, SSO, Conditional Access, MFA. | Workforce identity and access management, SSO across Microsoft 365/Azure/SaaS apps. | Foundational — the baseline identity service for essentially every other Azure security control. |
+| **Conditional Access** | Policy engine in Entra ID that evaluates sign-in signals (user, location, device compliance, sign-in risk) and applies a decision — allow, block, require MFA, require a compliant device — per policy. | Requiring MFA only in risky contexts (unfamiliar location/device) instead of on every sign-in; blocking legacy authentication protocols. | You need context-aware access decisions, not a blanket "MFA for everyone always" rule — MFA itself is just one possible *action* a Conditional Access policy can trigger. |
+| **Privileged Identity Management (PIM)** | Just-in-time, time-bound activation of privileged Entra ID/Azure roles instead of standing (always-on) admin access; requires approval/justification and auto-expires. | Eliminating permanent Global Admin/Owner assignments in favor of activate-when-needed access. | You want to minimize the standing blast radius of privileged accounts — a compromised credential with PIM-gated roles has no privilege until actively (and audibly) activated. |
+| **Just-In-Time (JIT) VM Access** | Locks down a VM's management ports (RDP/SSH) by default via Defender for Cloud, opening them only for a requested time window from an approved source IP. | Reducing the attack surface of VM management ports without a full Bastion deployment. | You want to reduce open-port exposure time without deploying Bastion — a lighter-weight control, though Bastion removes the public port requirement entirely rather than just time-boxing it. |
 | **Azure RBAC** | Role-based access control assigning built-in/custom roles at management group/subscription/resource group/resource scope. | Least-privilege access control to Azure resources. | You're controlling access to Azure *resources* specifically — Entra ID roles instead control access to Entra ID/M365 administrative functions, a commonly confused distinction. |
 | **Azure Policy** | Enforces organizational rules on resource configuration (e.g., "no public storage accounts," "must have a `CostCenter` tag") with deny/audit/deploy-if-not-exists effects. | Governance and compliance guardrails across subscriptions. | You need automated, continuously enforced configuration compliance rather than periodic manual audits. |
 | **Azure Landing Zones** (Azure Landing Zone accelerator) | Pre-packaged, repeatable environment setup — policies, role assignments, and resource templates bundled together. | Standardized, compliant subscription/environment provisioning at scale. | You want a repeatable, audited baseline instead of hand-rolling governance per subscription. |
@@ -271,6 +292,7 @@ Security in Azure starts with **Entra ID least privilege, MFA/Conditional Access
 | Service | Key Features & Characteristics | Use Cases | Preferred Over the Alternative When |
 |---|---|---|---|
 | **Azure Monitor** | Umbrella service for metrics, Log Analytics (KQL queries), alerts, dashboards, and Application Insights (APM). | Monitoring VMs, AKS, App Service, and applications end-to-end. | The default operational monitoring tool for "how is it performing" — natively integrated with virtually every Azure service. |
+| **Log Analytics Workspace** | The actual data store behind Azure Monitor's log queries — a Kusto (KQL)-queryable workspace that resources send logs/metrics to; one workspace can centralize data from many resources/subscriptions. | Centralizing logs from multiple resources/subscriptions into one queryable place; the backend Sentinel and Defender for Cloud also read from. | You need cross-resource, cross-subscription log correlation in one KQL-queryable place — the workspace *is* where Azure Monitor's log data actually lives, not a separate optional add-on. |
 | **Azure Activity Log** | Control-plane audit trail (see [§5 Security](#5-security-identity-and-compliance)). | Audit and incident investigation. | You're investigating an access/change event, not runtime performance. |
 | **Azure Policy** | Configuration compliance/guardrails (see [§5 Security](#5-security-identity-and-compliance)). | Compliance and drift prevention. | You need the *state* of a resource's configuration validated continuously, not just its API call log. |
 | **Azure Automation / Update Manager** | Automation = runbooks, scheduled PowerShell/Python automation, Desired State Configuration; Update Manager = centralized OS patch management/scheduling across VMs and Arc-enabled servers. | Automating operational tasks, patch management at scale. | You need centralized, auditable, scheduled automation without logging into each machine to run a script or apply a patch. |
@@ -352,6 +374,7 @@ A common Azure data lake design uses **Data Lake Storage Gen2, Data Factory, Pur
 | **Azure Machine Learning** | Full ML lifecycle platform — managed notebooks, training compute clusters, AutoML, MLOps pipelines, model registry/deployment endpoints. | Custom machine learning model lifecycle management. | You need a model trained on your own data/architecture, not just calling a pre-trained foundation model — vs Azure OpenAI Service. |
 | **Azure OpenAI Service** | Managed API access to OpenAI's models (GPT, embeddings, DALL-E, Whisper) plus Azure-specific governance (private networking, content filtering, Entra ID auth, regional data residency). | Generative AI applications — chat, summarization, content generation, RAG. | You want to build generative AI features quickly via API calls with enterprise governance built in, rather than training/hosting your own model. |
 | **Azure AI Foundry** (formerly Azure AI Studio) | Unified platform for building, evaluating, and deploying AI applications across Azure OpenAI and other foundation models, plus custom models; prompt flow, evaluation, and agent orchestration tooling. | Building and productionizing generative AI applications end-to-end. | You need built-in evaluation, prompt engineering tooling, and orchestration across multiple models/agents in one workspace, beyond calling Azure OpenAI directly. |
+| **Azure AI Search** (formerly Cognitive Search) | Managed search service with vector, keyword, and hybrid search; built-in AI enrichment pipelines (OCR, entity extraction) over unstructured content. | The retrieval half of a RAG (Retrieval-Augmented Generation) architecture paired with Azure OpenAI; enterprise search over documents. | You're grounding an LLM in your own data (RAG) and need a managed vector/hybrid index — vs a self-hosted vector database, removes the index-hosting and scaling burden. |
 | **Microsoft Copilot / Copilot Studio** | Copilot = AI assistant embedded across Microsoft 365/GitHub/Azure; Copilot Studio = low-code tool for building custom copilots/agents grounded in your own data. | Developer and enterprise productivity, custom internal AI assistants. | You want a managed, low-code way to ground an assistant in enterprise data (SharePoint, Dataverse, APIs) without building a custom RAG pipeline. |
 | **Azure AI Vision** | Pre-trained image/video analysis API — object detection, OCR, spatial analysis, content moderation. | Image/video understanding without training a custom model. | The use case matches Vision's pre-built capabilities — far cheaper/faster than training and hosting a custom computer-vision model. |
 | **Azure AI Language** | Pre-trained NLP API — sentiment analysis, entity recognition, key phrase extraction, PII detection, summarization. | Sentiment and text analysis. | The task matches Language's built-in capabilities — no training data or ML expertise required. |
@@ -361,7 +384,7 @@ A common Azure data lake design uses **Data Lake Storage Gen2, Data Factory, Pur
 | **Azure AI Translator** | Neural machine translation API across many language pairs, plus document translation. | Multilingual applications. | You need fast, good-enough translation without building/maintaining a custom translation model. |
 
 ### Interview Keyword
-Use **Azure OpenAI Service** for generative AI applications, **Azure Machine Learning** for custom ML model lifecycle, and **AI Speech/AI Bot Service** for conversational AI.
+Use **Azure OpenAI Service** for generative AI applications, **Azure AI Search** for the retrieval side of RAG, **Azure Machine Learning** for custom ML model lifecycle, and **AI Speech/AI Bot Service** for conversational AI.
 
 [⬆ Back to top](#top)
 
@@ -399,6 +422,127 @@ Use **Queue Storage** for simple queueing, **Service Bus** for enterprise messag
 
 ### Interview Keyword
 FinOps in Azure includes **tagging, Budgets, Cost Management exports, Azure Advisor, Reservations/Savings Plans, and Azure Hybrid Benefit**.
+
+[⬆ Back to top](#top)
+
+---
+
+## AZ-305: Solutions Architect Design Concepts
+
+AZ-305 ("Designing Microsoft Azure Infrastructure Solutions") tests architectural
+*decision-making*, not service trivia — given a scenario, can you pick the right
+pattern and defend the trade-off. The four domains it covers (identity/governance/
+monitoring, data storage, business continuity, infrastructure) map onto the
+frameworks below, which real architecture interviews test just as often as the exam.
+
+### Azure Well-Architected Framework
+
+| Pillar | Core Question | Key Azure Tools |
+|---|---|---|
+| **Reliability** | Can the workload recover from failure and meet its availability target? | Availability Zones, Azure Site Recovery, Azure Backup, Traffic Manager/Front Door failover routing |
+| **Security** | Is the workload protected, with confidentiality/integrity/availability maintained? | Entra ID, Conditional Access, Defender for Cloud, Key Vault, Azure Policy |
+| **Cost Optimization** | Is spend aligned to the value delivered? | Cost Management, Advisor, Reservations/Savings Plans, Azure Hybrid Benefit |
+| **Operational Excellence** | Can operations run, monitor, and improve the workload reliably? | Azure Monitor, Automation/Update Manager, Bicep/ARM/Terraform, Azure DevOps |
+| **Performance Efficiency** | Does the workload use resources efficiently as demand changes? | Autoscale (VMSS/App Service), Azure Monitor insights, Front Door/CDN caching, Advisor right-sizing |
+
+**Commonly confused with the Cloud Adoption Framework (CAF)**: the Well-Architected
+Framework evaluates a single *workload's* design; CAF is the broader methodology for
+*adopting* Azure across an organization (landing zones, governance, migration
+waves). A workload can be perfectly well-architected while the surrounding
+organization has no CAF-aligned landing zone at all — they operate at different
+altitudes.
+
+### High Availability, Disaster Recovery & Business Continuity
+
+- **High Availability (HA)** — minimizing downtime during normal operation through
+  redundancy (Availability Zones, load-balanced instances) — not itself a "disaster"
+  response.
+- **Disaster Recovery (DR)** — the plan for recovering after a major failure
+  (region outage, data corruption) that HA alone doesn't cover.
+- **RTO (Recovery Time Objective)** — how long the workload can be down before it's
+  unacceptable.
+- **RPO (Recovery Point Objective)** — how much data loss (in time) is acceptable.
+- **SLA composition** — dependent services' SLAs multiply, not average: two 99.9%
+  services in a request path compound to roughly 99.8% *combined* availability, so a
+  workload's real SLA is only as strong as the weakest link in its dependency chain.
+- **Azure region pairs** — most Azure regions are paired with another region in the
+  same geography (e.g., East US ↔ West US); Microsoft sequences planned maintenance
+  and prioritizes recovery so both regions in a pair are never updated
+  simultaneously, and GRS/geo-replication defaults to the paired region. A
+  distinctly Azure concept — AWS has no equivalent notion of paired regions.
+
+| DR Strategy | RTO | RPO | Azure Implementation |
+|---|---|---|---|
+| **Backup & Restore** | Hours | Hours | Azure Backup to a secondary region, restore on disaster |
+| **Pilot Light** | ~10s of minutes | Minutes | Core services (e.g., a replicated database) running minimally in the DR region, rest scaled up on failover |
+| **Warm Standby** | Minutes | Seconds–minutes | Scaled-down but functional copy running in the DR region (e.g., Azure SQL geo-replica, low-instance-count App Service), scaled up on failover |
+| **Multi-Region Active-Active** | Near zero | Near zero | Full capacity live in two+ regions simultaneously (Cosmos DB multi-region writes, Front Door/Traffic Manager active-active routing) |
+
+Map a stated RTO/RPO to the *cheapest* strategy that satisfies it — proposing
+active-active when the business can tolerate 30 minutes of downtime is a common
+"over-engineered" wrong answer on both the exam and in interviews.
+
+### Azure Cloud Adoption Framework (CAF) & Landing Zones
+
+CAF is Microsoft's prescriptive methodology for adopting Azure at the
+organizational level, structured in phases:
+
+```text
+Strategy  → Plan → Ready → Adopt (Migrate / Innovate) → Govern → Manage
+```
+
+- **Strategy/Plan** — business justification, digital estate assessment.
+- **Ready** — build the **landing zone**: the Management Group hierarchy,
+  subscription design, identity foundation (Entra ID), network topology
+  (hub-and-spoke), and baseline Azure Policy guardrails a workload lands into.
+- **Adopt** — migrate existing workloads or build new cloud-native ones.
+- **Govern** — ongoing Azure Policy, cost management, and security baseline
+  enforcement across every landing zone.
+- **Manage** — day-two operations: monitoring, backup, platform updates.
+
+A **landing zone** is the actual environment produced by the Ready phase — see
+[Azure Landing Zones](#5-security-identity-and-compliance) in §5 for the
+service that implements it.
+
+### Migration Strategy Framework
+
+| Strategy | Description |
+|---|---|
+| **Rehost** ("lift and shift") | Move as-is with minimal changes — fastest, least optimized (Azure Migrate, Application Migration Service equivalents) |
+| **Refactor** | Small optimizations during the move (e.g., re-platform a VM's database onto Azure SQL Database) |
+| **Rearchitect** | Redesign for cloud-native (e.g., monolith → microservices/AKS) — most effort, most long-term benefit |
+| **Rebuild** | Discard and rebuild cloud-native from scratch |
+| **Replace** | Move to a SaaS product instead of migrating the workload at all |
+| **Retire** | Decommission — it's no longer needed |
+| **Retain** | Keep on-prem for now (compliance, not yet ready) |
+
+See [§8 Migration and Hybrid Cloud](#8-migration-and-hybrid-cloud) for the tooling
+(Azure Migrate, DMS, Data Box, Site Recovery) that executes each strategy.
+
+### AZ-305-Style Design Scenarios
+
+**"Design a globally distributed e-commerce app with a 5-minute RTO and 1-minute RPO."**
+Answer shape: Cosmos DB with multi-region writes (near-zero RPO by design), App
+Service or AKS deployed across at least two regions behind Front Door for global
+routing and automatic failover, Azure Monitor + availability tests driving the
+failover decision — landing squarely in the "warm standby" to "active-active" band
+of the DR table above given how tight the RTO/RPO is.
+
+**"A regulated healthcare workload needs data to never leave a specific country, with full audit trail of every configuration change."**
+Answer shape: Azure Policy with an `allowedLocations` constraint scoped to the
+required region (data residency), Azure Policy + Activity Log for the audit trail
+(not Activity Log alone — Policy shows *compliance state*, Activity Log shows *who
+changed what*), Microsoft Defender for Cloud's regulatory compliance dashboard
+mapped to the relevant standard (HIPAA, etc.), Private Link so PaaS traffic never
+crosses a public/international path.
+
+**"Design the landing zone for a new subscription so every team's workloads inherit consistent security and cost guardrails automatically."**
+Answer shape: Management Group hierarchy (Platform / Landing Zones / Sandbox OUs),
+Azure Policy assigned at the Management Group level (not per-subscription, so new
+subscriptions inherit it automatically), a hub-and-spoke network with the new
+subscription's VNet peered to a central hub Azure Firewall, budget alerts scoped to
+the Management Group — this is the Cloud Adoption Framework's Ready phase in
+practice, not a one-off manual setup per team.
 
 [⬆ Back to top](#top)
 
@@ -567,29 +711,37 @@ Answer shape: separate Azure DevOps Projects per team/product with project-scope
 ## Most Important Azure Services to Know First
 
 1. Microsoft Entra ID
-2. Azure Virtual Network (VNet)
-3. Azure Virtual Machines
-4. Azure Blob Storage
-5. Azure Disk Storage
-6. Azure Files
-7. Azure SQL Database
-8. Azure Cosmos DB
-9. Azure Functions
-10. Azure Monitor
-11. Azure Activity Log
-12. Azure DNS
-13. Load Balancer / Application Gateway / Front Door
-14. Azure Bastion
-15. Virtual Machine Scale Sets
-16. Azure Key Vault
-17. Azure RBAC
-18. Azure Kubernetes Service (AKS)
-19. Azure Container Apps
-20. ARM Templates / Bicep
-21. Azure Automation / Update Manager
-22. Management Groups
-23. Azure Landing Zones
-24. Microsoft Defender for Cloud
+2. Conditional Access
+3. Azure Virtual Network (VNet)
+4. Azure Virtual Machines
+5. Availability Zones (vs Availability Sets)
+6. Storage Account (redundancy: LRS/ZRS/GRS/RA-GRS)
+7. Azure Blob Storage
+8. Azure Disk Storage
+9. Azure Files
+10. Azure SQL Database
+11. Azure Cosmos DB
+12. Azure Functions
+13. Azure Monitor / Log Analytics Workspace
+14. Azure Activity Log
+15. Azure DNS (public/private zones)
+16. NSG / Application Security Group
+17. Azure Private Link / Private Endpoint
+18. Azure Firewall
+19. Hub-and-Spoke Topology
+20. Load Balancer / Application Gateway / Front Door
+21. Azure Bastion
+22. Virtual Machine Scale Sets
+23. Azure Key Vault
+24. Privileged Identity Management (PIM)
+25. Azure RBAC
+26. Azure Kubernetes Service (AKS)
+27. Azure Container Apps
+28. ARM Templates / Bicep
+29. Azure Automation / Update Manager
+30. Management Groups
+31. Azure Landing Zones
+32. Microsoft Defender for Cloud
 
 [⬆ Back to top](#top)
 
