@@ -1287,6 +1287,181 @@ inspec exec controls/ -t ssh://user@host --sudo
   failures, rate-limit triggers).
 - Kubernetes API server audit logs.
 
+## SIEM (Security Information and Event Management)
+
+A SIEM aggregates logs and events from every source — cloud API activity,
+application logs, endpoint/host telemetry, network devices, Kubernetes audit
+logs — into one searchable place, then applies correlation rules to turn
+raw events into actionable alerts. Its two core jobs are **detection**
+(surface the handful of events that matter out of millions that don't) and
+**investigation** (let a responder search across every log source by a
+common pivot — an IP, a user, a resource ID — during an incident).
+
+```text
+Log Sources                     SIEM                          Response
+─────────────                ─────────────                 ─────────────
+CloudTrail       ─┐                                       ┌─ Ticketing (Jira)
+App logs          │                                       │
+Endpoint/EDR       ├──▶  Ingest → Parse → Normalize   ──▶  ├─ Chat (Slack/Teams)
+K8s audit logs     │     → Correlate → Alert               │
+Network/firewall  ─┘                                       └─ SOAR playbook
+```
+
+### Example SIEM Tools
+
+| Tool | Short Description |
+|---|---|
+| **Splunk** | Long-standing commercial SIEM/log platform; powerful SPL query language, mature ecosystem of apps and correlation content. |
+| **Elastic Security (ELK)** | Open-source stack (Elasticsearch, Logstash/Beats, Kibana) with a dedicated security app for detections, cases, and timelines; common self-hosted choice. |
+| **Microsoft Sentinel** | Cloud-native SIEM/SOAR built on Azure; strong first-party integration with Microsoft 365/Defender/Entra ID signals. |
+| **AWS Security Hub** | Aggregates findings from GuardDuty, Config, Inspector, and partner tools into one AWS-native view; not a full log SIEM but fills that role for AWS-centric shops. |
+| **IBM QRadar** | Enterprise SIEM with strong network flow analysis and long history in regulated/enterprise environments. |
+| **Google Chronicle (Security Operations)** | Cloud-native SIEM built for very high log volume at low cost per GB, backed by Google's detection engineering content. |
+| **Datadog Cloud SIEM** | SIEM capability layered on Datadog's existing log/APM pipeline — attractive when Datadog is already the observability platform. |
+| **Wazuh** | Free, open-source SIEM/XDR with built-in host-based intrusion detection agents, popular for smaller teams needing endpoint + log correlation without licensing cost. |
+
+### Example Detection Rule (Sigma — Vendor-Agnostic Format)
+
+Sigma rules describe a detection once and convert to Splunk SPL, Elastic
+Query DSL, Microsoft Sentinel KQL, etc. — write the logic once, deploy it
+to whichever SIEM you run.
+
+```yaml
+title: Multiple Failed Console Logins Followed by Success
+id: 8f3b1c2a-0000-4a11-9b12-abcdef123456
+status: stable
+logsource:
+  product: aws
+  service: cloudtrail
+detection:
+  failed_login:
+    eventName: ConsoleLogin
+    responseElements.ConsoleLogin: Failure
+  success_login:
+    eventName: ConsoleLogin
+    responseElements.ConsoleLogin: Success
+  timeframe: 10m
+  condition: failed_login | count() by sourceIPAddress > 5 and success_login
+level: high
+tags:
+  - attack.credential_access
+  - attack.t1110
+```
+
+### Example Correlation Query (Splunk SPL)
+
+```spl
+index=cloudtrail eventName=ConsoleLogin
+| stats count(eval(responseElements.ConsoleLogin="Failure")) as failures,
+        count(eval(responseElements.ConsoleLogin="Success")) as successes
+        by sourceIPAddress
+| where failures > 5 AND successes > 0
+```
+
+### Example Detection (Elastic Query DSL)
+
+```json
+{
+  "query": {
+    "bool": {
+      "filter": [
+        { "term": { "event.action": "ConsoleLogin" } },
+        { "range": { "@timestamp": { "gte": "now-10m" } } }
+      ]
+    }
+  },
+  "aggs": {
+    "by_source_ip": {
+      "terms": { "field": "source.ip" },
+      "aggs": {
+        "failures": { "filter": { "term": { "aws.cloudtrail.console_login.result": "Failure" } } }
+      }
+    }
+  }
+}
+```
+
+### SIEM Best Practices
+
+- Ingest broadly, but tune alert *rules* narrowly — storing more log
+  sources is cheap insurance; alerting on all of them without tuning
+  produces alert fatigue, not better detection.
+- Normalize field names across sources (a common schema like OCSF or
+  Elastic Common Schema) so one correlation rule can match events from
+  multiple log sources instead of needing a bespoke rule per source.
+- Track detection coverage against a framework like MITRE ATT&CK, so gaps
+  are visible ("we have no detection for T1078 - Valid Accounts") rather
+  than assumed covered.
+- Set a log retention policy driven by compliance/investigation needs
+  (e.g., 1 year hot/searchable, longer cold storage), not just cost
+  convenience.
+- Route every high/critical alert to a human-owned queue with an SLA — an
+  alert nobody is accountable for triaging is equivalent to no alert.
+
+## SIEM Troubleshooting Workflow
+
+A structured path for the two most common SIEM problems — **"I'm not
+seeing expected alerts"** and **"I'm seeing far too many alerts"** —
+rather than guessing at the fix.
+
+```text
+Problem: An event I expected to trigger an alert didn't.
+
+1. Is the raw event in the SIEM at all?
+   └─ Search the index/data view directly for the raw event (by timestamp,
+      resource ID, or source IP) with no correlation logic involved.
+      NO  → Ingestion problem. Go to Step 2.
+      YES → Parsing/correlation problem. Go to Step 3.
+
+2. Ingestion problem — narrow it down:
+   a. Is the log source itself producing the event?
+      (e.g., is CloudTrail actually enabled for that region/account,
+      is the agent/forwarder running on the host?)
+   b. Is the shipper/forwarder (Fluent Bit, Logstash, Beats, Kinesis
+      Firehose) up and delivering — check its own health metrics/logs,
+      not just assume it's running.
+   c. Is there a pipeline backlog or drop — check queue depth, throttling,
+      or a hit against an ingestion volume/license cap silently dropping
+      events.
+   d. Is there a network/firewall/IAM permission blocking the shipper from
+      reaching the SIEM endpoint?
+
+3. Parsing/correlation problem — narrow it down:
+   a. Did the raw event parse into the expected fields? (Check the parsed
+      document, not just the raw log — a schema/parser mismatch after a
+      log format change is the most common cause.)
+   b. Does the correlation rule's field reference match the *actual* parsed
+      field name? (A source log format change — e.g., a new CloudTrail
+      field, an app log format update — silently breaks a rule that
+      references the old field name, with no error raised.)
+   c. Is the rule's time window/threshold realistic for the event volume
+      you actually have? (A rule tuned against a test environment's low
+      volume may never fire, or always fire, against production volume.)
+   d. Is the rule actually enabled/deployed to this environment/tenant, not
+      just present in a rule repository?
+
+4. Confirm the fix
+   - Replay/re-trigger a synthetic version of the event (or use the SIEM's
+     rule-testing feature against historical data) rather than waiting for
+     a real occurrence to confirm the rule now fires.
+
+Problem: Too many alerts / alert fatigue.
+
+1. Identify the top sources of alert volume (which rule, which asset,
+   which log source is generating the most alerts) — don't tune blindly.
+2. For each noisy rule, determine: is it a true positive that's simply not
+   actionable (expected behavior, needs a suppression/allowlist), or a
+   genuine false positive (the logic itself is wrong)?
+3. Narrow scope before disabling — add a specific exclusion (a known
+   service account, a known CI IP range) rather than turning the rule off
+   entirely, which reopens the detection gap it existed to close.
+4. Track suppressions the same way as any other security exception:
+   documented owner, reason, and a review/expiry date, so a "temporary"
+   suppression doesn't silently become permanent blindness.
+5. Re-measure alert volume after each change to confirm it actually
+   improved signal-to-noise, rather than assuming a tuning change worked.
+```
+
 ## Example: CloudTrail + Security Hub + SNS Alerting
 
 ```hcl
@@ -1588,6 +1763,26 @@ jobs:
 - Check the policy's enforcement level — soft-mandatory policies support an
   authorized override; confirm the reviewer actually has override
   permission rather than assuming the policy is simply wrong.
+
+## SIEM and Log Ingestion Issues
+
+**An expected alert never fired**
+- Confirm the raw event actually reached the SIEM before suspecting the
+  correlation rule — search the raw index/data view directly. If it's not
+  there, it's an ingestion/shipper problem, not a rule problem. See the
+  full [SIEM Troubleshooting Workflow](#18-logging-monitoring-and-incident-response)
+  for the step-by-step path.
+
+**A correlation rule that used to fire has gone silent**
+- Check whether the source log's field names changed (a provider/app log
+  format update) — a rule referencing a renamed field fails silently, with
+  no error, it simply never matches again.
+
+**Alert fatigue — too many low-value alerts**
+- Identify the specific noisy rule/source before tuning anything; add a
+  scoped suppression (specific account, specific IP range) rather than
+  disabling the rule outright, and put an owner and review date on the
+  suppression the same as any other security exception.
 
 [⬆ Back to top](#top)
 
