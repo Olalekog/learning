@@ -225,16 +225,18 @@ Use **Azure SQL Database/Managed Instance** for relational workloads, **Cosmos D
 | **Route Tables (User-Defined Routes)** | Override Azure's default system routes to force traffic through a specific next hop (firewall, NVA, VPN gateway). | Forcing all outbound traffic through a central firewall (hub-and-spoke). | Traffic must be inspected/controlled centrally rather than taking Azure's default routing path. |
 | **NSGs / Application Security Groups** | Stateful, rule-based traffic filtering at the subnet or NIC level; ASGs group VMs logically for rule reuse instead of hardcoding IPs. | Primary segmentation/firewalling control inside a VNet. | You need cheap, stateful east-west filtering at the resource level — pair with Azure Firewall for centralized north-south inspection. |
 | **Azure NAT Gateway** | Managed, zone-resilient, outbound-only internet access for a subnet; replaces the increasingly restricted default outbound access model. | Private subnet outbound internet access (patching, updates) without inbound exposure. | You need a dedicated, SNAT-port-scalable outbound path — Azure is deprecating implicit default outbound access, making NAT Gateway the recommended pattern. |
-| **Azure Load Balancer / Application Gateway / Front Door** | Load Balancer = L4, regional, extreme throughput; Application Gateway = L7 regional, content-based routing + WAF; Front Door = L7 global, CDN + WAF + global failover. | High-availability applications at regional or global scale. | Load Balancer for raw L4 performance; Application Gateway when regional L7 routing/WAF is enough; Front Door when you need global routing, caching, and failover across regions. |
-| **Azure DNS** | Managed authoritative DNS hosting; alias records to Azure resources; private DNS zones for VNet-internal resolution. | Domain hosting, DNS routing, private name resolution inside a VNet. | You need alias records to Azure resources and private zone integration with VNets that a third-party DNS provider won't give you. |
-| **Azure CDN / Front Door** | Edge caching of static/dynamic content close to users; Front Door bundles CDN with global L7 load balancing and WAF. | Faster global content delivery, static asset offload. | Content is cacheable — cuts both latency and origin load/cost for repeat requests. |
+| **Azure Bastion** | Fully managed, browser-based (or native client) RDP/SSH access to VMs directly through the Azure portal, with no public IP required on the VM and no VPN client to install. | Secure administrative access to VMs in a VNet without exposing RDP/SSH to the internet. | You need to eliminate public RDP/SSH exposure entirely — vs a jump box you manage yourself, removes the patching burden and the open inbound port altogether. |
+| **Azure Load Balancer** | L4 (TCP/UDP) load balancer; regional; extreme throughput and low latency; supports a static/Standard public or internal IP. | High-throughput, non-HTTP, or internal-only load balancing. | Raw L4 performance, a static IP, or internal-only traffic distribution matters more than content-based routing. |
+| **Azure Application Gateway** | L7 (HTTP/HTTPS) load balancer; regional; content-based routing by path/host; integrated Web Application Firewall (WAF) SKU. | Regional web application load balancing with routing rules and WAF. | Routing decisions depend on request content (path/host) and WAF protection is needed at the regional level, without requiring global scope. |
+| **Azure Front Door** | L7 global load balancer and CDN; edge caching, WAF, global routing/failover across regions via Microsoft's edge network. | Global-scale web applications needing low-latency edge delivery and cross-region failover. | Traffic/users are global and you need edge caching plus automatic failover across regions — Application Gateway is regional-only and can't do this. |
+| **Azure DNS** | Managed authoritative DNS hosting; supports both public DNS zones (internet-resolvable) and private DNS zones (VNet-internal resolution); alias records to Azure resources. | Domain hosting, DNS routing, and private name resolution inside a VNet. | You need alias records to Azure resources and private zone integration with VNets that a third-party DNS provider won't give you — public zones for internet-facing domains, private zones for internal-only name resolution. |
 | **Azure Virtual WAN** | Managed hub-and-spoke networking at global scale, connecting many VNets/branches/VPN/ExpressRoute circuits through Microsoft's backbone with transitive routing. | Large-scale global network topology connecting many VNets and on-prem sites. | Connecting more than a handful of VNets/sites — VNet Peering has no transitive routing and doesn't scale past a small mesh. |
 | **VNet Peering** | Direct, non-transitive connection between two VNets (can be cross-region as "Global Peering"). | Connecting a small number of VNets directly. | You're only connecting a couple of VNets and want to avoid Virtual WAN's added hub cost/complexity. |
 | **Azure ExpressRoute** | Dedicated private connection to Microsoft's network, bypassing the public internet; consistent low latency/high throughput. | Hybrid connectivity requiring predictable performance at scale. | You need predictable performance and high sustained throughput and can accept a longer provisioning lead time and higher fixed cost. |
 | **Azure VPN Gateway** (Site-to-Site / Point-to-Site) | Encrypted IPsec tunnel over the public internet. | Site-to-site and remote-user VPN connectivity. | You need to connect quickly and cheaply and can tolerate variable, internet-dependent latency, vs ExpressRoute's predictability and cost. |
 
 ### Interview Keyword
-A secure Azure network usually includes **VNet, subnets, NSGs, route tables, NAT Gateway, Application Gateway/Load Balancer, and Azure DNS**.
+A secure Azure network usually includes **VNet, subnets, NSGs, route tables, NAT Gateway, Azure Bastion (instead of open RDP/SSH), Application Gateway/Load Balancer, and Azure DNS**.
 
 [⬆ Back to top](#top)
 
@@ -576,16 +578,18 @@ Answer shape: separate Azure DevOps Projects per team/product with project-scope
 10. Azure Monitor
 11. Azure Activity Log
 12. Azure DNS
-13. Load Balancer / Application Gateway
-14. Virtual Machine Scale Sets
-15. Azure Key Vault
-16. Azure RBAC
-17. Azure Kubernetes Service (AKS)
-18. Azure Container Apps
-19. ARM Templates / Bicep
-20. Azure Automation / Update Manager
-21. Management Groups
-22. Azure Landing Zones
+13. Load Balancer / Application Gateway / Front Door
+14. Azure Bastion
+15. Virtual Machine Scale Sets
+16. Azure Key Vault
+17. Azure RBAC
+18. Azure Kubernetes Service (AKS)
+19. Azure Container Apps
+20. ARM Templates / Bicep
+21. Azure Automation / Update Manager
+22. Management Groups
+23. Azure Landing Zones
+24. Microsoft Defender for Cloud
 
 [⬆ Back to top](#top)
 
