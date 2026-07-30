@@ -1,4 +1,31 @@
+<a id="top"></a>
+
 # AWS Services — Exam & Interview Ready Guide
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [AWS Services Architecture Diagram](#aws-services-architecture-diagram)
+3. [Secure 3-Tier AWS Application Flow](#secure-3-tier-aws-application-flow)
+4. [AWS DevOps Deployment Flow](#aws-devops-deployment-flow)
+5. [AWS Security and Governance Flow](#aws-security-and-governance-flow)
+6. [Compute Services](#1-compute-services)
+7. [Storage Services](#2-storage-services)
+8. [Database Services](#3-database-services)
+9. [Networking and Content Delivery](#4-networking-and-content-delivery)
+10. [Security, Identity, and Compliance](#5-security-identity-and-compliance)
+11. [Monitoring, Management, and Governance](#6-monitoring-management-and-governance)
+12. [DevOps and Developer Tools](#7-devops-and-developer-tools)
+13. [Migration and Hybrid Cloud](#8-migration-and-hybrid-cloud)
+14. [Analytics and Data Services](#9-analytics-and-data-services)
+15. [AI, ML, and Generative AI](#10-ai-ml-and-generative-ai)
+16. [Application Integration](#11-application-integration)
+17. [Cost Management](#12-cost-management)
+18. [Most Important AWS Services to Know First](#most-important-aws-services-to-know-first)
+19. [Simple Interview Answer](#simple-interview-answer)
+20. [Daily Learning Notes](#daily-learning-notes)
+
+---
 
 ## Overview
 
@@ -6,6 +33,7 @@ AWS provides cloud services used to design, deploy, secure, monitor, and scale m
 
 A strong AWS engineer should understand what each service does, its defining characteristics, when to use it, and — critically for interviews — *why* it would be chosen over a similar service with respect to cost, scalability, efficiency, and security.
 
+[⬆ Back to top](#top)
 
 ---
 
@@ -122,6 +150,7 @@ Central findings] --> SECURITY
 ServiceNow, SNS, EventBridge]
 ```
 
+[⬆ Back to top](#top)
 
 ---
 
@@ -140,6 +169,8 @@ ServiceNow, SNS, EventBridge]
 ### Interview Keyword
 Use **EC2** when you need control over servers, **Lambda** for event-driven serverless workloads, **Fargate** for serverless containers, and **EKS** when Kubernetes is required.
 
+[⬆ Back to top](#top)
+
 ---
 
 ## 2. Storage Services
@@ -156,6 +187,8 @@ Use **EC2** when you need control over servers, **Lambda** for event-driven serv
 
 ### Interview Keyword
 Use **S3** for object storage, **EBS** for EC2 block storage, **EFS** for shared Linux file storage, and **FSx** for managed high-performance file systems.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -174,6 +207,8 @@ Use **S3** for object storage, **EBS** for EC2 block storage, **EFS** for shared
 
 ### Interview Keyword
 Use **RDS/Aurora** for relational workloads, **DynamoDB** for NoSQL scale, **Redshift** for analytics, and **ElastiCache** for low-latency caching.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -195,6 +230,8 @@ Use **RDS/Aurora** for relational workloads, **DynamoDB** for NoSQL scale, **Red
 
 ### Interview Keyword
 A secure AWS network usually includes **VPC, public/private subnets, route tables, security groups, NACLs, NAT Gateway, ALB, and Route 53**.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -220,6 +257,8 @@ A secure AWS network usually includes **VPC, public/private subnets, route table
 ### Interview Keyword
 Security in AWS starts with **IAM least privilege, MFA, encryption with KMS, CloudTrail logging, Config compliance, GuardDuty, and Security Hub**.
 
+[⬆ Back to top](#top)
+
 ---
 
 ## 6. Monitoring, Management, and Governance
@@ -239,6 +278,8 @@ Security in AWS starts with **IAM least privilege, MFA, encryption with KMS, Clo
 ### Interview Keyword
 For cloud operations, combine **CloudWatch for monitoring, CloudTrail for auditing, Config for compliance, and Systems Manager for patching and automation**.
 
+[⬆ Back to top](#top)
+
 ---
 
 ## 7. DevOps and Developer Tools
@@ -256,6 +297,8 @@ For cloud operations, combine **CloudWatch for monitoring, CloudTrail for auditi
 
 ### Interview Keyword
 A common CI/CD pipeline uses **GitHub or CodeCommit → CodeBuild → ECR → ECS/EKS/Lambda deployment**, with security scanning and approval gates.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -275,6 +318,8 @@ A common CI/CD pipeline uses **GitHub or CodeCommit → CodeBuild → ECR → EC
 ### Interview Keyword
 Use **DMS** for databases, **DataSync** for file/object data, **Application Migration Service** for servers, and **Direct Connect/VPN** for hybrid connectivity.
 
+[⬆ Back to top](#top)
+
 ---
 
 ## 9. Analytics and Data Services
@@ -292,6 +337,8 @@ Use **DMS** for databases, **DataSync** for file/object data, **Application Migr
 
 ### Interview Keyword
 A common AWS data lake design uses **S3, Glue Data Catalog, Lake Formation, Athena, Redshift, and QuickSight**.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -313,6 +360,8 @@ A common AWS data lake design uses **S3, Glue Data Catalog, Lake Formation, Athe
 ### Interview Keyword
 Use **Bedrock** for generative AI applications, **SageMaker** for custom ML model lifecycle, and **Lex/Polly/Transcribe** for conversational AI.
 
+[⬆ Back to top](#top)
+
 ---
 
 ## 11. Application Integration
@@ -330,6 +379,8 @@ Use **Bedrock** for generative AI applications, **SageMaker** for custom ML mode
 ### Interview Keyword
 Use **SQS** for queueing, **SNS** for notifications, **EventBridge** for event routing, and **Step Functions** for workflow orchestration.
 
+[⬆ Back to top](#top)
+
 ---
 
 ## 12. Cost Management
@@ -345,6 +396,8 @@ Use **SQS** for queueing, **SNS** for notifications, **EventBridge** for event r
 
 ### Interview Keyword
 FinOps in AWS includes **tagging, budgets, cost allocation tags, Cost Explorer, CUR, Savings Plans, and right-sizing**.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -373,6 +426,8 @@ FinOps in AWS includes **tagging, budgets, cost allocation tags, Cost Explorer, 
 21. AWS Organizations
 22. AWS Control Tower
 
+[⬆ Back to top](#top)
+
 ---
 
 ## Simple Interview Answer
@@ -382,6 +437,8 @@ AWS services are cloud-based building blocks used to design, deploy, secure, mon
 For example, **EC2** provides virtual servers, **S3** provides object storage, **RDS** provides managed relational databases, **VPC** provides network isolation, **IAM** manages access control, and **CloudWatch** provides monitoring and alarms.
 
 A well-designed AWS solution combines these services to achieve scalability, high availability, security, automation, and cost optimization — and picking between similar-looking services almost always comes down to a specific trade-off: cost model (pay-per-use vs provisioned), scalability ceiling, operational efficiency (managed vs self-run), or a security/compliance requirement that only one option satisfies.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -411,3 +468,5 @@ A strong AWS architecture should be:
 - Automated
 - Observable
 - Cost optimized
+
+[⬆ Back to top](#top)
