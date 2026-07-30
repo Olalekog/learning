@@ -1172,34 +1172,136 @@ resource "aws_instance" "web" {
 
 ## Importing Existing Infrastructure
 
-Modern Terraform (1.5+) uses an `import` block (declarative, plannable):
+Console-created ("click-ops") resources exist for real but Terraform has no
+record of them. Import links an existing real-world object to a `resource`
+block in state, so Terraform starts managing it going forward. **Import
+never infers your HCL for you** (aside from the config-generation flag
+below) — the resource block's arguments must already match the real
+object's actual settings, or the next `plan` will show a diff and try to
+change the resource back to whatever the (wrong) config says.
+
+### The End-to-End Workflow
+
+```text
+1. Identify the resource and its cloud-specific import ID
+   (the format is documented per resource type -- e.g., an S3 bucket's ID
+   is just its name; an EC2 instance's ID is i-0123456789abcdef0; some
+   resources use composite, colon-separated IDs).
+
+2. Write (or generate) a resource block that will receive the import.
+
+3. Run the import -- either the declarative import block or the
+   imperative terraform import command.
+
+4. Run terraform plan and read the diff carefully:
+     - No diff    -> the HCL already matches reality, done.
+     - Diff shown -> either update your HCL to match the real resource's
+                     current settings, or apply to push the real resource
+                     to match your HCL -- know which one you intend
+                     before applying either way.
+
+5. Commit the resource block (and any generated file) to version control --
+   the resource isn't really under IaC management until the config is
+   reviewed and merged like any other change.
+```
+
+### Import Methods
+
+**Declarative `import` block (1.5+, preferred)** — plannable and reviewable
+in a PR, and supports importing many resources in a single `plan`/`apply`:
 
 ```hcl
 import {
-  to = aws_s3_bucket.data
-  id = "company-existing-bucket"
+  to = aws_instance.web
+  id = "i-0123456789abcdef0"
 }
 
-resource "aws_s3_bucket" "data" {
-  bucket = "company-existing-bucket"
+resource "aws_instance" "web" {
+  # must be filled in to match the real instance's actual attributes --
+  # see config generation below to scaffold this automatically
+}
+```
+
+**Auto-generate the matching HCL** instead of hand-writing it (1.5+):
+
+```bash
+terraform plan -generate-config-out=generated.tf
+```
+
+This writes a best-effort `resource` block for every resource named in an
+`import` block, populated with the real object's current attribute values.
+Review it, move it into your real `.tf` files, then re-run `plan` to
+confirm it now shows zero diff.
+
+**Imperative `terraform import` (older, still common in ad-hoc/scripted use)**:
+
+```bash
+terraform import aws_instance.web i-0123456789abcdef0
+```
+
+Requires the `resource "aws_instance" "web" {}` block to already exist
+(it can start empty) before running the command — it only writes to
+state, and has no `-generate-config-out` equivalent of its own.
+
+### Example: Importing a Manually Created S3 Bucket
+
+```hcl
+# 1. Write the resource block (or leave it empty and use config generation)
+resource "aws_s3_bucket" "reports" {
+  bucket = "company-reports-manual"
+}
+
+# 2. Declare the import
+import {
+  to = aws_s3_bucket.reports
+  id = "company-reports-manual"   # S3 import ID is just the bucket name
 }
 ```
 
 ```bash
-terraform plan     # shows the import + any diff between real config and resource
-terraform apply
+terraform plan    # review: does the written config match the real bucket's
+                   # versioning, encryption, tags, etc.? Fill in any gaps.
+terraform apply    # links the object in state; if the plan showed no diff,
+                    # this makes no real-world changes at all
 ```
 
-The older, imperative form still works and is common in scripts/CI:
+### Bulk Import (Many Resources at Once)
+
+Hand-writing one `import` block per resource doesn't scale past a handful
+of objects:
+
+- **Multiple `import` blocks in one `plan`/`apply`** — still manual per
+  resource, but batched into a single review instead of one-at-a-time CLI
+  calls.
+- **`terraform plan -generate-config-out` across many `import` blocks at
+  once**, then review the generated file as a batch.
+- **Terraformer** (open-source, community-maintained) — reverse-engineers
+  existing cloud infrastructure into both `.tf` HCL and imported state in
+  one pass, for an entire account or resource type rather than
+  resource-by-resource; treat its output as a rough draft to clean up, not
+  final production HCL.
 
 ```bash
-terraform import aws_s3_bucket.data company-existing-bucket
+# Example: bulk-importing every S3 bucket in an account with Terraformer
+terraformer import aws --resources=s3 --regions=us-east-1
 ```
 
-Either way, you must still write the matching `resource` block yourself —
-import only links state to a real object, it does not generate HCL (though
-`terraform plan -generate-config-out=generated.tf` can scaffold it for you in
-recent versions).
+### Common Pitfalls
+
+- **ID format is resource-specific** — don't assume it's always the name;
+  check the provider's resource documentation, whose "Import" section
+  states the exact ID format, including any composite/colon-separated IDs.
+- **Sensitive/computed attributes won't appear in generated config** —
+  e.g., a database password can't be reverse-engineered from a live
+  resource since providers don't expose it back out; supply it separately
+  (variable, Secrets Manager data source) after import.
+- **Parent/child resource splits** — some real-world objects are actually
+  managed as several Terraform resources (e.g., a security group's rules
+  might be separate `aws_security_group_rule` resources) — importing only
+  the parent leaves the children still invisible to Terraform.
+- **Skipping the "no diff" verification** — importing and immediately
+  committing without running `plan` risks the very next `apply` silently
+  changing the real resource to match a subtly wrong HCL block.
 
 ## Detecting Drift
 
@@ -1338,26 +1440,124 @@ artifacts:
 
 # 19. Terraform Cloud and Terraform Enterprise
 
-Terraform Cloud (SaaS) / Terraform Enterprise (self-hosted) add a managed
-control plane on top of open-source Terraform:
+Terraform Cloud and Terraform Enterprise are HashiCorp's managed control
+planes on top of open-source ("Core") Terraform — same HCL, same
+providers, same state model, but with a shared backend for remote
+execution, collaboration, and governance instead of running `plan`/
+`apply` from individual laptops or a bare CI runner.
 
-- **Workspaces** — each maps to a working directory + variable set + state,
-  roughly like a persistent CI job for one configuration.
-- **Remote execution** — `plan`/`apply` run in HashiCorp's infrastructure, not
-  your laptop or a generic CI runner.
-- **VCS-driven runs** — a workspace can auto-trigger a plan on every commit or
-  PR against a connected GitHub/GitLab/Azure DevOps repo.
-- **Sentinel / OPA policy-as-code** — block applies that violate org policy
-  (e.g., "no public S3 buckets", "must have a tag `CostCenter`").
-- **Private Module Registry** — internal, versioned module sharing.
-- **State management** — built-in locking, versioning, and access control,
-  no S3/DynamoDB to run yourself.
+> **Naming note**: HashiCorp rebranded Terraform Cloud as **HCP Terraform**
+> in February 2024. Terraform Enterprise kept its name as the self-hosted
+> product. Job postings, docs, and interviewers may still say either
+> "Terraform Cloud" or "HCP Terraform" interchangeably — they're the same
+> product.
+
+## Shared Feature Set (Both Products)
+
+| Feature | What It Does |
+|---|---|
+| **Workspaces** | Each maps to a working directory + variable set + state file — roughly a persistent CI job scoped to one configuration/environment. |
+| **Remote execution** | `plan`/`apply` run on HashiCorp-managed (TFC) or customer-managed (TFE) infrastructure, not a laptop — consistent environment, no "works on my machine." |
+| **VCS-driven runs** | A workspace auto-triggers a plan on every commit/PR against a connected GitHub/GitLab/Bitbucket/Azure DevOps repo; can auto-apply on merge to main. |
+| **Remote state management** | Built-in state locking, versioning, and encryption — no S3 bucket/DynamoDB table to provision and secure yourself. |
+| **Sentinel / OPA policy-as-code** | Block a `plan`/`apply` that violates an organizational policy (e.g., "no public S3 buckets," "every resource must have a `CostCenter` tag") before it ever runs. |
+| **Private Module Registry** | Internal, versioned module sharing across teams, with usage examples and a browsable UI, same experience as the public registry. |
+| **Run Triggers / Run Tasks** | Chain workspaces (e.g., apply the VPC workspace before the app workspace) or call out to external systems (Snyk, Checkov, custom webhooks) as a required check in the run pipeline. |
+| **Teams and RBAC** | Fine-grained permissions per workspace (plan-only, apply, admin) mapped to teams, not just all-or-nothing API tokens. |
+| **Cost Estimation** | Shows the estimated monthly cost delta of a plan before it's applied (cloud-provider dependent). |
+| **Variable Sets** | Share a common set of variables (e.g., provider credentials) across many workspaces without copy-pasting into each one. |
+| **Notifications** | Send run status to Slack, email, or a generic webhook. |
+
+## Deployment Model — the Actual Difference
+
+| Aspect | Terraform Cloud (HCP Terraform) | Terraform Enterprise |
+|---|---|---|
+| **Hosting** | Fully managed SaaS, run by HashiCorp | Self-hosted — installed in the customer's own VPC/datacenter (VM, Docker, or Kubernetes/Helm) |
+| **Network isolation / data residency** | Runs in HashiCorp's infrastructure; private networking to customer resources requires **HCP Terraform Agents** | Runs entirely inside the customer's network; can be fully **air-gapped** (no outbound internet) — common requirement in regulated/government environments |
+| **Pricing model** | Per-resource-under-management (RUM) subscription; **Free tier** available for small teams | License-based enterprise agreement; no free tier, typically higher floor cost |
+| **Upgrade cadence** | Continuous, automatic — HashiCorp ships updates, customer takes no action | Customer controls when to apply new releases — needed where change control processes require scheduled maintenance windows |
+| **SSO/SAML** | Available on higher paid tiers (Business) | Included, since the product is licensed at the "enterprise" tier by definition |
+| **Audit logging** | Business tier and above | Included |
+| **Compliance boundary** | Inherits HashiCorp's SOC 2 / compliance posture as a shared responsibility | Inherits the *customer's own* infrastructure compliance boundary — the deciding factor for FedRAMP, air-gapped, or strict data-sovereignty requirements |
+| **Support** | Tiered by plan (community → premium) | Premium enterprise support bundled in |
+| **Typical adopter** | Most organizations — fastest to start, zero infrastructure to maintain | Regulated industries (finance, government, healthcare), air-gapped networks, or orgs with a hard data-residency requirement that rules out SaaS |
+
+## Terraform Cloud (HCP Terraform) Pricing Tiers
+
+| Tier | Who It's For |
+|---|---|
+| **Free** | Individuals/small teams — remote state, remote runs, VCS integration, up to a limited number of resources under management |
+| **Standard** | Small-to-mid teams needing team management and more resources under management |
+| **Plus** | Larger orgs needing Sentinel policy-as-code, SSO, audit logging, and higher scale |
+| *(Terraform Enterprise)* | Self-hosted equivalent of the top tier, licensed separately, deployed on-prem |
+
+## HCP Terraform Agents (Bridging SaaS to Private Networks)
+
+Since HCP Terraform's execution environment lives in HashiCorp's cloud,
+reaching a provider endpoint that's only reachable privately (an
+internal vCenter API, a private VPC with no public exposure) needs a
+lightweight **agent** installed inside that private network — it polls
+outward for run jobs so no inbound firewall rule into the private
+network is required. Terraform Enterprise doesn't need this because the
+whole control plane already runs inside the private network.
 
 ```hcl
+# Workspace configured to execute via an agent pool instead of
+# HCP Terraform's own default execution environment
 terraform {
   cloud {
     organization = "my-org"
+    workspaces {
+      name = "app-prod"
+    }
+  }
+}
+```
 
+```hcl
+# Agent pool assignment is set at the workspace level in the UI/API,
+# not in HCL — the workspace's "Execution Mode" is set to "Agent" and
+# bound to a named agent pool that has agents polling from inside the
+# private network.
+```
+
+## Decision Guide
+
+```text
+Choose HCP Terraform (SaaS) when:
+  - You want to be running in minutes with no infrastructure to operate.
+  - Your compliance posture allows a third-party-hosted control plane.
+  - Team size/usage fits comfortably in Free/Standard/Plus pricing.
+
+Choose Terraform Enterprise (self-hosted) when:
+  - Regulatory/compliance requirements mandate the control plane stays
+    inside your own network (FedRAMP, air-gapped, strict data residency).
+  - You need full control over upgrade timing for change-control reasons.
+  - You're already operating the infrastructure to host and patch it
+    (Kubernetes cluster, VM fleet) and have the ops capacity to do so.
+```
+
+## Example Configuration (Same Block for Either — TFE Adds a `hostname`)
+
+```hcl
+# HCP Terraform (SaaS) — default hostname, omitted
+terraform {
+  cloud {
+    organization = "my-org"
+    workspaces {
+      name = "app-prod"
+    }
+  }
+}
+```
+
+```hcl
+# Terraform Enterprise (self-hosted) — points at the customer's own
+# TFE instance instead of HashiCorp's SaaS endpoint
+terraform {
+  cloud {
+    hostname     = "tfe.internal.company.com"
+    organization = "my-org"
     workspaces {
       name = "app-prod"
     }
@@ -1507,6 +1707,62 @@ controlled backend (see [State Management](#7-state-management)).
   ```
   Only do this after confirming no other process is actually running —
   force-unlocking during a real concurrent apply can corrupt state.
+
+## Corrupt or Invalid State File
+
+**`Error: Failed to read state file` / "state file is invalid JSON" / unexpected parse error**
+- The file itself is truncated or malformed — typically caused by a killed
+  process mid-write on a local backend, a manual hand-edit that broke JSON
+  syntax, or a disk-full/interrupted upload on a remote backend.
+- Recovery steps:
+  1. **Preserve what's there first**, even if it looks broken — don't
+     delete or overwrite it:
+
+     ```bash
+     terraform state pull > corrupt-state-backup.json
+     # or, for a local backend, just cp terraform.tfstate
+     ```
+
+  2. Confirm it's genuinely invalid, not a different error being
+     misreported: `jq . terraform.tfstate` (a real parse error means jq
+     also fails).
+  3. Restore the last known-good version from backend versioning (S3
+     object version, or the TFC/TFE workspace **States** tab) — see the
+     full restore procedure in [§7 State Management](#7-state-management).
+  4. If no backup/version exists at all, rebuild state via
+     `terraform import` / `import` blocks — see
+     [§7 Recovering When State Is Gone Entirely](#7-state-management).
+
+**`Error: state snapshot was created by Terraform vX.Y.Z, which is newer than current vA.B.C`**
+- Someone (often CI, running a newer pinned version) wrote state with a
+  newer Terraform CLI than the one you're running locally; the state
+  format can add fields between versions that an older CLI won't
+  understand and refuses to touch, to avoid silently dropping data.
+- Fix: upgrade your local CLI to match or exceed the version named in the
+  error (`tfenv install X.Y.Z`, or align with whatever version CI has
+  pinned) — don't try to force an older CLI to downgrade/rewrite a
+  newer-format state.
+
+**`Error: state data in S3 does not have the expected content` (checksum/etag mismatch)**
+- The S3 object was modified outside Terraform's normal write path — a
+  manual console edit, or a second tool/process writing to the same key.
+- Pull the object directly (`aws s3api get-object`) and inspect it before
+  deciding whether to restore a prior version or validate and
+  `terraform state push` a corrected copy.
+
+A few general principles apply to any state corruption:
+
+- Always pull/archive the current file *before* attempting a fix — even a
+  suspect state is a useful diff target against whatever you restore, and
+  you may need it to figure out exactly what changed.
+- Never hand-edit `terraform.tfstate` to patch JSON syntax and push it
+  back without running `terraform plan` against the result — a
+  syntactically valid but semantically wrong state is worse than an
+  error, because Terraform will silently act on incorrect data instead of
+  refusing to proceed.
+- A stuck lock file is not the same problem as a corrupt state file —
+  don't reach for `force-unlock` (see [State Locking Errors](#state-locking-errors)
+  above) when the actual issue is the state content itself.
 
 ## Plan/Apply Errors
 
