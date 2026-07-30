@@ -21,9 +21,11 @@
 15. [AI, ML, and Generative AI](#10-ai-ml-and-generative-ai)
 16. [Application Integration](#11-application-integration)
 17. [Cost Management](#12-cost-management)
-18. [Most Important Azure Services to Know First](#most-important-azure-services-to-know-first)
-19. [Simple Interview Answer](#simple-interview-answer)
-20. [Daily Learning Notes](#daily-learning-notes)
+18. [Azure Engineer Interview Questions](#azure-engineer-interview-questions)
+19. [Azure DevOps Engineer Interview Questions](#azure-devops-engineer-interview-questions)
+20. [Most Important Azure Services to Know First](#most-important-azure-services-to-know-first)
+21. [Simple Interview Answer](#simple-interview-answer)
+22. [Daily Learning Notes](#daily-learning-notes)
 
 ---
 
@@ -395,6 +397,166 @@ Use **Queue Storage** for simple queueing, **Service Bus** for enterprise messag
 
 ### Interview Keyword
 FinOps in Azure includes **tagging, Budgets, Cost Management exports, Azure Advisor, Reservations/Savings Plans, and Azure Hybrid Benefit**.
+
+[⬆ Back to top](#top)
+
+---
+
+## Azure Engineer Interview Questions
+
+### Fundamentals & Identity
+
+**1. What's the difference between Azure Resource Manager (ARM) and a resource provider?**
+ARM is the deployment/management layer that receives every request (Portal, CLI, SDKs, Bicep/ARM templates) and routes it to the right resource provider (e.g., `Microsoft.Compute`, `Microsoft.Storage`), which actually implements that resource type's CRUD operations and validation. ARM itself supplies consistent RBAC, tagging, and deployment history across every resource, regardless of which provider handles it.
+
+**2. What is a Resource Group, and how should resources be grouped within one?**
+A Resource Group is a logical container for resources that share the same lifecycle (deployed and deleted together) — not necessarily the same purpose. Best practice groups resources by lifecycle/environment (e.g., all resources for "app-prod") rather than by resource type, since RBAC assignments, Azure Policy, and bulk deletion all apply at the Resource Group scope.
+
+**3. Explain the Azure resource hierarchy from top to bottom.**
+Management Group → Subscription → Resource Group → Resource. Management Groups apply policy/RBAC across many subscriptions (e.g., all "Production" subscriptions); Subscriptions are billing and scale boundaries; Resource Groups are lifecycle containers; Resources are the actual deployed services. Azure Policy and RBAC assignments inherit downward through this hierarchy.
+
+**4. What's the difference between Microsoft Entra ID and Azure RBAC?**
+Entra ID controls *who you are* and whether you're authenticated (identity, SSO, Conditional Access, MFA) at the tenant level; Azure RBAC controls *what an authenticated identity can do* to specific Azure resources, assigned at management group/subscription/resource group/resource scope. A user can authenticate successfully in Entra ID but still have zero RBAC permissions on any resource.
+
+### Compute
+
+**5. When would you choose App Service over a VM for hosting a web application?**
+App Service when you want a managed platform with no OS patching, built-in deployment slots for blue/green releases, and auto-scaling — trading some low-level control for operational simplicity. VMs when the app needs OS-level customization, non-standard runtime/agents, or licensing that App Service's sandboxed environment doesn't support.
+
+**6. What's the difference between Azure Container Instances, Azure Container Apps, and AKS?**
+ACI runs single containers/container groups with no orchestration — fastest to spin up, no scaling logic. Container Apps is serverless container hosting built on Kubernetes/KEDA/Dapr under the hood but abstracts cluster management away, supporting scale-to-zero and revision/traffic-splitting. AKS gives full Kubernetes API access and control, at the cost of operating (or paying for) a cluster.
+
+**7. How does VM Scale Set autoscaling work, and what triggers it?**
+VMSS scales instance count up/down based on autoscale rules tied to metrics (CPU, memory, a custom Application Insights metric) or a schedule, similar to an AWS Auto Scaling Group. Rules define scale-out/scale-in thresholds plus a cooldown period to avoid flapping.
+
+**8. What's the difference between Availability Sets and Availability Zones?**
+Availability Sets distribute VMs across fault domains (separate power/network) and update domains within a single datacenter — protects against rack-level failure. Availability Zones distribute resources across physically separate datacenters within a region — protects against an entire datacenter failure, a stronger guarantee, and the modern default recommendation where the region supports it.
+
+### Storage
+
+**9. Explain the difference between LRS, ZRS, GRS, and RA-GRS.**
+LRS (Locally Redundant) replicates 3 copies within one datacenter; ZRS (Zone-Redundant) replicates synchronously across 3 availability zones in the region; GRS (Geo-Redundant) replicates LRS data asynchronously to a secondary paired region; RA-GRS adds read access to that secondary region's copy. It's a durability/cost/RPO trade-off — RA-GRS gives the strongest protection and read availability during a regional outage, at the highest cost.
+
+**10. When would you use Azure Files instead of Blob Storage?**
+Azure Files when the application needs a traditional SMB/NFS mountable file share with directory semantics (e.g., lift-and-shift of an app expecting a network drive); Blob Storage when the access pattern is object-based (via API/SDK/HTTP) — images, backups, data lake files.
+
+**11. What's the difference between a Shared Access Signature (SAS) and Storage Account keys?**
+Storage Account keys grant full, unrestricted access to the entire account and don't expire until manually rotated — a single leaked key compromises everything. A SAS is a signed URI granting scoped, time-limited access (specific container/blob, specific permissions, specific IP range/protocol), making it the least-privilege way to grant temporary client access without sharing the account key itself.
+
+### Networking
+
+**12. What's the difference between a Network Security Group and Azure Firewall?**
+NSGs are free, stateful, distributed rule sets applied per subnet/NIC — good for simple allow/deny east-west and basic perimeter rules. Azure Firewall is a centralized, managed, stateful firewall for an entire hub VNet, supporting FQDN filtering, threat intelligence feeds, and centralized logging — used when you need one place to enforce and audit egress/ingress policy across many spoke VNets rather than per-subnet NSG rules.
+
+**13. How does a hub-and-spoke network topology work in Azure, and why use it?**
+A central "hub" VNet holds shared services (Azure Firewall, VPN/ExpressRoute gateway, DNS), and "spoke" VNets (per application/team) peer to the hub, routing north-south and often east-west traffic through it via user-defined routes. This centralizes security policy enforcement and connectivity management instead of duplicating gateways/firewalls per application VNet.
+
+**14. What happens to a VM's outbound internet connectivity if you remove its public IP and don't configure NAT Gateway or a Load Balancer outbound rule?**
+It loses reliable outbound internet access. Azure previously provided implicit "default outbound access" for VMs with no explicit outbound configuration, but Microsoft is deprecating this behavior — deployments are now expected to explicitly configure an outbound path (NAT Gateway, Load Balancer outbound rules, or a public IP), so relying on default outbound access is considered an anti-pattern.
+
+### Databases
+
+**15. When would you choose Cosmos DB over Azure SQL Database?**
+Cosmos DB when the access pattern needs massive horizontal scale, low-latency global distribution with multi-region writes, or a flexible/semi-structured schema — trading strict relational consistency and complex joins for elastic throughput (via Request Units) and a multi-region SLA. Azure SQL Database when the workload needs strong relational integrity, complex joins/transactions, and fits comfortably in a single region.
+
+**16. What are Cosmos DB consistency levels, and why do they matter?**
+Cosmos DB offers five tunable consistency levels — Strong, Bounded Staleness, Session, Consistent Prefix, and Eventual — trading latency/availability against how quickly a write is guaranteed visible to reads across regions. Session (the default) gives strong consistency for the writer's own session while remaining eventually consistent for others, fitting most applications without paying Strong consistency's latency/availability cost across regions.
+
+**17. What's the difference between Azure SQL Database and Azure SQL Managed Instance?**
+Azure SQL Database is a single-database PaaS offering without full instance-level SQL Server features (no cross-database queries, SQL Agent, or CLR); Managed Instance provides near-100% SQL Server engine compatibility, supporting those instance-scoped features, at a higher cost. The choice mainly comes down to whether the application depends on instance-level features.
+
+### Security
+
+**18. What is Conditional Access, and how does it differ from basic MFA?**
+Conditional Access is a policy engine in Entra ID that evaluates signals (user, location, device compliance, sign-in risk) and applies a decision — allow, block, require MFA, require a compliant device — per policy. MFA is one possible *enforcement action* a Conditional Access policy can trigger, not a replacement for the policy engine itself, so you can require MFA only in risky contexts rather than on every sign-in.
+
+**19. What's the difference between Azure Policy and Azure RBAC?**
+RBAC controls *who* can perform *which actions* on resources (authorization); Azure Policy controls *what configurations are allowed to exist*, regardless of who created them — e.g., RBAC can allow a user to create storage accounts, while Policy independently denies that creation if it isn't encrypted or is publicly accessible. They're complementary controls, not overlapping ones.
+
+**20. How would you securely allow a Function App to read a secret from Key Vault, without storing any credentials?**
+Enable a system-assigned or user-assigned Managed Identity on the Function App, then grant that identity an access policy or RBAC role (Key Vault Secrets User) scoped to the specific Key Vault. The Function authenticates to Entra ID using the managed identity at runtime, with no stored credentials anywhere in code or configuration.
+
+### Monitoring & Governance
+
+**21. What's the difference between Azure Monitor Metrics and Log Analytics?**
+Metrics are lightweight, numeric time-series data (CPU%, request count) optimized for near-real-time alerting and charting; Log Analytics ingests structured/unstructured log data queryable via KQL, better suited for deep investigation and correlation across resources, at higher latency and cost than metrics.
+
+**22. How does Azure Policy's "deny" effect differ from "audit" and "deployIfNotExists"?**
+"Deny" blocks a non-compliant resource from being created/updated at all; "audit" allows the operation but flags the resource as non-compliant in the compliance dashboard for later remediation; "deployIfNotExists" allows the operation and then automatically deploys a related, compliant resource (e.g., auto-enabling diagnostic settings) if it doesn't already exist. The choice depends on whether you need a hard blocker, visibility only, or automated remediation.
+
+### Scenario-Based
+
+**23. "A team says their App Service is randomly returning 502 errors under load — how do you troubleshoot?"**
+Answer shape: check Application Insights for failed dependency calls/exceptions correlating with the 502 spikes; check the App Service Plan's tier/instance count for CPU/memory saturation (an undersized plan can't handle the load — scale up/out); check for a downstream dependency (database connection pool exhaustion, a slow API call) causing request queueing/timeouts, rather than assuming App Service itself is the bottleneck.
+
+**24. "Design a highly available, secure 3-tier web app in Azure."**
+Answer shape: Front Door or Application Gateway (with WAF) in front; App Service or AKS spread across multiple Availability Zones for the app tier; Azure SQL Database with zone-redundant configuration or a failover group for the data tier; Key Vault for secrets; Managed Identities for service-to-service auth; VNet integration/private endpoints so the database isn't publicly exposed; Azure Monitor + Application Insights for observability.
+
+[⬆ Back to top](#top)
+
+---
+
+## Azure DevOps Engineer Interview Questions
+
+### CI/CD & Pipelines
+
+**1. What's the difference between a build (CI) pipeline and a release (CD) pipeline in Azure DevOps?**
+CI (build) pipelines compile, test, and package code into an artifact on every commit/PR — the goal is fast feedback on whether the change is good. CD (release) pipelines take that artifact and deploy it through a sequence of stages (dev → test → prod) with approvals/gates between them. Modern Azure Pipelines YAML often combines both into one multi-stage pipeline rather than using the older, separate Classic Release pipelines.
+
+**2. What are pipeline templates, and why use them?**
+YAML templates let you define reusable pipeline logic (a stage, job, or set of steps) in one file and reference/parameterize it from multiple pipelines, avoiding copy-pasted YAML across dozens of repos. This is the Azure Pipelines equivalent of a shared Terraform module or a reusable GitHub Actions composite action, and it's how most orgs enforce a consistent, centrally maintained build/deploy pattern.
+
+**3. What's the difference between a Microsoft-hosted agent and a self-hosted agent?**
+Microsoft-hosted agents are ephemeral VMs provisioned fresh per job, require no maintenance, but have limited build minutes (especially on the free tier) and can't reach private/on-prem networks. Self-hosted agents run on infrastructure you manage — needed for private network access, custom tooling/licensing, or to avoid Microsoft-hosted minute limits at high build volume, at the cost of patching/scaling that infrastructure yourself.
+
+**4. How do you securely handle secrets in an Azure Pipeline?**
+Never hardcode secrets in YAML. Use a Variable Group linked to Azure Key Vault (the pipeline pulls secrets at runtime via a service connection with least-privilege access), or pipeline secret variables (masked in logs, encrypted at rest) for simpler cases. Secrets should be scoped to specific stages/environments rather than available pipeline-wide, with environment approvals gating access to production secrets.
+
+**5. What is a Service Connection, and what's the least-privileged way to configure one for deploying to Azure?**
+A Service Connection is how Azure Pipelines authenticates to an external system (Azure subscription, ACR, Kubernetes cluster) to perform deployment actions. For Azure, the least-privileged approach is workload identity federation (OIDC) scoped to a specific resource group with a custom role granting only the actions the pipeline actually needs — not Owner/Contributor on the whole subscription, and not a long-lived service principal secret if federated credentials are supported.
+
+### Release Management & Deployment Strategies
+
+**6. What's the difference between blue-green, canary, and rolling deployments, and which Azure services support each natively?**
+Blue-green runs two full environments and switches traffic atomically (App Service deployment slots support this via slot-swap); canary gradually shifts a small percentage of traffic to the new version while monitoring for errors (Application Gateway/Front Door weighted routing, or AKS with a service mesh/Argo Rollouts); rolling updates replace instances incrementally without a second full environment (default AKS Deployment behavior, VMSS rolling upgrade policy). The choice trades cost (blue-green briefly needs 2x capacity), blast radius (canary limits it), and complexity.
+
+**7. How do Environments and Approvals work in Azure Pipelines, and why are they important for production deployments?**
+An Environment represents a deployment target (e.g., "production") that can have approval checks, branch control, and business-hour deployment windows attached to it, independent of the pipeline definition itself. This enforces a human gate (or automated check) before a stage deploys to that environment, and gives a centralized deployment history per environment across all pipelines targeting it — critical for auditability and preventing an unreviewed change from reaching production.
+
+### Infrastructure as Code
+
+**8. When would a DevOps engineer choose Bicep/ARM over Terraform for Azure IaC, and vice versa?**
+Bicep/ARM when the org is Azure-only and wants zero external state backend to manage, native Azure Resource Manager deployment history/rollback, and day-one support for brand-new Azure resource types (Terraform's AzureRM provider sometimes lags). Terraform when the org is multi-cloud, wants one tool/workflow across providers, or already has Terraform expertise/tooling they don't want to duplicate specifically for Azure.
+
+**9. How would you structure a pipeline that runs `terraform plan` on every PR and `terraform apply` only on merge to main?**
+Answer shape: a PR-triggered stage runs `terraform init`/`validate`/`plan -out=tfplan`, publishes the plan as a pipeline artifact, and posts a summary as a PR comment for review; a separate stage gated by an Environment approval and triggered only on merge to main downloads that exact plan artifact and runs `terraform apply tfplan` — applying the precise reviewed plan rather than re-planning at apply time, avoiding a time-of-check/time-of-use gap if infrastructure changed between review and merge.
+
+**10. What's the equivalent of Terraform remote state locking in an Azure Pipelines context, and why does it matter?**
+Terraform's `azurerm` backend uses a blob lease on the state blob in a Storage Account as its locking mechanism (instead of AWS's DynamoDB table) — if two pipeline runs try to `apply` concurrently, the second fails to acquire the lease and errors instead of corrupting state. This matters especially in CI, where concurrent pipeline triggers (e.g., two PRs merged close together) are a realistic scenario a local-only workflow wouldn't hit as often.
+
+### Containers & Kubernetes
+
+**11. How do you deploy to AKS from Azure Pipelines securely, without a long-lived kubeconfig secret in the pipeline?**
+Use a Kubernetes service connection backed by workload identity federation (or at minimum a scoped Entra ID service principal), rather than exporting and storing a static kubeconfig/service account token as a pipeline secret. Combine with AKS's Entra ID integration and Kubernetes RBAC so the pipeline's identity has only the namespace-scoped permissions needed to deploy, not cluster-admin.
+
+**12. What's the role of Azure Container Registry (ACR) Tasks in a CI/CD pipeline, versus building images in the pipeline itself?**
+ACR Tasks can build container images directly inside the registry (triggered by a git commit or a base-image update), offloading build compute from the pipeline agent and automatically rebuilding images when a base image gets a security patch. Building in the pipeline itself gives more control over the build environment and easier integration with pipeline-native testing/scanning steps — many teams use the pipeline to build/test/scan and push to ACR, reserving ACR Tasks specifically for automated base-image-patch rebuilds.
+
+### Security in DevOps (DevSecOps)
+
+**13. Where in an Azure Pipeline would you add security scanning, and what would you scan?**
+Answer shape: SAST (via the Microsoft Security DevOps extension or a third-party tool like Checkmarx/Semgrep) and secret scanning on every PR; dependency/SCA scanning at build time; container image scanning (Defender for Containers, or Trivy) after the image is built and before it's pushed to ACR; IaC scanning (Checkov/tfsec, or Defender for Cloud's IaC scanning) on any Terraform/Bicep changes — failing the pipeline on high/critical findings, consistent with a shift-left approach.
+
+**14. How does Microsoft Defender for DevOps fit into an Azure DevOps/GitHub pipeline?**
+It centralizes security findings (secrets, IaC misconfigurations, code scanning results, exposed credentials) from connected Azure DevOps organizations and GitHub repos into Defender for Cloud's dashboard, giving a unified view of DevOps security posture alongside cloud resource posture — instead of security teams checking each pipeline's disparate scan outputs individually.
+
+### Scenario-Based
+
+**15. "A production deployment failed halfway through and left the environment in a broken state — how do you prevent this going forward?"**
+Answer shape: use deployment slots (App Service) or blue-green/canary strategies elsewhere so a failed deploy never touches the currently-serving environment directly; add health-check-gated rollout steps that halt/roll back automatically on failed checks rather than proceeding blindly; ensure the deployment step is idempotent/re-runnable; require an Environment approval before production so a human reviews the change, and keep enough deployment history to know exactly what was last known-good to roll back to.
+
+**16. "Multiple teams share one Azure DevOps organization and keep stepping on each other's pipeline resources (agent pools, service connections) — how would you fix the setup?"**
+Answer shape: separate Azure DevOps Projects per team/product with project-scoped service connections and agent pool permissions rather than organization-wide access; apply least-privilege security groups so a team can only see/modify its own pipelines and connections; if agent capacity is the actual bottleneck, consider self-hosted scale-set agent pools sized per team, or move high-volume teams off shared Microsoft-hosted minutes.
 
 [⬆ Back to top](#top)
 
