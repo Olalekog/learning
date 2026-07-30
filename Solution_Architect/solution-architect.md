@@ -28,9 +28,10 @@ configurations, and a troubleshooting guide organized by topic.
 18. [Scenario-Based Interview Questions](#18-scenario-based-interview-questions)
 19. [Service Comparison Cheat Sheet](#19-service-comparison-cheat-sheet)
 20. [Common Pitfalls and Trick Questions](#20-common-pitfalls-and-trick-questions)
-21. [Troubleshooting Guide by Topic](#21-troubleshooting-guide-by-topic)
-22. [CLI / IaC Cheat Sheet](#22-cli--iac-cheat-sheet)
-23. [Study Checklist](#23-study-checklist)
+21. [AWS Services by Category](#21-aws-services-by-category)
+22. [Troubleshooting Guide by Topic](#22-troubleshooting-guide-by-topic)
+23. [CLI / IaC Cheat Sheet](#23-cli--iac-cheat-sheet)
+24. [Study Checklist](#24-study-checklist)
 
 ---
 
@@ -943,7 +944,153 @@ distinguishing factor for each.
 
 ---
 
-# 21. Troubleshooting Guide by Topic
+# 21. AWS Services by Category
+
+Every service covered above, grouped by category, with a brief
+definition, its defining characteristics, and — the part interviewers
+actually probe — why you'd pick it over the nearest alternative.
+
+## Compute
+
+| Service | Definition & Characteristics | Chosen Over the Alternative When |
+|---|---|---|
+| **EC2** | Resizable virtual machines (IaaS); full OS-level control; billed per second; wide instance family choice; On-Demand/Reserved/Spot pricing. | You need OS-level access, long-running processes, specialized licensing, or a steady-state workload where a Reserved Instance/Savings Plan beats Lambda/Fargate on cost. |
+| **Lambda** | Event-driven, serverless function execution; no server management; max 15-minute runtime; scales automatically per invocation; billed per ms. | The workload is short-lived and event-driven/spiky — vs EC2/Fargate, avoid it for jobs >15 min, GPU workloads, or workloads needing persistent local state. |
+| **Auto Scaling (ASG)** | Automatically adds/removes EC2 instances to match demand or replace unhealthy ones; target-tracking, step, or scheduled policies. | Any EC2 fleet with variable load — it's the standard scaling mechanism for EC2, as opposed to Fargate/Lambda which scale the underlying compute for you natively. |
+| **AWS Batch** | Managed batch job scheduling/queuing across EC2, Spot, or Fargate; handles retries and dynamic provisioning. | The job runs longer than Lambda's 15-minute cap, needs a custom AMI/large compute, or is a massively parallel array job. |
+| **Elastic Beanstalk** | PaaS that provisions and wires together EC2, ASG, and an ELB from an uploaded app bundle. | You want a fast, standard deployment without hand-configuring each piece — vs raw CloudFormation, trades granular control for speed; vs Lambda, fits apps that aren't naturally function-shaped. |
+
+## Containers
+
+| Service | Definition & Characteristics | Chosen Over the Alternative When |
+|---|---|---|
+| **ECS** | AWS-proprietary container orchestrator; simpler API than Kubernetes; task definitions and services. | The team wants simplicity and deep AWS integration without needing Kubernetes portability or its ecosystem. |
+| **EKS** | Managed Kubernetes control plane; standard k8s API; portable across clouds. | You need multi-cloud portability, already have k8s expertise/tooling (Helm, operators), or need k8s-specific ecosystem features. |
+| **Fargate** | Serverless compute *launch type* for ECS/EKS — no EC2 instances to patch or size. | You don't want to manage underlying instances at all; trade-off is less control and typically higher cost than EC2 launch type at sustained high utilization. |
+| **ECR** | Fully managed private container registry; IAM-integrated; image scanning on push. | You need private images tied to IAM auth and native AWS scanning/lifecycle policies, vs a public registry like Docker Hub. |
+
+## Storage
+
+| Service | Definition & Characteristics | Chosen Over the Alternative When |
+|---|---|---|
+| **S3** | Object storage; 11 nines durability; HTTP(S) access; virtually unlimited scale; storage-class tiering. | You need internet-accessible object storage, static site hosting, a data lake, or a backup/archive target — not a mountable filesystem. |
+| **EBS** | Block storage volume attached to a single EC2 instance within one AZ. | You need a traditional filesystem/boot volume or low-latency block access from exactly one instance (e.g., a database's data volume). |
+| **EFS** | Managed NFS file system; shared concurrently across many instances/AZs; capacity scales elastically. | Multiple instances need concurrent read/write access to the same files — EBS can't do this (single-attach), only newer io2/gp3 multi-attach in narrow cases. |
+| **FSx (Windows/Lustre)** | Managed third-party file systems — SMB with AD integration (Windows) or sub-millisecond HPC throughput (Lustre). | You need native Windows SMB/Active Directory file shares, or extreme HPC/ML training throughput that EFS doesn't provide. |
+| **Storage Gateway** | Hybrid storage bridge — File/Volume/Tape gateway backing on-prem NFS/SMB/iSCSI/tape interfaces with S3/EBS. | On-prem systems must keep using familiar file/block/tape interfaces while data is actually stored in AWS. |
+
+## Database
+
+| Service | Definition & Characteristics | Chosen Over the Alternative When |
+|---|---|---|
+| **RDS** | Managed relational database (MySQL, PostgreSQL, MariaDB, Oracle, SQL Server); AWS handles patching/backup. | You need a specific engine Aurora doesn't support (Oracle, SQL Server), or want the lower baseline cost of a standard engine — vs self-managed EC2, you avoid all engine/OS ops. |
+| **Aurora** | AWS-built MySQL/PostgreSQL-compatible engine; storage auto-scales to 128TB; faster failover (~30s); up to 15 read replicas. | You need higher performance, availability, or read-scaling than standard RDS at the same wire-compatible engine. |
+| **DynamoDB** | Managed NoSQL key-value/document store; single-digit-millisecond latency at any scale; access via partition/sort key. | The access pattern is key-based lookups needing massive horizontal scale and minimal ops — vs RDS/Aurora, trades relational query flexibility for scale and latency. |
+| **ElastiCache (Redis/Memcached)** | Managed in-memory cache; Redis adds persistence, replication, and rich data structures/pub-sub; Memcached is simpler and pure cache. | You need a general-purpose cache in front of any data source, or (Redis specifically) durability/replication/pub-sub — vs DAX, which only fronts DynamoDB. |
+| **DAX** | In-memory cache purpose-built in front of DynamoDB. | You need microsecond DynamoDB read caching without writing app-level cache logic yourself. |
+
+## Networking & Content Delivery
+
+| Service | Definition & Characteristics | Chosen Over the Alternative When |
+|---|---|---|
+| **VPC** | Logically isolated virtual network — subnets, route tables, gateways. | Foundational — every AWS network design starts here; no real alternative. |
+| **Route 53** | Managed DNS with health checks and multiple routing policy types (weighted, latency, failover, geolocation). | You need deep AWS integration — alias records to AWS resources, health-check-driven failover — beyond what a third-party DNS provider offers. |
+| **ALB** | Layer 7 (HTTP/HTTPS) load balancer; content-based routing by path/host; supports WebSocket. | Routing decisions depend on request content (path/host), or the workload is HTTP-based microservices — vs NLB, trades raw throughput for L7 intelligence. |
+| **NLB** | Layer 4 (TCP/UDP) load balancer; extreme throughput; static/Elastic IP support. | You need a static IP, non-HTTP protocols, or the highest possible throughput/lowest latency — vs ALB, trades content-based routing for raw performance. |
+| **GWLB** | Layer 3 transparent traffic inspection/load balancing. | You're inserting a third-party virtual appliance (firewall, IDS/IPS) transparently into the traffic path — not a fit for ALB/NLB's use cases. |
+| **CloudFront** | CDN — caches content at edge locations close to users. | The content is cacheable HTTP(S) traffic (static assets, API responses with TTLs) — vs Global Accelerator, which doesn't cache. |
+| **Global Accelerator** | Anycast static IPs routed over AWS's global network backbone. | Traffic is non-cacheable/non-HTTP (TCP/UDP), or you need a fixed IP to allow-list — vs CloudFront, optimizes network path rather than caching content. |
+| **Direct Connect** | Dedicated private physical network link to AWS. | You need consistent low latency and high throughput and can accept a longer provisioning lead time — vs VPN, which rides the public internet. |
+| **Site-to-Site VPN** | Encrypted IPsec tunnel over the public internet to on-prem. | You need to connect quickly and cheaply and can tolerate variable, internet-dependent latency — vs Direct Connect's predictability. |
+| **Transit Gateway** | Hub-and-spoke connectivity hub for many VPCs/VPNs with transitive routing. | You're connecting more than a handful of VPCs and need transitive routing and centralized management — vs VPC Peering, which doesn't scale past a few connections. |
+| **VPC Peering** | Direct point-to-point connection between exactly two VPCs; no transitive routing. | You only need to connect two VPCs and want to avoid Transit Gateway's hourly cost and added complexity. |
+| **PrivateLink** | Private, one-directional service exposure via an ENI — no peering or route table changes needed. | You're exposing one specific service (not a whole VPC) to consumers, e.g. a SaaS provider pattern — vs Peering, avoids exposing the entire network. |
+
+## Security, Identity & Compliance
+
+| Service | Definition & Characteristics | Chosen Over the Alternative When |
+|---|---|---|
+| **IAM** | Identity and access management — users, groups, roles, policies; foundation for all AWS authorization. | Always — the baseline for every access-control decision in AWS. |
+| **KMS** | Managed encryption key creation, rotation, and auditable usage (via CloudTrail); envelope encryption. | You need AWS-integrated encryption key management with policy-based access control and rotation. |
+| **Secrets Manager** | Stores and automatically rotates secrets (DB credentials, API keys) via Lambda rotation functions. | The secret needs automatic rotation or fine-grained, secret-specific access policies — vs Parameter Store, costs more per secret but adds rotation. |
+| **Systems Manager Parameter Store** | Stores config values and secrets (SecureString via KMS); standard tier is free. | The value is general config, or a secret that's rotated manually/infrequently, and cost is a concern — vs Secrets Manager, no built-in rotation. |
+| **Cognito** | Managed user authentication (User Pools) plus federated temporary AWS credentials (Identity Pools). | You need managed sign-up/sign-in/MFA/social login without building and hardening auth yourself. |
+| **WAF** | Layer 7 web filtering — SQLi/XSS rules, rate-based rules, geo-blocking; attaches to ALB/CloudFront/API Gateway. | You need to block specific malicious request *patterns*, not just absorb volumetric traffic — vs Shield, which handles the DDoS volume itself. |
+| **Shield (Standard/Advanced)** | DDoS protection; Standard is automatic and free (L3/L4); Advanced adds L7 protection, cost protection, and DRT access. | Standard is always on by default; upgrade to Advanced when the business needs an SLA-backed response team and cost protection against a large attack. |
+| **GuardDuty** | ML-based threat detection over CloudTrail, VPC Flow Logs, and DNS logs. | You need continuous, automated anomaly/threat detection instead of manually reviewing logs. |
+| **Security Hub** | Aggregates findings from GuardDuty, Inspector, Config, and partner tools into one dashboard with compliance scoring. | You need a single pane of glass across many security tools instead of checking each dashboard separately. |
+| **Inspector** | Automated vulnerability scanning for EC2, ECR images, and Lambda functions. | You need continuous automated CVE scanning of running workloads rather than manual patch tracking. |
+| **Macie** | ML-based discovery and classification of sensitive data (PII) in S3. | You need to know where PII/sensitive data lives across S3 for a compliance requirement. |
+| **Organizations (SCPs)** | Account/OU-level guardrails across a multi-account organization; caps maximum permissions, doesn't grant any. | You need an org-wide guardrail that holds regardless of what IAM policies an individual account defines — IAM alone can't enforce that across accounts. |
+
+## Application Integration
+
+| Service | Definition & Characteristics | Chosen Over the Alternative When |
+|---|---|---|
+| **API Gateway** | Managed API front door (REST/HTTP/WebSocket); request throttling, auth, validation, caching. | You need per-client throttling, request validation, native Lambda integration, or API key management — vs a bare ALB, adds an API-management layer. |
+| **SQS** | Message queue; pull-based; decouples producer from consumer. Standard = at-least-once/best-effort order; FIFO = exactly-once/strict order at lower throughput. | Exactly one consumer should process each message and you need a durable buffer — vs SNS, which pushes to many subscribers instead. |
+| **SNS** | Pub/sub messaging; push-based fan-out to many subscribers at once. | The same message must reach multiple independent subscribers immediately — vs SQS, which is single-consumer-per-message. |
+| **EventBridge** | Event bus with content-based routing rules, a schema registry, and built-in SaaS/third-party event sources. | Routing depends on event *content*, not just fan-out, or you're integrating third-party/SaaS events — vs SNS's simpler, routing-free fan-out. |
+| **Step Functions** | Visual state-machine orchestration with built-in retries, error handling, and long-running (up to 1 year) workflows. | A multi-step workflow needs visibility, retry logic, or human-approval steps — vs manually chaining Lambda calls, which is fragile and hard to observe. |
+| **Amazon MQ** | Managed ActiveMQ/RabbitMQ. | You're migrating an existing app that already speaks JMS/AMQP and don't want to rewrite its messaging code for SQS/SNS. |
+
+## Analytics & Big Data
+
+| Service | Definition & Characteristics | Chosen Over the Alternative When |
+|---|---|---|
+| **Kinesis Data Streams** | Ordered, replayable real-time data stream with custom consumer applications. | You need custom processing logic, multiple independent consumers, or the ability to replay/reprocess data — vs Firehose, which has no custom consumer code. |
+| **Kinesis Firehose** | Managed delivery stream straight to S3/Redshift/OpenSearch; no consumer code to write. | You need simple near-real-time loading/ETL with no custom processing — vs Data Streams, trades flexibility for zero ops. |
+| **Redshift** | Provisioned, petabyte-scale columnar data warehouse for OLAP/BI. | Queries are frequent and complex and you need consistent performance — vs Athena, you're willing to provision and pay for a cluster continuously. |
+| **Athena** | Serverless SQL directly over S3 (via the Glue Data Catalog); pay per query scanned. | Queries are ad-hoc or infrequent and you don't want to provision/manage a warehouse — vs Redshift, no cluster to size or keep running. |
+| **EMR** | Managed Hadoop/Spark clusters for large-scale big-data processing. | You need full control over the cluster or a custom big-data framework at very large scale — vs Glue, which is serverless but less flexible. |
+| **Glue** | Serverless ETL jobs plus a shared Data Catalog (schema registry for S3/Athena/Redshift). | You want managed, serverless ETL and a shared catalog without cluster management — vs EMR, less control but zero infrastructure. |
+| **OpenSearch Service** | Managed search and log-analytics engine (Elasticsearch/Kibana-compatible). | You need full-text search or log-analytics dashboards — a query shape Athena/Redshift aren't built for. |
+| **QuickSight** | Managed, serverless BI/dashboarding tool; pay-per-session pricing. | You want AWS-native dashboards directly over Redshift/Athena/S3 without standing up a third-party BI platform. |
+
+## Management & Governance
+
+| Service | Definition & Characteristics | Chosen Over the Alternative When |
+|---|---|---|
+| **CloudWatch** | Metrics, logs, alarms, and dashboards — answers "how is the system performing." | Always, for operational visibility — pairs with CloudTrail, which answers a different question (see below). |
+| **CloudTrail** | Audit log of every API call made in the account — answers "who did what, when." | You're investigating an access/change event, not runtime performance — CloudWatch won't tell you *who* made an API call. |
+| **Config** | Tracks resource configuration state/changes over time and evaluates them against compliance rules. | You need the current or historical *configuration state* of a resource, not just the API call that changed it — complements CloudTrail rather than replacing it. |
+| **CloudFormation** | Declarative Infrastructure-as-Code using JSON/YAML templates. | You need repeatable, version-controlled infrastructure — vs manual console changes, gives auditability and repeatability; vs CDK, you prefer declarative templates over imperative code. |
+| **Systems Manager** | Operational hub — Session Manager (no SSH keys/open ports), Patch Manager, Run Command, Parameter Store. | You need centralized, auditable fleet management without opening SSH/RDP ports to instances. |
+| **Trusted Advisor** | Automated best-practice checks across cost, performance, security, and fault tolerance. | You want a quick automated health check across many dimensions without building custom checks yourself. |
+| **Cost Explorer** | Visualizes and analyzes historical spend/usage trends. | You're investigating *why* a bill changed — the go-to first stop before Budgets or CUR. |
+| **Budgets** | Proactive alerts when spend or usage crosses a defined threshold. | You need forward-looking alerts, not just historical analysis — vs Cost Explorer, which only looks backward. |
+| **Compute Optimizer** | ML-based right-sizing recommendations for EC2, EBS, and Lambda. | You want data-driven right-sizing recommendations instead of guessing at instance sizes. |
+| **AWS Backup** | Centralized, policy-based backup across EBS, RDS, DynamoDB, EFS, and more. | You need one policy/schedule managing backups across many services, plus cross-region/cross-account copy — vs per-service native snapshots managed separately. |
+
+## Migration & Transfer
+
+| Service | Definition & Characteristics | Chosen Over the Alternative When |
+|---|---|---|
+| **DMS** | Database migration with minimal downtime; homogeneous or heterogeneous (via the Schema Conversion Tool). | You need continuous replication during a live cutover window — vs a manual export/import, avoids an extended downtime window. |
+| **Application Migration Service (MGN)** | Agent-based, continuous-replication lift-and-shift for whole servers/apps. | You're migrating entire servers/applications, not just a database — vs DMS, which is database-only. |
+| **DataSync** | Automated, accelerated transfer of large datasets between on-prem and AWS storage, with scheduling and validation. | The transfer is large and recurring and needs scheduling/bandwidth throttling — vs manual `aws s3 cp`/rsync, adds validation and automation. |
+| **Snowball family** | Physical data transfer devices shipped to you. | The dataset is so large that network transfer would take weeks/months, or no reliable network link exists — do the bandwidth math to justify this. |
+| **Migration Hub** | Central dashboard tracking multiple migration tools/waves. | You're running many migrations across several tools and need one consolidated tracking view. |
+
+## Category-to-Section Map
+
+If a question centers on one of these categories, the deep-dive section
+is:
+
+- Compute → [§3](#3-compute) · Containers → [§11](#11-containers)
+- Storage → [§4](#4-storage) · Database → [§5](#5-databases)
+- Networking → [§6](#6-networking-vpc) and [§7](#7-load-balancing-and-dns)
+- Security → [§8](#8-security-and-iam)
+- Application Integration → [§12](#12-messaging-and-integration) and [§10](#10-serverless-architecture)
+- Analytics → [§5](#5-databases) (warehousing subsection)
+- Management & Governance → [§14](#14-monitoring-and-observability) and [§15](#15-cost-optimization)
+- Migration → [§16](#16-migration-and-hybrid-cloud)
+
+[⬆ Back to top](#top)
+
+---
+
+# 22. Troubleshooting Guide by Topic
 
 ## Connectivity ("EC2 instance can't reach the internet / can't be reached")
 
@@ -1030,7 +1177,7 @@ Use IAM Access Analyzer / the policy simulator to test before guessing.
 
 ---
 
-# 22. CLI / IaC Cheat Sheet
+# 23. CLI / IaC Cheat Sheet
 
 ```bash
 # EC2 / Auto Scaling
@@ -1097,7 +1244,7 @@ Resources:
 
 ---
 
-# 23. Study Checklist
+# 24. Study Checklist
 
 - [ ] Explain the shared responsibility model with a concrete example
       of a customer-side failure.
