@@ -1,0 +1,290 @@
+name: RAG Architecture - Terraform CI/CD
+
+# NOTE ON WHERE THIS FILE LIVES: GitHub Actions only picks up workflows
+# from `.github/workflows/` at the actual repository root. This file sits
+# at RAG-Architecture/.github/workflows/ — a deliberate choice, not an
+# oversight: RAG-Architecture/ is a self-contained reference architecture
+# inside a larger multi-topic learning repo, so it does NOT execute here.
+# It's positioned so that if this folder is ever split into its own repo
+# (or copied into the real application repo this design gets built in),
+# it lands in exactly the right spot and works immediately with no path
+# changes needed.
+#
+# BRANCH-PER-ENVIRONMENT MODEL:
+#   dev  branch → push triggers an immediate plan + apply to dev, no gate.
+#   uat  branch → a PR from dev into uat triggers a plan-only check,
+#                 posted to the PR for review; merging that PR (which is
+#                 itself a push to uat) triggers the actual uat apply.
+#   prod         → promotion is never automatic. It's a manual
+#                 workflow_dispatch run, and the job targets the "prod"
+#                 GitHub Environment, which pauses the ENTIRE job — before
+#                 even checkout runs — until a required reviewer approves
+#                 it in the Environment's protection rules. Plan and apply
+#                 both happen only after that approval, against whatever
+#                 ref is being promoted (defaults to uat).
+#
+# Prerequisites (not created by this workflow — see ../../README.md §9
+# for the module/environment structure this operates on):
+#   - An OIDC identity provider trust set up in each target AWS account for
+#     token.actions.githubusercontent.com, restricted to this repo/branch
+#     (see ../../../DevSecOps/DevSecOps.md §12 for the exact trust-policy
+#     pattern).
+#   - One IAM role per environment: github-actions-rag-{dev,uat,prod},
+#     referenced below via secrets.AWS_ACCOUNT_ID.
+#   - The S3 state bucket + DynamoDB lock table each environment's
+#     versions.tf backend block points at (see
+#     ../../../Terraform/Terraform.md §8).
+#   - GitHub Environments named "dev", "uat", and "prod" configured in
+#     repo Settings → Environments, with "prod" set to require a reviewer
+#     approval before deployment jobs targeting it can run.
+#   - dev, uat, and (optionally) main branches created in this repo.
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - "terraform/**"
+      - "src/**"
+      - ".github/workflows/rag-architecture.yml"
+  pull_request:
+    branches: [uat]
+    paths:
+      - "terraform/**"
+      - "src/**"
+      - ".github/workflows/rag-architecture.yml"
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "deploy" to confirm promoting to production'
+        required: true
+      ref:
+        description: "Branch/tag/SHA to promote to production"
+        required: false
+        default: "uat"
+
+permissions:
+  id-token: write # required for AWS OIDC federation
+  contents: read
+  pull-requests: write # required to post the plan as a PR comment
+
+env:
+  TF_VERSION: "1.10.4"
+  TF_ROOT: terraform
+  AWS_REGION: us-east-1
+
+jobs:
+  # ---------------------------------------------------------------------
+  # Lint + security scan — no AWS credentials needed, runs on every
+  # trigger (push to dev, PR into uat, or a manual prod dispatch).
+  # ---------------------------------------------------------------------
+  lint-and-security:
+    name: Terraform Lint & Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform fmt check (modules + every environment)
+        run: terraform fmt -check -recursive
+        working-directory: ${{ env.TF_ROOT }}
+
+      - name: Checkov IaC security scan
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: ${{ env.TF_ROOT }}
+          framework: terraform
+          quiet: true
+          soft_fail: false
+
+      - name: Gitleaks secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ---------------------------------------------------------------------
+  # Lint + compile-check the Lambda source — same no-credentials tier,
+  # same every-trigger scope as lint-and-security.
+  # ---------------------------------------------------------------------
+  python-checks:
+    name: Lint & Compile Lambda Source
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install lint tools
+        run: pip install ruff
+
+      - name: Ruff lint
+        run: ruff check src
+
+      - name: Compile check
+        run: python -m py_compile src/*.py
+
+  # ---------------------------------------------------------------------
+  # DEV — triggers only on a direct push to the dev branch. No approval
+  # gate: dev is meant to move fast. Plan and apply happen back-to-back
+  # in the same job run.
+  # ---------------------------------------------------------------------
+  deploy-dev:
+    name: Plan & Apply — dev
+    needs: [lint-and-security, python-checks]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    environment: dev
+    defaults:
+      run:
+        working-directory: ${{ env.TF_ROOT }}/environments/dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS credentials (OIDC, no long-lived keys)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-rag-dev
+          aws-region: ${{ env.AWS_REGION }}
+
+      - run: terraform init
+      - run: terraform validate
+      - run: terraform plan -out=tfplan
+      - run: terraform apply -auto-approve tfplan
+
+  # ---------------------------------------------------------------------
+  # UAT (pre-merge) — a PR opened from dev into uat triggers a plan-only
+  # check, posted to the PR so it can be reviewed before merge. This job
+  # never applies anything.
+  # ---------------------------------------------------------------------
+  plan-uat:
+    name: Plan — uat (PR review)
+    needs: [lint-and-security, python-checks]
+    if: github.event_name == 'pull_request' && github.base_ref == 'uat'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.TF_ROOT }}/environments/uat
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS credentials (OIDC, no long-lived keys)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-rag-uat
+          aws-region: ${{ env.AWS_REGION }}
+
+      - run: terraform init
+      - run: terraform validate
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color -out=tfplan
+        continue-on-error: true
+
+      - name: Post plan to PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const output = `#### Terraform Plan — \`uat\` 🪄
+            <details><summary>Show plan</summary>
+
+            \`\`\`
+            ${{ steps.plan.outputs.stdout }}
+            \`\`\`
+            </details>`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+      - name: Fail job if plan failed
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+  # ---------------------------------------------------------------------
+  # UAT (post-merge) — merging the dev→uat PR is itself a push to uat,
+  # which triggers the real apply. Re-plans against the now-merged code
+  # rather than reusing the PR's plan artifact (a separate workflow run,
+  # separate event) — plan and apply still happen back-to-back in one
+  # job, so there's no gap between what's planned and what's applied.
+  # ---------------------------------------------------------------------
+  deploy-uat:
+    name: Plan & Apply — uat (post-merge)
+    needs: [lint-and-security, python-checks]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/uat'
+    runs-on: ubuntu-latest
+    environment: uat
+    defaults:
+      run:
+        working-directory: ${{ env.TF_ROOT }}/environments/uat
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS credentials (OIDC, no long-lived keys)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-rag-uat
+          aws-region: ${{ env.AWS_REGION }}
+
+      - run: terraform init
+      - run: terraform validate
+      - run: terraform plan -out=tfplan
+      - run: terraform apply -auto-approve tfplan
+
+  # ---------------------------------------------------------------------
+  # PROD — never triggered by push or PR. Only a manual workflow_dispatch
+  # run starts this job, and `environment: prod` (configured with a
+  # required reviewer in repo Settings) pauses the whole job — before
+  # checkout even runs — until someone approves it. Deploys whichever
+  # ref was specified in the dispatch input (defaults to uat).
+  # ---------------------------------------------------------------------
+  deploy-prod:
+    name: Plan & Apply — prod (manual promotion)
+    needs: [lint-and-security, python-checks]
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.confirm == 'deploy'
+    runs-on: ubuntu-latest
+    environment: prod
+    defaults:
+      run:
+        working-directory: ${{ env.TF_ROOT }}/environments/prod
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS credentials (OIDC, no long-lived keys)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-rag-prod
+          aws-region: ${{ env.AWS_REGION }}
+
+      - run: terraform init
+      - run: terraform validate
+      - run: terraform plan -out=tfplan
+      - run: terraform apply -auto-approve tfplan

@@ -1,0 +1,66 @@
+# uat environment — production-like configuration (same instance family
+# as prod) so pre-release testing reflects real behavior, but single
+# instances since UAT doesn't need HA. See ../../../README.md §9.
+
+locals {
+  env = "uat"
+}
+
+module "kms" {
+  source                  = "../../modules/kms"
+  env                     = local.env
+  deletion_window_in_days = 14
+}
+
+module "s3" {
+  source      = "../../modules/s3"
+  env         = local.env
+  kms_key_arn = module.kms.key_arn
+}
+
+module "opensearch" {
+  source      = "../../modules/opensearch"
+  env         = local.env
+  kms_key_arn = module.kms.key_arn
+}
+
+module "iam" {
+  source = "../../modules/iam"
+  env    = local.env
+
+  raw_docs_bucket_arn       = module.s3.raw_docs_bucket_arn
+  vectors_bucket_arn        = module.s3.vectors_bucket_arn
+  opensearch_collection_arn = module.opensearch.collection_arn
+  bedrock_embed_model       = var.bedrock_embed_model
+}
+
+module "sagemaker" {
+  source = "../../modules/sagemaker"
+  env    = local.env
+
+  execution_role_arn             = module.iam.sagemaker_execution_role_arn
+  reranker_image_uri             = var.reranker_image_uri
+  reranker_model_artifact_s3_uri = var.reranker_model_artifact_s3_uri
+
+  # uat: same instance family as prod for representative testing,
+  # single instance since HA isn't a UAT requirement
+  instance_type  = "ml.g5.xlarge"
+  instance_count = 1
+}
+
+module "lambda" {
+  source     = "../../modules/lambda"
+  env        = local.env
+  source_dir = "${path.module}/../../../src"
+
+  execution_role_arn   = module.iam.lambda_execution_role_arn
+  raw_docs_bucket_name = module.s3.raw_docs_bucket_name
+  raw_docs_bucket_arn  = module.s3.raw_docs_bucket_arn
+  vectors_bucket_name  = module.s3.vectors_bucket_name
+
+  opensearch_collection_endpoint = module.opensearch.collection_endpoint
+  bedrock_embed_model            = var.bedrock_embed_model
+
+  memory_size = 1024
+  timeout     = 120
+}
