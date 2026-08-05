@@ -21,16 +21,28 @@
 ## Scenario
 
 A company's careers portal lets candidates upload resumes, which land as blobs in an
-Azure Storage Account. The HR person (in this design, the signed-in Office 365
-account) wants a calendar meeting **automatically created at 3 PM** to interview the
+Azure Storage Account. The HR person (in this design, the signed-in Google account)
+wants a calendar meeting **automatically created at 3 PM** to interview the
 candidate — no manual scheduling step.
 
-**This environment**: storage account `olalekog`, container `ogogundare`.
+**This environment**: storage account `olalekog`, container `ogogundare`, HR
+calendar account `ogogundare@gmail.com`.
+
+> **Why Google Calendar instead of Office 365 Outlook?** The Office 365 Outlook
+> connector authenticates via the Microsoft identity platform — it only accepts a
+> real Microsoft account or a Microsoft 365/Entra ID work account with an actual
+> Exchange Online mailbox behind it. A custom-domain address (e.g.
+> `name@yourcompany.tech`) only works there once that domain is verified in a
+> Microsoft 365 tenant and the mailbox is provisioned/licensed. Since the HR
+> account here is a plain Gmail address with no Microsoft 365 tenant behind it,
+> this design uses the **Google Calendar connector** instead — it authenticates
+> with a standard Google OAuth consent screen and works immediately with any
+> Gmail account.
 
 Core building blocks: **Azure Blob Storage** (candidate resume lands here) →
 **Azure Logic App (Consumption)** (event-driven orchestration, zero infrastructure
-to manage) → **Office 365 Outlook connector** (creates the calendar event directly
-on the HR person's calendar, with an optional Teams meeting link attached).
+to manage) → **Google Calendar connector** (creates the calendar event directly
+on the HR person's calendar, with an optional Google Meet link attached).
 
 [⬆ Back to top](#top)
 
@@ -61,9 +73,9 @@ Sat or Sun?}
     J --> L[Compose Start = date @ 15:00
 End = date @ 15:30]
     K --> L
-    L --> M[Office 365 Outlook:
+    L --> M[Google Calendar:
 Create event on HR calendar
-+ Teams meeting link]
++ Google Meet link]
     M --> N[HR sees the interview
 on their calendar at 3 PM]
 ```
@@ -79,16 +91,16 @@ sequenceDiagram
     participant Portal as Careers Portal
     participant Blob as Blob Storage (olalekog/ogogundare)
     participant LA as Logic App
-    participant O365 as Office 365 Outlook API
+    participant GCal as Google Calendar API
     participant HR as HR Calendar
 
     Portal->>Blob: Upload resume.pdf
     LA->>Blob: Poll every 3 min for new/changed blobs
     Blob-->>LA: New blob event (Name, Path, LastModified)
     LA->>LA: Compute candidate name + next valid 3 PM slot
-    LA->>O365: Create event (Subject, Start, End, Online meeting)
-    O365-->>HR: Event written to calendar
-    O365-->>LA: 201 Created
+    LA->>GCal: Create event (Summary, Start, End, Google Meet)
+    GCal-->>HR: Event written to calendar
+    GCal-->>LA: 200 OK
 ```
 
 [⬆ Back to top](#top)
@@ -120,7 +132,7 @@ sequenceDiagram
 | 4 | **Condition – Past 3 PM already?** | If the resume arrives after 3 PM local time, push the interview to the next day rather than scheduling a meeting in the past. |
 | 5 | **Switch – Weekend roll-forward** | If the computed date is a Saturday or Sunday, roll forward to the following Monday. |
 | 6 | **Compose – Start / End** | `<date>T15:00:00` / `<date>T15:30:00` (30-minute interview slot). |
-| 7 | **Create event (V4)** — Office 365 Outlook | Writes the meeting to the HR person's calendar, subject `Interview: <CandidateName>`, with `IsOnlineMeeting: true` so Teams generates a join link automatically. |
+| 7 | **Create event** — Google Calendar | Writes the meeting to the HR person's calendar, summary `Interview: <CandidateName>`, with the "Add Google Meet video conferencing" option on so a join link is generated automatically. |
 
 [⬆ Back to top](#top)
 
@@ -130,11 +142,17 @@ sequenceDiagram
 
 This is the Workflow Definition Language (WDL) body you'd see under **Logic App →
 Development Tools → Code View**. Connector-internal fields the Designer
-auto-generates (like the exact Office 365 `Create event` schema) are shown as
+auto-generates (like the exact Google Calendar `Create event` schema) are shown as
 placeholders — build that connector step once in the Designer and it will fill
 those in correctly. The Blob trigger's `folderId` below is base64 of `/ogogundare`
 (the container root); if the Designer generates a different encoded value for your
 connection, use its version instead.
+
+Note the two time-zone parameters below aren't redundant: the WDL `convertTimeZone()`
+function takes **Windows** time zone names (`interviewTimeZone`, e.g. `Eastern
+Standard Time`), while the Google Calendar event body expects the **IANA** name for
+the same zone (`googleTimeZone`, e.g. `America/New_York`) — keep them pointed at
+the same real-world zone when you change either one.
 
 ```json
 {
@@ -149,6 +167,10 @@ connection, use its version instead.
       "interviewTimeZone": {
         "type": "String",
         "defaultValue": "Eastern Standard Time"
+      },
+      "googleTimeZone": {
+        "type": "String",
+        "defaultValue": "America/New_York"
       }
     },
     "triggers": {
@@ -272,22 +294,28 @@ connection, use its version instead.
         "runAfter": { "Compose_InterviewStart": ["Succeeded"] },
         "inputs": "@concat(variables('InterviewDate'), 'T15:30:00')"
       },
-      "Create_event_V4": {
+      "Create_event_Google": {
         "type": "ApiConnection",
         "runAfter": { "Compose_InterviewEnd": ["Succeeded"] },
         "inputs": {
-          "host": { "connection": { "referenceName": "office365" } },
+          "host": { "connection": { "referenceName": "googlecalendar" } },
           "method": "post",
-          "path": "/datasets/calendars/v2/table/items",
+          "path": "/codeless/v3/calendars/@{encodeURIComponent('primary')}/events",
+          "queries": { "conferenceDataVersion": 1 },
           "body": {
-            "Subject": "Interview: @{outputs('Compose_CandidateName')}",
-            "Start": "@{outputs('Compose_InterviewStart')}",
-            "End": "@{outputs('Compose_InterviewEnd')}",
-            "TimeZone": "@{parameters('interviewTimeZone')}",
-            "Location": "Microsoft Teams Meeting",
-            "IsOnlineMeeting": true,
-            "IsHtml": true,
-            "Body": "Interview for candidate @{outputs('Compose_CandidateName')}. Resume: @{triggerBody()?['Path']}"
+            "summary": "Interview: @{outputs('Compose_CandidateName')}",
+            "description": "Interview for candidate @{outputs('Compose_CandidateName')}. Resume: @{triggerBody()?['Path']}",
+            "start": {
+              "dateTime": "@{outputs('Compose_InterviewStart')}",
+              "timeZone": "@{parameters('googleTimeZone')}"
+            },
+            "end": {
+              "dateTime": "@{outputs('Compose_InterviewEnd')}",
+              "timeZone": "@{parameters('googleTimeZone')}"
+            },
+            "conferenceData": {
+              "createRequest": { "requestId": "@{guid()}" }
+            }
           }
         },
         "runtimeConfiguration": {
@@ -335,10 +363,10 @@ Wraps the definition above into a deployable `Microsoft.Logic/workflows` resourc
                 "connectionName": "azureblob",
                 "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', parameters('location'), 'azureblob')]"
               },
-              "office365": {
-                "connectionId": "[resourceId('Microsoft.Web/connections', 'office365')]",
-                "connectionName": "office365",
-                "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', parameters('location'), 'office365')]"
+              "googlecalendar": {
+                "connectionId": "[resourceId('Microsoft.Web/connections', 'googlecalendar')]",
+                "connectionName": "googlecalendar",
+                "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', parameters('location'), 'googlecalendar')]"
               }
             }
           }
@@ -349,10 +377,10 @@ Wraps the definition above into a deployable `Microsoft.Logic/workflows` resourc
 }
 ```
 
-The `Microsoft.Web/connections` resources for `azureblob` and `office365` (and the
-Office 365 OAuth consent) still need to be created/authorized separately — that
-consent step can't be scripted headlessly, which is why the Portal walkthrough
-below is the realistic first-deployment path.
+The `Microsoft.Web/connections` resources for `azureblob` and `googlecalendar`
+(and the Google OAuth consent) still need to be created/authorized separately —
+that consent step can't be scripted headlessly, which is why the Portal
+walkthrough below is the realistic first-deployment path.
 
 [⬆ Back to top](#top)
 
@@ -476,27 +504,31 @@ below is the realistic first-deployment path.
 
 ### 10. Create the calendar event
 
-1. **+ New step** → search **Office 365 Outlook** → action **"Create event
-   (V4)"**.
-2. First use: **Sign in** with the HR person's Microsoft/Office 365 account (this
-   is the one-time OAuth consent — grants the Logic App permission to write to
-   that calendar).
-3. **Calendar id** → leave as **Calendar** (the default/primary calendar).
-4. **Subject** → type `Interview:` followed by a space, then insert dynamic
+1. **+ New step** → search **Google Calendar** → action **"Create event"**.
+2. First use: **Sign in** — this pops the standard Google account chooser/consent
+   screen. Choose **`ogogundare@gmail.com`**, review the requested Calendar scope,
+   and **Allow**. This grants the Logic App permission to write events to that
+   Google account's calendar (a completely separate OAuth flow from Microsoft's —
+   no Microsoft 365 tenant needed).
+3. **Calendar id** → leave as **primary** (the account's main calendar).
+4. **Summary** → type `Interview:` followed by a space, then insert dynamic
    content **Output** from `Compose_CandidateName`.
 5. **Start time** → insert dynamic content **Output** from
    `Compose_InterviewStart`.
 6. **End time** → insert dynamic content **Output** from `Compose_InterviewEnd`.
-7. **Time zone** → type the same zone string used in step 5, e.g.
-   `Eastern Standard Time`.
+7. **Time zone** → type the IANA name for the same zone used earlier, e.g.
+   `America/New_York` (Google Calendar expects IANA names, not the Windows-style
+   `Eastern Standard Time` used by the `convertTimeZone()` expression — see the
+   note above the JSON definition).
 8. **Show all** (bottom of the action card) →
-   - **Is online meeting?** → **Yes** (auto-generates a Teams join link).
-   - **Body** → type `Interview for candidate`, a space, then insert the
+   - **Add Google Meet video conferencing?** → **Yes** (auto-generates a Meet
+     join link).
+   - **Description** → type `Interview for candidate`, a space, then insert the
      `Compose_CandidateName` output, then type `. Resume:`, a space, then insert
      the trigger's **Path** output.
 9. Click the action's **⋯ → Settings → Retry Policy** → set **Type** =
-   `Exponential`, **Count** = `3` (protects against a transient Office 365 API
-   blip).
+   `Exponential`, **Count** = `3` (protects against a transient Google Calendar
+   API blip).
 
 ### 11. Save and test
 
@@ -505,9 +537,9 @@ below is the realistic first-deployment path.
    — via **Storage Browser** in the portal, or `az storage blob upload`.
 3. Back on the Logic App → **Overview → Run history** — within ~3 minutes (the
    polling interval) a new run should appear.
-4. Click the run → confirm every step is green. If `Create_event_V4` failed, click
-   it to see the raw request/response — the most common first-run issue is the
-   Office 365 connection needing re-authorization.
+4. Click the run → confirm every step is green. If `Create_event_Google` failed,
+   click it to see the raw request/response — the most common first-run issue is
+   the Google Calendar connection needing re-consent (e.g. scopes changed).
 5. Check the HR account's calendar for an event titled `Interview: jane_doe_resume`
    at 3:00 PM (today or the next valid weekday, per the logic above).
 
@@ -522,7 +554,8 @@ below is the realistic first-deployment path.
 | Resume uploaded after 3 PM local time | Interview rolls to the next day instead of being scheduled in the past. |
 | Resume uploaded Friday evening / over the weekend | Rolls forward to the following Monday, not Saturday/Sunday. |
 | Server clock vs. business time zone | All "is it past 3 PM" logic runs against `convertTimeZone` output, never raw `utcNow()`. |
-| Transient Office 365 API failure | `retryPolicy` on `Create_event_V4` (3 attempts, exponential backoff) before the run is marked failed. |
+| Transient Google Calendar API failure | `retryPolicy` on `Create_event_Google` (3 attempts, exponential backoff) before the run is marked failed. |
+| HR account has no Microsoft 365 tenant | Google Calendar connector authenticates with plain Google OAuth — no Entra ID/Exchange mailbox required, unlike Office 365 Outlook. |
 
 [⬆ Back to top](#top)
 
@@ -533,7 +566,7 @@ below is the realistic first-deployment path.
 - **Azure AI Document Intelligence** to actually parse the candidate's name/email/
   phone out of the resume PDF instead of relying on the file name — see
   [azure-services.md §10](azure-services.md#10-ai-ml-and-generative-ai) — then add
-  the candidate as a real `Attendees` entry so they get the invite too.
+  the candidate as a real `attendees` entry so they get the invite too.
 - **Approvals connector** if a hiring manager should approve the slot before it's
   booked, rather than auto-booking unconditionally.
 - Swap the polling Blob trigger for an **Event Grid**-triggered Logic App
@@ -547,11 +580,15 @@ below is the realistic first-deployment path.
 ## Interview Keyword
 
 A resume-to-interview Logic App is a textbook **event-driven orchestration**
-pattern: **Blob Storage trigger → conditional business-time-zone logic → Office
-365 Outlook connector** — no custom compute, no servers, fully declarative. The
-same shape (storage event → business-rule branching → SaaS connector action)
+pattern: **Blob Storage trigger → conditional business-time-zone logic → Google
+Calendar connector** — no custom compute, no servers, fully declarative. The same
+shape (storage event → business-rule branching → SaaS connector action)
 generalizes to almost any "when X lands, do Y in a SaaS system" automation, which
 is exactly the class of problem Logic Apps is built for over hand-rolling it with
-Functions.
+Functions. It's also a good example of a connector-selection trade-off: Office
+365 Outlook and Google Calendar both do "create a calendar event," but they
+authenticate against entirely different identity platforms (Entra ID/Microsoft
+365 vs. Google OAuth) — the right one depends on which identity the HR person's
+mailbox actually lives in, not which one seems more "enterprise."
 
 [⬆ Back to top](#top)
