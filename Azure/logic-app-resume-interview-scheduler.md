@@ -260,11 +260,16 @@ the same real-world zone when you change either one.
           "Saturday": {
             "case": 6,
             "actions": {
+              "Compose_SaturdayRollForward": {
+                "type": "Compose",
+                "inputs": "@formatDateTime(addDays(variables('InterviewDate'), 2), 'yyyy-MM-dd')"
+              },
               "Set_InterviewDate_Monday_From_Sat": {
                 "type": "SetVariable",
+                "runAfter": { "Compose_SaturdayRollForward": ["Succeeded"] },
                 "inputs": {
                   "name": "InterviewDate",
-                  "value": "@formatDateTime(addDays(variables('InterviewDate'), 2), 'yyyy-MM-dd')"
+                  "value": "@outputs('Compose_SaturdayRollForward')"
                 }
               }
             }
@@ -272,11 +277,16 @@ the same real-world zone when you change either one.
           "Sunday": {
             "case": 0,
             "actions": {
+              "Compose_SundayRollForward": {
+                "type": "Compose",
+                "inputs": "@formatDateTime(addDays(variables('InterviewDate'), 1), 'yyyy-MM-dd')"
+              },
               "Set_InterviewDate_Monday_From_Sun": {
                 "type": "SetVariable",
+                "runAfter": { "Compose_SundayRollForward": ["Succeeded"] },
                 "inputs": {
                   "name": "InterviewDate",
-                  "value": "@formatDateTime(addDays(variables('InterviewDate'), 1), 'yyyy-MM-dd')"
+                  "value": "@outputs('Compose_SundayRollForward')"
                 }
               }
             }
@@ -489,10 +499,21 @@ walkthrough below is the realistic first-deployment path.
    (Control) → rename to `Switch_Weekend_Roll_Forward`.
 2. **On** field (fx): `dayOfWeek(variables('InterviewDate'))`.
 3. Click **Add case** twice, so you have **Case**, **Case 2**, and **Default**.
-4. **Case** → equals `6` (Saturday) → inside it, add **Set variable**:
-   - Name: `InterviewDate`, Value (fx): `formatDateTime(addDays(variables('InterviewDate'), 2), 'yyyy-MM-dd')`
-5. **Case 2** → equals `0` (Sunday) → inside it, add **Set variable**:
-   - Name: `InterviewDate`, Value (fx): `formatDateTime(addDays(variables('InterviewDate'), 1), 'yyyy-MM-dd')`
+4. **Case** → equals `6` (Saturday) → inside it:
+   - Add **Compose**, rename `Compose_SaturdayRollForward`, expression (fx):
+     `formatDateTime(addDays(variables('InterviewDate'), 2), 'yyyy-MM-dd')`
+   - Add **Set variable** *after* that Compose → Name: `InterviewDate`, Value (fx):
+     `outputs('Compose_SaturdayRollForward')`
+
+   > A `Set variable` action can't read the same variable it's updating in its
+   > own value expression — Logic Apps rejects that as a "self reference" at
+   > save/run time. Computing the new value in a `Compose` step first, then
+   > feeding `outputs('Compose_...')` into `Set variable`, works around it.
+5. **Case 2** → equals `0` (Sunday) → same pattern:
+   - **Compose**, rename `Compose_SundayRollForward`, expression (fx):
+     `formatDateTime(addDays(variables('InterviewDate'), 1), 'yyyy-MM-dd')`
+   - **Set variable** *after* it → Name: `InterviewDate`, Value (fx):
+     `outputs('Compose_SundayRollForward')`
 6. **Default** → leave empty (weekday date is already correct).
 
 ### 9. Compose the meeting start/end times
