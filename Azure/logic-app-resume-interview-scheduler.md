@@ -150,12 +150,14 @@ exported Logic App, not the raw Google Calendar REST API shape (which nests
 below is base64 of `/ogogundare` (the container root); if the Designer generates a
 different encoded value for your connection, use its version instead.
 
-The connector had no `timeZone` field in the confirmed body, so the event's time
-zone comes from your Google account's calendar default rather than an explicit
-value in this workflow. If your calendar's default zone doesn't match
-`interviewTimeZone` below, check the Designer for a "Time zone" option under
-**Show all** on the Create event action and set it explicitly — otherwise 3 PM
-local time and 3 PM on the created event can drift apart.
+**A time zone is required, not optional**: Google Calendar's API rejects a
+`start`/`end` `dateTime` with no offset and no accompanying `timeZone` — it
+returns `400 "Missing time zone definition for start/end time"` rather than
+silently falling back to the calendar's default. The Logic Apps Designer exposes
+this as separate **Start time zone** / **End time zone** fields (distinct from
+**Start time**/**End time**) — set both to an IANA name, e.g. `America/New_York`,
+matching whatever real-world zone `interviewTimeZone` below points at. Leaving
+them blank is what produces that 400 error.
 
 ```json
 {
@@ -170,6 +172,10 @@ local time and 3 PM on the created event can drift apart.
       "interviewTimeZone": {
         "type": "String",
         "defaultValue": "Eastern Standard Time"
+      },
+      "googleTimeZone": {
+        "type": "String",
+        "defaultValue": "America/New_York"
       }
     },
     "triggers": {
@@ -312,7 +318,9 @@ local time and 3 PM on the created event can drift apart.
           "path": "/calendars/@{encodeURIComponent('ogogundare@gmail.com')}/events",
           "body": {
             "start": "@{outputs('Compose_InterviewStart')}",
+            "startTimeZone": "@{parameters('googleTimeZone')}",
             "end": "@{outputs('Compose_InterviewEnd')}",
+            "endTimeZone": "@{parameters('googleTimeZone')}",
             "summary": "Interview: @{outputs('Compose_CandidateName')}",
             "description": "Interview for candidate @{outputs('Compose_CandidateName')}. Resume: @{triggerBody()?['Path']}"
           }
@@ -326,6 +334,12 @@ local time and 3 PM on the created event can drift apart.
   }
 }
 ```
+
+`startTimeZone`/`endTimeZone` are the conventional property names for this
+connector's Start/End time zone fields, but — unlike the rest of this block —
+they weren't confirmed against an actual Code View export. Set the zone fields
+via the Designer, then check Code View afterward; if the generated property
+names differ, use those instead.
 
 [⬆ Back to top](#top)
 
@@ -534,12 +548,13 @@ walkthrough below is the realistic first-deployment path.
    `Compose_CandidateName` output via the dynamic-content picker (same caution as
    above), then type `. Resume:`, a space, then insert the trigger's **Path**
    output.
-8. **Show all** (bottom of the action card) → check whether a **Time zone**
-   field is offered. If it is, set it to the IANA name for your zone (e.g.
-   `America/New_York` — Google expects IANA names, not the Windows-style
-   `Eastern Standard Time` used by `convertTimeZone()`). If there's no such
-   field, the event will use your Google account's calendar default time zone
-   instead — confirm the created event lands at the actual 3 PM you expect.
+8. **Show all** (bottom of the action card) → set **Start time zone** and **End
+   time zone** to the IANA name for your zone, e.g. `America/New_York` (Google
+   expects IANA names, not the Windows-style `Eastern Standard Time` used by
+   `convertTimeZone()`). **This is required** — Google's API rejects the request
+   with `400 "Missing time zone definition"` if either is left blank; it does
+   not silently fall back to the calendar's default despite what the field
+   being "optional" in the Designer suggests.
 9. Click the action's **⋯ → Settings → Retry Policy** → set **Type** =
    `Exponential`, **Count** = `3` (protects against a transient Google Calendar
    API blip).
