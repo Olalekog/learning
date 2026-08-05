@@ -25,6 +25,8 @@ Azure Storage Account. The HR person (in this design, the signed-in Office 365
 account) wants a calendar meeting **automatically created at 3 PM** to interview the
 candidate — no manual scheduling step.
 
+**This environment**: storage account `olalekog`, container `ogogundare`.
+
 Core building blocks: **Azure Blob Storage** (candidate resume lands here) →
 **Azure Logic App (Consumption)** (event-driven orchestration, zero infrastructure
 to manage) → **Office 365 Outlook connector** (creates the calendar event directly
@@ -40,7 +42,8 @@ on the HR person's calendar, with an optional Teams meeting link attached).
 flowchart TD
     A[Candidate uploads resume
 via careers portal] --> B[Blob Storage
-Container: resumes]
+Account: olalekog
+Container: ogogundare]
     B --> C[Logic App Trigger
 When a blob is added or modified]
     C --> D[Get blob content / metadata]
@@ -74,7 +77,7 @@ on their calendar at 3 PM]
 ```mermaid
 sequenceDiagram
     participant Portal as Careers Portal
-    participant Blob as Blob Storage (resumes container)
+    participant Blob as Blob Storage (olalekog/ogogundare)
     participant LA as Logic App
     participant O365 as Office 365 Outlook API
     participant HR as HR Calendar
@@ -98,7 +101,8 @@ sequenceDiagram
 |---|---|
 | Connector | Azure Blob Storage |
 | Trigger | **When a blob is added or modified (properties only)** |
-| Container | `resumes` |
+| Storage account | `olalekog` |
+| Container | `ogogundare` |
 | Polling interval | Every 3 minutes |
 | Why "properties only"? | Cheaper/faster than pulling full content on every poll — content is fetched separately, only for blobs that actually fired the trigger. |
 
@@ -126,9 +130,11 @@ sequenceDiagram
 
 This is the Workflow Definition Language (WDL) body you'd see under **Logic App →
 Development Tools → Code View**. Connector-internal fields the Designer
-auto-generates (like the Blob trigger's `folderId`, or the exact Office 365
-`Create event` schema) are shown as placeholders — build the two connector steps
-once in the Designer and it will fill those in correctly.
+auto-generates (like the exact Office 365 `Create event` schema) are shown as
+placeholders — build that connector step once in the Designer and it will fill
+those in correctly. The Blob trigger's `folderId` below is base64 of `/ogogundare`
+(the container root); if the Designer generates a different encoded value for your
+connection, use its version instead.
 
 ```json
 {
@@ -159,7 +165,7 @@ once in the Designer and it will fill those in correctly.
           "method": "get",
           "path": "/datasets/default/triggers/batch/onupdatedfile",
           "queries": {
-            "folderId": "<base64-encoded-path-to-/resumes>",
+            "folderId": "L29nb2d1bmRhcmU=",
             "maxFileCount": 10
           }
         },
@@ -354,23 +360,156 @@ below is the realistic first-deployment path.
 
 ## Build It in the Portal
 
-1. **Storage Account** → create container `resumes` (this is where the portal's
-   upload feature should write candidate files).
-2. **Logic App (Consumption)** → create in the same region as the storage account.
-3. Open **Logic App Designer** → add trigger **Azure Blob Storage – "When a blob is
-   added or modified (properties only)"** → point it at the `resumes` container →
-   set polling interval to 3 minutes.
-4. Add action **Azure Blob Storage – "Get blob content using path"**, path = trigger's
-   `Path` output.
-5. Add a **Compose** action to strip the file extension from `DisplayName`.
-6. Add **Compose** (`convertTimeZone`) + **Initialize/Set variable** + **Condition**
-   + **Switch** actions as laid out above to compute the next valid weekday 3 PM slot.
-7. Add action **Office 365 Outlook – "Create event (V4)"** → sign in with the HR
-   account when prompted (this is the one-time OAuth consent step) → map Subject,
-   Start, End, Time Zone from the previous actions → toggle **"Is online meeting?"**
-   to Yes for an auto-generated Teams link.
-8. **Save**, then upload a test PDF into the `resumes` container and confirm the
-   event lands on the calendar within ~3 minutes.
+### 0. Confirm the storage account and container exist
+
+1. Sign in to [portal.azure.com](https://portal.azure.com).
+2. Search bar → type **`olalekog`** → open the storage account.
+3. Left menu → **Data storage → Containers** → confirm `ogogundare` is listed. If
+   it isn't, click **+ Container**, name it `ogogundare`, leave access level
+   **Private**, click **Create**.
+4. Make sure your careers portal (or you, manually, for testing) writes resume
+   files into this container.
+
+### 1. Create the Logic App
+
+1. Search bar → **Logic apps** → **+ Create**.
+2. Choose **Consumption** plan type (pay-per-execution, no infra to manage — the
+   right choice for an event-driven workflow like this).
+3. **Resource group** → pick the same resource group as `olalekog` (keeps things
+   together, not a hard requirement).
+4. **Logic App name** → e.g. `la-resume-interview-scheduler`.
+5. **Region** → same region as the `olalekog` storage account, to avoid
+   cross-region latency/egress.
+6. **Review + create** → **Create**. Wait for deployment, then **Go to resource**.
+
+### 2. Add the Blob Storage trigger
+
+1. On the Logic App's **Overview**, click **Logic app designer** (or **Development
+   tools → Designer**).
+2. Choose **Blank Logic App** as the starting template.
+3. In the connector search box, type **Azure Blob Storage**.
+4. Under **Triggers**, pick **"When a blob is added or modified (properties
+   only)"**.
+5. First time using this connector: **Connection name** → e.g.
+   `olalekog-connection` → **Storage Account** connection type → select storage
+   account **`olalekog`** → **Create**.
+6. **Container** → click the folder picker → select **`ogogundare`**.
+7. **How often do you want to check for items?** → **Interval** = `3`,
+   **Frequency** = `Minute`.
+8. Click **Save** (top left) once — this registers the trigger and lets you
+   reference its outputs in the next steps.
+
+### 3. Get the blob's content
+
+1. Click **+ New step**.
+2. Search **Azure Blob Storage** → action **"Get blob content using path"**.
+3. It reuses the same connection from step 2.
+4. **Blob path** field → click inside it, then in the dynamic content panel pick
+   **Path** (from the trigger). This resolves to something like
+   `/ogogundare/jane_doe_resume.pdf`.
+
+### 4. Extract the candidate name
+
+1. **+ New step** → search **Compose** (under **Data Operations**) → add it.
+2. Rename the action (⋯ menu → **Rename**) to `Compose_CandidateName`.
+3. In the **Inputs** box, click the **fx** (expression) tab and enter:
+
+   ```text
+   first(split(triggerBody()?['DisplayName'], '.'))
+   ```
+
+4. **OK**.
+
+### 5. Compute "now" in the HR person's time zone
+
+1. **+ New step** → **Compose** again → rename to `Compose_LocalNow`.
+2. Expression:
+
+   ```text
+   convertTimeZone(utcNow(), 'UTC', 'Eastern Standard Time')
+   ```
+
+   (swap the time zone string for wherever HR actually sits — Azure's time-zone
+   names follow the classic Windows list, e.g. `'Pacific Standard Time'`,
+   `'GMT Standard Time'`.)
+
+### 6. Initialize the interview-date variable
+
+1. **+ New step** → search **Variable** → **Initialize variable**.
+2. **Name**: `InterviewDate`, **Type**: `String`.
+3. **Value** (fx tab):
+
+   ```text
+   formatDateTime(outputs('Compose_LocalNow'), 'yyyy-MM-dd')
+   ```
+
+### 7. Handle "already past 3 PM" → push to tomorrow
+
+1. **+ New step** → search **Condition** (Control) → add it, rename to
+   `Condition_Past_3PM_Already`.
+2. Left value (fx): `formatDateTime(outputs('Compose_LocalNow'), 'HH:mm:ss')`
+3. Operator: **is greater than or equal to**.
+4. Right value: `15:00:00`.
+5. In the **If true** branch → **Add an action** → **Set variable**.
+   - **Name**: `InterviewDate`
+   - **Value** (fx): `formatDateTime(addDays(outputs('Compose_LocalNow'), 1), 'yyyy-MM-dd')`
+6. Leave **If false** empty (today's date, already set in step 6, is correct).
+
+### 8. Roll weekends forward to Monday
+
+1. **+ New step** (after the Condition, not inside it) → search **Switch**
+   (Control) → rename to `Switch_Weekend_Roll_Forward`.
+2. **On** field (fx): `dayOfWeek(variables('InterviewDate'))`.
+3. Click **Add case** twice, so you have **Case**, **Case 2**, and **Default**.
+4. **Case** → equals `6` (Saturday) → inside it, add **Set variable**:
+   - Name: `InterviewDate`, Value (fx): `formatDateTime(addDays(variables('InterviewDate'), 2), 'yyyy-MM-dd')`
+5. **Case 2** → equals `0` (Sunday) → inside it, add **Set variable**:
+   - Name: `InterviewDate`, Value (fx): `formatDateTime(addDays(variables('InterviewDate'), 1), 'yyyy-MM-dd')`
+6. **Default** → leave empty (weekday date is already correct).
+
+### 9. Compose the meeting start/end times
+
+1. **+ New step** (after the Switch) → **Compose** → rename `Compose_InterviewStart`.
+   - Expression: `concat(variables('InterviewDate'), 'T15:00:00')`
+2. **+ New step** → **Compose** → rename `Compose_InterviewEnd`.
+   - Expression: `concat(variables('InterviewDate'), 'T15:30:00')`
+
+### 10. Create the calendar event
+
+1. **+ New step** → search **Office 365 Outlook** → action **"Create event
+   (V4)"**.
+2. First use: **Sign in** with the HR person's Microsoft/Office 365 account (this
+   is the one-time OAuth consent — grants the Logic App permission to write to
+   that calendar).
+3. **Calendar id** → leave as **Calendar** (the default/primary calendar).
+4. **Subject** → type `Interview:` followed by a space, then insert dynamic
+   content **Output** from `Compose_CandidateName`.
+5. **Start time** → insert dynamic content **Output** from
+   `Compose_InterviewStart`.
+6. **End time** → insert dynamic content **Output** from `Compose_InterviewEnd`.
+7. **Time zone** → type the same zone string used in step 5, e.g.
+   `Eastern Standard Time`.
+8. **Show all** (bottom of the action card) →
+   - **Is online meeting?** → **Yes** (auto-generates a Teams join link).
+   - **Body** → type `Interview for candidate`, a space, then insert the
+     `Compose_CandidateName` output, then type `. Resume:`, a space, then insert
+     the trigger's **Path** output.
+9. Click the action's **⋯ → Settings → Retry Policy** → set **Type** =
+   `Exponential`, **Count** = `3` (protects against a transient Office 365 API
+   blip).
+
+### 11. Save and test
+
+1. Click **Save** (top left).
+2. Upload a test PDF (e.g. `jane_doe_resume.pdf`) into the `ogogundare` container
+   — via **Storage Browser** in the portal, or `az storage blob upload`.
+3. Back on the Logic App → **Overview → Run history** — within ~3 minutes (the
+   polling interval) a new run should appear.
+4. Click the run → confirm every step is green. If `Create_event_V4` failed, click
+   it to see the raw request/response — the most common first-run issue is the
+   Office 365 connection needing re-authorization.
+5. Check the HR account's calendar for an event titled `Interview: jane_doe_resume`
+   at 3:00 PM (today or the next valid weekday, per the logic above).
 
 [⬆ Back to top](#top)
 
