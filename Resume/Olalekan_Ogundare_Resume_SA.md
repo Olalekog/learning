@@ -31,6 +31,16 @@ Results-driven AWS Solutions Architect with deep knowledge of AWS core services,
 
 ## Professional Experience
 
+### Azure Cloud DevOps Engineer
+**Tech Consulting** | May 2026 – Present
+
+- Provisioned and managed Azure compute (Virtual Machines, VM Scale Sets, Azure Batch), storage (Storage Accounts — Blobs, Files, Tables, Queues), and serverless services (Azure Functions, App Services/Web Apps) for client workloads.
+- Deployed and operated Azure Kubernetes Service (AKS) and Docker-based containerized workloads, using Terraform, ARM templates, and Pulumi for repeatable infrastructure provisioning.
+- Built CI/CD pipelines in Azure DevOps and GitHub Actions for automated build/test/deploy, and automated configuration management with Ansible.
+- Implemented cloud security controls — RBAC, NSGs/ASGs, WAF, Service Principals, Managed Identities, Key Vault, and encryption at rest/in transit — using Microsoft Defender for Cloud and Azure Advisor for continuous posture monitoring.
+- Designed hybrid network connectivity (VNet/Hub-and-Spoke, VNet Peering, Application Gateway, Load Balancers, Traffic Manager, VPN/ExpressRoute) and configured Azure Front Door/CDN for low-latency application delivery.
+- Monitored performance, availability, and cost using Azure Monitor, Network Watcher, Azure Resource Health, and Cost Management + Advisor recommendations; implemented auto-scaling and caching to optimize workload efficiency and spend.
+
 ### AVP, Public Cloud Service — Solutions Architect
 **Citibank** | Irving, Texas | Feb 2023 – Mar 2026
 
