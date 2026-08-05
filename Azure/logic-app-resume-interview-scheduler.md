@@ -42,7 +42,8 @@ calendar account `ogogundare@gmail.com`.
 Core building blocks: **Azure Blob Storage** (candidate resume lands here) →
 **Azure Logic App (Consumption)** (event-driven orchestration, zero infrastructure
 to manage) → **Google Calendar connector** (creates the calendar event directly
-on the HR person's calendar, with an optional Google Meet link attached).
+on the HR person's calendar (a Google Meet link can be added too, if the
+connector's Designer offers that option).
 
 [⬆ Back to top](#top)
 
@@ -75,7 +76,7 @@ End = date @ 15:30]
     K --> L
     L --> M[Google Calendar:
 Create event on HR calendar
-+ Google Meet link]
+(+ Google Meet link, if available)]
     M --> N[HR sees the interview
 on their calendar at 3 PM]
 ```
@@ -98,7 +99,7 @@ sequenceDiagram
     LA->>Blob: Poll every 3 min for new/changed blobs
     Blob-->>LA: New blob event (Name, Path, LastModified)
     LA->>LA: Compute candidate name + next valid 3 PM slot
-    LA->>GCal: Create event (Summary, Start, End, Google Meet)
+    LA->>GCal: Create event (Summary, Description, Start, End)
     GCal-->>HR: Event written to calendar
     GCal-->>LA: 200 OK
 ```
@@ -132,7 +133,7 @@ sequenceDiagram
 | 4 | **Condition – Past 3 PM already?** | If the resume arrives after 3 PM local time, push the interview to the next day rather than scheduling a meeting in the past. |
 | 5 | **Switch – Weekend roll-forward** | If the computed date is a Saturday or Sunday, roll forward to the following Monday. |
 | 6 | **Compose – Start / End** | `<date>T15:00:00` / `<date>T15:30:00` (30-minute interview slot). |
-| 7 | **Create event** — Google Calendar | Writes the meeting to the HR person's calendar, summary `Interview: <CandidateName>`, with the "Add Google Meet video conferencing" option on so a join link is generated automatically. |
+| 7 | **Create event** — Google Calendar | Writes the meeting to the HR person's calendar: `start`/`end` from the previous Compose actions, summary `Interview: <CandidateName>`, description including the resume's blob path. |
 
 [⬆ Back to top](#top)
 
@@ -141,18 +142,20 @@ sequenceDiagram
 ## Full Workflow Definition (JSON)
 
 This is the Workflow Definition Language (WDL) body you'd see under **Logic App →
-Development Tools → Code View**. Connector-internal fields the Designer
-auto-generates (like the exact Google Calendar `Create event` schema) are shown as
-placeholders — build that connector step once in the Designer and it will fill
-those in correctly. The Blob trigger's `folderId` below is base64 of `/ogogundare`
-(the container root); if the Designer generates a different encoded value for your
-connection, use its version instead.
+Development Tools → Code View**. The `Create_event_Google` action below reflects
+the *actual* schema the Google Calendar connector generates — a flat `start`/`end`
+string pair and a `/calendars/{calendarId}/events` path — confirmed against a real
+exported Logic App, not the raw Google Calendar REST API shape (which nests
+`start`/`end` as `{dateTime, timeZone}` objects). The Blob trigger's `folderId`
+below is base64 of `/ogogundare` (the container root); if the Designer generates a
+different encoded value for your connection, use its version instead.
 
-Note the two time-zone parameters below aren't redundant: the WDL `convertTimeZone()`
-function takes **Windows** time zone names (`interviewTimeZone`, e.g. `Eastern
-Standard Time`), while the Google Calendar event body expects the **IANA** name for
-the same zone (`googleTimeZone`, e.g. `America/New_York`) — keep them pointed at
-the same real-world zone when you change either one.
+The connector had no `timeZone` field in the confirmed body, so the event's time
+zone comes from your Google account's calendar default rather than an explicit
+value in this workflow. If your calendar's default zone doesn't match
+`interviewTimeZone` below, check the Designer for a "Time zone" option under
+**Show all** on the Create event action and set it explicitly — otherwise 3 PM
+local time and 3 PM on the created event can drift apart.
 
 ```json
 {
@@ -167,10 +170,6 @@ the same real-world zone when you change either one.
       "interviewTimeZone": {
         "type": "String",
         "defaultValue": "Eastern Standard Time"
-      },
-      "googleTimeZone": {
-        "type": "String",
-        "defaultValue": "America/New_York"
       }
     },
     "triggers": {
@@ -310,22 +309,12 @@ the same real-world zone when you change either one.
         "inputs": {
           "host": { "connection": { "referenceName": "googlecalendar" } },
           "method": "post",
-          "path": "/codeless/v3/calendars/@{encodeURIComponent('primary')}/events",
-          "queries": { "conferenceDataVersion": 1 },
+          "path": "/calendars/@{encodeURIComponent('ogogundare@gmail.com')}/events",
           "body": {
+            "start": "@{outputs('Compose_InterviewStart')}",
+            "end": "@{outputs('Compose_InterviewEnd')}",
             "summary": "Interview: @{outputs('Compose_CandidateName')}",
-            "description": "Interview for candidate @{outputs('Compose_CandidateName')}. Resume: @{triggerBody()?['Path']}",
-            "start": {
-              "dateTime": "@{outputs('Compose_InterviewStart')}",
-              "timeZone": "@{parameters('googleTimeZone')}"
-            },
-            "end": {
-              "dateTime": "@{outputs('Compose_InterviewEnd')}",
-              "timeZone": "@{parameters('googleTimeZone')}"
-            },
-            "conferenceData": {
-              "createRequest": { "requestId": "@{guid()}" }
-            }
+            "description": "Interview for candidate @{outputs('Compose_CandidateName')}. Resume: @{triggerBody()?['Path']}"
           }
         },
         "runtimeConfiguration": {
@@ -531,22 +520,26 @@ walkthrough below is the realistic first-deployment path.
    and **Allow**. This grants the Logic App permission to write events to that
    Google account's calendar (a completely separate OAuth flow from Microsoft's —
    no Microsoft 365 tenant needed).
-3. **Calendar id** → leave as **primary** (the account's main calendar).
-4. **Summary** → type `Interview:` followed by a space, then insert dynamic
-   content **Output** from `Compose_CandidateName`.
-5. **Start time** → insert dynamic content **Output** from
+3. **Calendar id** → your Google account's own address, `ogogundare@gmail.com`
+   (works the same as the `primary` alias for your own calendar).
+4. **Start time** → insert dynamic content **Outputs** from
    `Compose_InterviewStart`.
-6. **End time** → insert dynamic content **Output** from `Compose_InterviewEnd`.
-7. **Time zone** → type the IANA name for the same zone used earlier, e.g.
-   `America/New_York` (Google Calendar expects IANA names, not the Windows-style
-   `Eastern Standard Time` used by the `convertTimeZone()` expression — see the
-   note above the JSON definition).
-8. **Show all** (bottom of the action card) →
-   - **Add Google Meet video conferencing?** → **Yes** (auto-generates a Meet
-     join link).
-   - **Description** → type `Interview for candidate`, a space, then insert the
-     `Compose_CandidateName` output, then type `. Resume:`, a space, then insert
-     the trigger's **Path** output.
+5. **End time** → insert dynamic content **Outputs** from `Compose_InterviewEnd`.
+6. **Summary** → type `Interview:` followed by a space, then insert dynamic
+   content **Outputs** from `Compose_CandidateName`. **Don't hand-type**
+   `outputs('Compose_CandidateName')` into the box — click the ⚡ dynamic-content
+   picker and select the actual token, or a plain-text field will store your
+   typed function call as literal text instead of evaluating it.
+7. **Description** → type `Interview for candidate`, a space, insert the
+   `Compose_CandidateName` output via the dynamic-content picker (same caution as
+   above), then type `. Resume:`, a space, then insert the trigger's **Path**
+   output.
+8. **Show all** (bottom of the action card) → check whether a **Time zone**
+   field is offered. If it is, set it to the IANA name for your zone (e.g.
+   `America/New_York` — Google expects IANA names, not the Windows-style
+   `Eastern Standard Time` used by `convertTimeZone()`). If there's no such
+   field, the event will use your Google account's calendar default time zone
+   instead — confirm the created event lands at the actual 3 PM you expect.
 9. Click the action's **⋯ → Settings → Retry Policy** → set **Type** =
    `Exponential`, **Count** = `3` (protects against a transient Google Calendar
    API blip).
