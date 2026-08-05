@@ -132,8 +132,9 @@ sequenceDiagram
 | 3 | **Compose – LocalNow** | `convertTimeZone(utcNow(), 'UTC', 'Eastern Standard Time')` — never schedule off raw UTC, or "3 PM" drifts with the server's time zone. |
 | 4 | **Condition – Past 3 PM already?** | If the resume arrives after 3 PM local time, push the interview to the next day rather than scheduling a meeting in the past. |
 | 5 | **Switch – Weekend roll-forward** | If the computed date is a Saturday or Sunday, roll forward to the following Monday. |
-| 6 | **Compose – Start / End** | `<date>T15:00:00` / `<date>T15:30:00` (30-minute interview slot). |
-| 7 | **Create event** — Google Calendar | Writes the meeting to the HR person's calendar: `start`/`end` from the previous Compose actions, summary `Interview: <CandidateName>`, description including the resume's blob path. |
+| 6 | **Compose – Start / End** | `<date>T15:00:00` / `<date>T15:30:00` (30-minute interview slot, naive local time). |
+| 7 | **Compose – Start / End (UTC)** | Converts each naive local timestamp to an explicit UTC value ending in `Z` (e.g. `2026-08-06T19:00:00Z`) — required because Google's API rejects a `dateTime` with no offset, and this connector has no separate time-zone field to supply one another way. |
+| 8 | **Create event** — Google Calendar | Writes the meeting to the HR person's calendar: `start`/`end` from the UTC Compose actions, summary `Interview: <CandidateName>`, description including the resume's blob path. |
 
 [⬆ Back to top](#top)
 
@@ -153,11 +154,13 @@ different encoded value for your connection, use its version instead.
 **A time zone is required, not optional**: Google Calendar's API rejects a
 `start`/`end` `dateTime` with no offset and no accompanying `timeZone` — it
 returns `400 "Missing time zone definition for start/end time"` rather than
-silently falling back to the calendar's default. The Logic Apps Designer exposes
-this as separate **Start time zone** / **End time zone** fields (distinct from
-**Start time**/**End time**) — set both to an IANA name, e.g. `America/New_York`,
-matching whatever real-world zone `interviewTimeZone` below points at. Leaving
-them blank is what produces that 400 error.
+silently falling back to the calendar's default. This connector's Create event
+action has no separate Start/End time zone fields to set, so instead of relying
+on one, `Compose_InterviewStart`/`Compose_InterviewEnd` (naive local time) each
+get converted to an explicit UTC timestamp ending in `Z` — e.g.
+`2026-08-06T19:00:00Z` — via `Compose_InterviewStartUtc`/`Compose_InterviewEndUtc`
+below. A trailing `Z` is itself a complete, unambiguous offset, so Google's API
+is satisfied without needing any zone field at all.
 
 ```json
 {
@@ -172,10 +175,6 @@ them blank is what produces that 400 error.
       "interviewTimeZone": {
         "type": "String",
         "defaultValue": "Eastern Standard Time"
-      },
-      "googleTimeZone": {
-        "type": "String",
-        "defaultValue": "America/New_York"
       }
     },
     "triggers": {
@@ -309,18 +308,26 @@ them blank is what produces that 400 error.
         "runAfter": { "Compose_InterviewStart": ["Succeeded"] },
         "inputs": "@concat(variables('InterviewDate'), 'T15:30:00')"
       },
+      "Compose_InterviewStartUtc": {
+        "type": "Compose",
+        "runAfter": { "Compose_InterviewEnd": ["Succeeded"] },
+        "inputs": "@concat(formatDateTime(convertTimeZone(outputs('Compose_InterviewStart'), parameters('interviewTimeZone'), 'UTC'), 'yyyy-MM-ddTHH:mm:ss'), 'Z')"
+      },
+      "Compose_InterviewEndUtc": {
+        "type": "Compose",
+        "runAfter": { "Compose_InterviewStartUtc": ["Succeeded"] },
+        "inputs": "@concat(formatDateTime(convertTimeZone(outputs('Compose_InterviewEnd'), parameters('interviewTimeZone'), 'UTC'), 'yyyy-MM-ddTHH:mm:ss'), 'Z')"
+      },
       "Create_event_Google": {
         "type": "ApiConnection",
-        "runAfter": { "Compose_InterviewEnd": ["Succeeded"] },
+        "runAfter": { "Compose_InterviewEndUtc": ["Succeeded"] },
         "inputs": {
           "host": { "connection": { "referenceName": "googlecalendar" } },
           "method": "post",
           "path": "/calendars/@{encodeURIComponent('ogogundare@gmail.com')}/events",
           "body": {
-            "start": "@{outputs('Compose_InterviewStart')}",
-            "startTimeZone": "@{parameters('googleTimeZone')}",
-            "end": "@{outputs('Compose_InterviewEnd')}",
-            "endTimeZone": "@{parameters('googleTimeZone')}",
+            "start": "@{outputs('Compose_InterviewStartUtc')}",
+            "end": "@{outputs('Compose_InterviewEndUtc')}",
             "summary": "Interview: @{outputs('Compose_CandidateName')}",
             "description": "Interview for candidate @{outputs('Compose_CandidateName')}. Resume: @{triggerBody()?['Path']}"
           }
@@ -525,6 +532,28 @@ walkthrough below is the realistic first-deployment path.
    - Expression: `concat(variables('InterviewDate'), 'T15:00:00')`
 2. **+ New step** → **Compose** → rename `Compose_InterviewEnd`.
    - Expression: `concat(variables('InterviewDate'), 'T15:30:00')`
+3. **+ New step** → **Compose** → rename `Compose_InterviewStartUtc`.
+   - Expression:
+
+     ```text
+     concat(formatDateTime(convertTimeZone(outputs('Compose_InterviewStart'), 'Eastern Standard Time', 'UTC'), 'yyyy-MM-ddTHH:mm:ss'), 'Z')
+     ```
+
+     (swap `'Eastern Standard Time'` for whatever zone you used in
+     `Compose_LocalNow` back in step 5)
+4. **+ New step** → **Compose** → rename `Compose_InterviewEndUtc`.
+   - Expression:
+
+     ```text
+     concat(formatDateTime(convertTimeZone(outputs('Compose_InterviewEnd'), 'Eastern Standard Time', 'UTC'), 'yyyy-MM-ddTHH:mm:ss'), 'Z')
+     ```
+
+   > This connector's Create event action has no separate Start/End time zone
+   > field to set — confirmed by testing, not just undocumented — so instead of
+   > relying on one, these two steps convert the naive local time to an explicit
+   > UTC timestamp ending in `Z` (e.g. `2026-08-06T19:00:00Z`). That trailing `Z`
+   > is itself a complete, unambiguous offset, which is all Google's API
+   > actually requires — it doesn't have to come from a dedicated zone field.
 
 ### 10. Create the calendar event
 
@@ -537,8 +566,9 @@ walkthrough below is the realistic first-deployment path.
 3. **Calendar id** → your Google account's own address, `ogogundare@gmail.com`
    (works the same as the `primary` alias for your own calendar).
 4. **Start time** → insert dynamic content **Outputs** from
-   `Compose_InterviewStart`.
-5. **End time** → insert dynamic content **Outputs** from `Compose_InterviewEnd`.
+   `Compose_InterviewStartUtc` (not the plain `Compose_InterviewStart`).
+5. **End time** → insert dynamic content **Outputs** from
+   `Compose_InterviewEndUtc`.
 6. **Summary** → type `Interview:` followed by a space, then insert dynamic
    content **Outputs** from `Compose_CandidateName`. **Don't hand-type**
    `outputs('Compose_CandidateName')` into the box — click the ⚡ dynamic-content
@@ -548,14 +578,7 @@ walkthrough below is the realistic first-deployment path.
    `Compose_CandidateName` output via the dynamic-content picker (same caution as
    above), then type `. Resume:`, a space, then insert the trigger's **Path**
    output.
-8. **Show all** (bottom of the action card) → set **Start time zone** and **End
-   time zone** to the IANA name for your zone, e.g. `America/New_York` (Google
-   expects IANA names, not the Windows-style `Eastern Standard Time` used by
-   `convertTimeZone()`). **This is required** — Google's API rejects the request
-   with `400 "Missing time zone definition"` if either is left blank; it does
-   not silently fall back to the calendar's default despite what the field
-   being "optional" in the Designer suggests.
-9. Click the action's **⋯ → Settings → Retry Policy** → set **Type** =
+8. Click the action's **⋯ → Settings → Retry Policy** → set **Type** =
    `Exponential`, **Count** = `3` (protects against a transient Google Calendar
    API blip).
 
