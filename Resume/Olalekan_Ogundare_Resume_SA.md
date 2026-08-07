@@ -31,15 +31,15 @@ Results-driven AWS Solutions Architect with deep knowledge of AWS core services,
 
 ## Professional Experience
 
-### Azure Cloud DevOps Engineer
+### Multi-Cloud (AWS, Azure & GCP) DevOps and Platform Engineer
 **Tech Consulting** | May 2026 – Present
 
-- Provisioned and managed Azure compute (Virtual Machines, VM Scale Sets, Azure Batch), storage (Storage Accounts — Blobs, Files, Tables, Queues), and serverless services (Azure Functions, App Services/Web Apps) for client workloads.
-- Deployed and operated Azure Kubernetes Service (AKS) and Docker-based containerized workloads, using Terraform, ARM templates, and Pulumi for repeatable infrastructure provisioning.
-- Built CI/CD pipelines in Azure DevOps and GitHub Actions for automated build/test/deploy, and automated configuration management with Ansible.
-- Implemented cloud security controls — RBAC, NSGs/ASGs, WAF, Service Principals, Managed Identities, Key Vault, and encryption at rest/in transit — using Microsoft Defender for Cloud and Azure Advisor for continuous posture monitoring.
-- Designed hybrid network connectivity (VNet/Hub-and-Spoke, VNet Peering, Application Gateway, Load Balancers, Traffic Manager, VPN/ExpressRoute) and configured Azure Front Door/CDN for low-latency application delivery.
-- Monitored performance, availability, and cost using Azure Monitor, Network Watcher, Azure Resource Health, and Cost Management + Advisor recommendations; implemented auto-scaling and caching to optimize workload efficiency and spend.
+- Built and operated multi-cloud compute, storage, and serverless platforms across Azure (Virtual Machines, VM Scale Sets, Azure Batch, Storage Accounts, Azure Functions, App Services), AWS (EC2, S3, Lambda, EBS), and GCP (Compute Engine, Cloud Storage, Cloud Functions, Persistent Disk) for client workloads.
+- Deployed and managed containerized platforms on Azure Kubernetes Service (AKS), Amazon EKS, and Google Kubernetes Engine (GKE), using Terraform, ARM templates, and Pulumi for consistent infrastructure-as-code across all three providers.
+- Built and maintained CI/CD pipelines in Azure DevOps, AWS CodePipeline, Google Cloud Build, and GitHub Actions for automated build/test/deploy, and automated configuration management with Ansible.
+- Implemented cloud security controls across all three platforms — Azure RBAC/NSGs/Key Vault/Defender for Cloud, AWS IAM/Security Groups/KMS/GuardDuty, and GCP IAM/VPC Service Controls/Cloud KMS/Security Command Center — for continuous posture monitoring and encryption at rest/in transit.
+- Configured hybrid and multi-cloud network connectivity (VNet/Hub-and-Spoke, AWS VPC/Transit Gateway, GCP VPC/Shared VPC, VPN/ExpressRoute/Cloud Interconnect) and set up Azure Front Door, AWS CloudFront, and Google Cloud CDN for low-latency application delivery.
+- Monitored performance, availability, and cost using Azure Monitor + Cost Management, AWS CloudWatch + Cost Explorer, and GCP Cloud Monitoring + Billing reports; implemented auto-scaling and caching to optimize workload efficiency and spend across all three clouds.
 
 ### AVP, Public Cloud Service — Solutions Architect
 **Citibank** | Irving, Texas | Feb 2023 – Mar 2026
