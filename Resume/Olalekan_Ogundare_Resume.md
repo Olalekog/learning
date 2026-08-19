@@ -24,13 +24,15 @@ Senior Cloud Infrastructure Engineer and DevOps/DevSecOps specialist with 10+ ye
 | **Observability** | CloudWatch, Prometheus, Grafana, ELK/OpenSearch, Fluentd/Fluent Bit, Kafka/MSK monitoring, ServiceNow incident automation |
 | **FinOps & Cost Optimization** | Rightsizing, Savings Plans, Spot instances, lifecycle automation, cost governance/reporting |
 | **Storage & Data Protection** | SAN/NAS (Hitachi, EMC VMAX/VSP, NetApp), backup/DR (Avamar, SRDF, TrueCopy), FSx Lustre |
-| **Programming & Scripting** | Python, Bash |
+| **Big Data & Analytics** | Hadoop, Apache Spark, AWS EMR, ETL pipeline development |
+| **MLOps & AI/ML Platforms** | AWS SageMaker, Azure Machine Learning, GCP Vertex AI, Amazon Bedrock, model CI/CD, model registries, automated retraining/monitoring |
+| **Programming & Scripting** | Python (PySpark, pandas), Bash |
 
 ---
 
 ## Professional Experience
 
-### Multi-Cloud (AWS, Azure & GCP) DevOps and Platform Engineer
+### Cloud and DevOps Engineering
 **Tech Consulting** | May 2026 – Present
 
 - Built and operated multi-cloud compute, storage, and serverless platforms across Azure (Virtual Machines, VM Scale Sets, Azure Batch, Storage Accounts, Azure Functions, App Services), AWS (EC2, S3, Lambda, EBS), and GCP (Compute Engine, Cloud Storage, Cloud Functions, Persistent Disk) for client workloads.
@@ -39,6 +41,7 @@ Senior Cloud Infrastructure Engineer and DevOps/DevSecOps specialist with 10+ ye
 - Implemented cloud security controls across all three platforms — Azure RBAC/NSGs/Key Vault/Defender for Cloud, AWS IAM/Security Groups/KMS/GuardDuty, and GCP IAM/VPC Service Controls/Cloud KMS/Security Command Center — for continuous posture monitoring and encryption at rest/in transit.
 - Configured hybrid and multi-cloud network connectivity (VNet/Hub-and-Spoke, AWS VPC/Transit Gateway, GCP VPC/Shared VPC, VPN/ExpressRoute/Cloud Interconnect) and set up Azure Front Door, AWS CloudFront, and Google Cloud CDN for low-latency application delivery.
 - Monitored performance, availability, and cost using Azure Monitor + Cost Management, AWS CloudWatch + Cost Explorer, and GCP Cloud Monitoring + Billing reports; implemented auto-scaling and caching to optimize workload efficiency and spend across all three clouds.
+- Built MLOps pipelines for model training, versioning, and deployment across cloud-native ML platforms — AWS SageMaker, Azure Machine Learning, and GCP Vertex AI — integrating CI/CD, model registries, and automated retraining/monitoring workflows for production ML services.
 
 ### AVP, Public Cloud Service — Cloud Engineering & DevOps
 **Citibank** | Irving, Texas | Feb 2023 – Apr 2026
@@ -70,6 +73,11 @@ Senior Cloud Infrastructure Engineer and DevOps/DevSecOps specialist with 10+ ye
 **AI/ML & HPC Infrastructure (highlights)**
 - Architected AWS-based HPC/AI-ML platform infrastructure (EKS, FSx for Lustre, SageMaker, Bedrock) supporting distributed training, inference, and RAG pipelines integrating Bedrock and OpenSearch.
 - Optimized FSx for Lustre throughput and S3-backed dataset access, improving large-scale data processing performance 30%+.
+
+**Big Data & Analytics**
+- Provisioned and automated Hadoop/Spark cluster lifecycle on AWS EMR using Terraform, supporting distributed batch processing for analytics and ML training pipelines.
+- Built Python-based ETL pipelines (PySpark, pandas) processing large-scale datasets between S3-backed data lakes and downstream analytics/ML workloads.
+- Developed Python automation and tooling for infrastructure orchestration, data validation, and operational reporting across the platform.
 
 ### Infrastructure Cloud Engineer
 **Cynet Systems** (Client: State Farm) | Dec 2022 – Feb 2023

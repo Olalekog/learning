@@ -31,7 +31,7 @@ Results-driven AWS Solutions Architect with deep knowledge of AWS core services,
 
 ## Professional Experience
 
-### Multi-Cloud (AWS, Azure & GCP) DevOps and Platform Engineer
+### Cloud and DevOps Engineering
 **Tech Consulting** | May 2026 – Present
 
 - Built and operated multi-cloud compute, storage, and serverless platforms across Azure (Virtual Machines, VM Scale Sets, Azure Batch, Storage Accounts, Azure Functions, App Services), AWS (EC2, S3, Lambda, EBS), and GCP (Compute Engine, Cloud Storage, Cloud Functions, Persistent Disk) for client workloads.
