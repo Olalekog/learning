@@ -8,14 +8,15 @@
 2. [Gap Analysis vs. Your Resume](#gap-analysis-vs-your-resume)
 3. [Reference Architecture](#reference-architecture)
 4. [AWS Core Services for This Role](#aws-core-services-for-this-role)
-5. [SRE Fundamentals](#sre-fundamentals)
-6. [Observability & Monitoring Stack](#observability--monitoring-stack)
-7. [MLOps & AI Observability (Arize Deep Dive)](#mlops--ai-observability-arize-deep-dive)
-8. [CI/CD & Infrastructure as Code](#cicd--infrastructure-as-code)
-9. [Security & DevSecOps](#security--devsecops)
-10. [Interview Questions](#interview-questions)
-11. [Most Important Concepts to Know First](#most-important-concepts-to-know-first)
-12. [30-Second Pitch](#30-second-pitch)
+5. [EKS Node Compute: Fargate vs. Cluster Autoscaler vs. Karpenter](#eks-node-compute-fargate-vs-cluster-autoscaler-vs-karpenter)
+6. [SRE Fundamentals](#sre-fundamentals)
+7. [Observability & Monitoring Stack](#observability--monitoring-stack)
+8. [MLOps & AI Observability (Arize Deep Dive)](#mlops--ai-observability-arize-deep-dive)
+9. [CI/CD & Infrastructure as Code](#cicd--infrastructure-as-code)
+10. [Security & DevSecOps](#security--devsecops)
+11. [Interview Questions](#interview-questions)
+12. [Most Important Concepts to Know First](#most-important-concepts-to-know-first)
+13. [30-Second Pitch](#30-second-pitch)
 
 ---
 
@@ -131,6 +132,31 @@ Eng, Data, ML teams]
 | **CloudWatch** | Native AWS metrics, logs, alarms. | Baseline infra observability layer, feeding into the broader Prometheus/Grafana/Arize stack. | Already strong — be ready to discuss CloudWatch alongside Prometheus (CloudWatch = AWS-native/managed, Prometheus = open-source/portable, many shops run both). |
 | **IAM** | Identity and access control across every AWS service. | Least-privilege access for pipelines, engineers, and ML services. | Know workload identity/OIDC federation as the modern alternative to long-lived access keys — a strong SRE-lead-level answer. |
 | **VPC** | Network isolation — subnets, route tables, security groups. | Network boundary for EKS clusters and data services. | Know the basics of public/private subnet design for an EKS cluster (control plane endpoints, NAT gateway for private node egress). |
+
+[⬆ Back to top](#top)
+
+---
+
+## EKS Node Compute: Fargate vs. Cluster Autoscaler vs. Karpenter
+
+Three different answers to "how does this EKS cluster get compute capacity" — a common SRE Lead-level question, and directly relevant to the ECS-vs-EKS gap flagged above.
+
+| Aspect | AWS Fargate | Cluster Autoscaler | Karpenter |
+|---|---|---|---|
+| What it manages | Removes nodes entirely — AWS provisions compute per pod, no EC2 instances you see or manage | Scales node *count* within pre-defined EC2 Auto Scaling Groups / node groups | Directly provisions right-sized EC2 nodes on demand — no pre-defined node groups needed |
+| Instance type flexibility | N/A — abstracted away | Limited to instance types defined in each node group ahead of time | Chooses optimal instance type/size/AZ per pending pod's actual requirements, including Spot |
+| Scale-up speed | No node-provisioning delay, but pod startup itself can be slower than scheduling onto an already-warm node | Slower — waits on ASG scaling activity, launch template, node bootstrap/join | Faster — provisions instances directly via EC2 Fleet/RunInstances, skipping ASG overhead |
+| Bin-packing / consolidation | Not applicable | Basic — scales down under-utilized nodes, not aggressively optimized | Continuously consolidates workloads onto fewer/cheaper nodes |
+| Cost model | Pay per vCPU/memory-second per pod — zero idle-node cost, but typically higher per-unit price than a well-utilized EC2 fleet | Pay for whatever EC2 nodes are running, including some bin-packing slack | Pay for EC2 nodes, generally more cost-efficient due to tighter packing and native Spot integration |
+| Operational burden | Lowest — zero node ops | Moderate — maintain node groups, instance types, launch templates | Low — define constraints (a `NodePool`), Karpenter handles instance selection |
+
+**Use cases:**
+
+- **Fargate** — zero infrastructure management, bursty/unpredictable workloads, or workloads needing hard per-pod isolation rather than bin-packed multi-tenant nodes.
+- **Cluster Autoscaler** — mature EKS environments already standardized on ASG-based managed node groups, or where Karpenter isn't yet adopted. The "default, well-understood" choice, but slower and less cost-optimal.
+- **Karpenter** — cost-optimization-focused EKS platforms, heavy Spot usage, varied pod resource shapes, or teams wanting faster scale-up latency. The more modern "platform engineering golden path" answer today.
+
+This is exactly the kind of nuance an "SRE Lead" interviewer would probe on — being able to name all three and articulate the trade-off (not just "we use EKS") signals depth beyond basic EKS familiarity.
 
 [⬆ Back to top](#top)
 
