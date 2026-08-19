@@ -57,90 +57,90 @@ Quick one-line reference for every service, tool, and language mentioned in this
 
 | Service | Description |
 |---|---|
-| **Amazon EC2** | Virtual servers ("instances") for running applications in the cloud. |
-| **AWS Systems Manager (SSM)** | Centralized service for managing, patching, and automating EC2 and hybrid servers without SSH/RDP. |
-| **— Session Manager** | SSM feature giving shell/PowerShell access to instances with no open inbound ports or SSH keys. |
-| **— Run Command** | SSM feature that executes ad-hoc commands/scripts across one or more managed instances. |
-| **— Automation (Runbooks)** | SSM feature that runs multi-step YAML/JSON operational workflows (e.g., patch, validate, rollback). |
-| **— Patch Manager** | SSM feature that automates OS and application patching. |
-| **— Maintenance Windows** | SSM feature defining scheduled time windows for disruptive operations. |
-| **— State Manager** | SSM feature that continuously enforces a defined configuration state on instances. |
-| **— Parameter Store** | SSM feature storing configuration values and encrypted secrets (SecureString). |
-| **— Inventory** | SSM feature that collects installed software, OS, and configuration metadata. |
-| **Amazon EFS** | Managed, scalable NFS file system mountable by multiple Linux EC2 instances or ECS tasks. |
-| **Application Load Balancer (ALB)** | Layer-7 load balancer that routes HTTP/HTTPS traffic using host/path rules and health checks. |
-| **Amazon Route 53** | Managed DNS service supporting hosted zones, health checks, and traffic-routing policies. |
-| **AWS IAM** | Identity and Access Management — controls who/what can authenticate and what they're authorized to do. |
-| **AWS KMS** | Key Management Service — creates and manages encryption keys used by S3, EBS, RDS, EFS, and more. |
-| **Amazon Machine Image (AMI)** | A template (OS, patches, agents, software) used to launch EC2 instances. |
-| **Security Groups** | Stateful, instance-level virtual firewalls controlling inbound/outbound traffic. |
-| **Amazon VPC** | Virtual Private Cloud — an isolated, software-defined network for AWS resources. |
-| **Internet Gateway** | VPC component that lets public-subnet resources reach the internet. |
-| **NAT Gateway** | Lets private-subnet resources initiate outbound internet traffic without being publicly reachable. |
-| **Network ACLs** | Stateless, subnet-level firewall rules (complement to security groups). |
-| **VPC Endpoints** | Private, non-internet connectivity from a VPC to AWS services like S3, ECR, or SSM. |
-| **VPC Flow Logs** | Captures network traffic metadata for a VPC, used for troubleshooting and security auditing. |
-| **Amazon CloudWatch** | Monitoring service for metrics, logs, alarms, dashboards, and Logs Insights queries. |
-| **— CloudWatch Agent** | Optional agent collecting OS-level metrics (memory, disk) and application/Windows Event Logs. |
-| **AWS CloudTrail** | Records AWS API activity — who made a change, when, from where, and with which role. |
-| **AWS Secrets Manager** | Securely stores, encrypts, versions, and automatically rotates sensitive credentials. |
-| **Amazon ECR** | Elastic Container Registry — managed Docker image repository with scanning. |
-| **Amazon ECS** | Elastic Container Service — runs containers via clusters, task definitions, and services on EC2 or Fargate. |
-| **AWS Lambda** | Serverless compute that runs event-triggered code without managing servers. |
-| **AWS Step Functions** | Orchestrates multi-step workflows (sequential, parallel, retries, branching) across Lambda and other services. |
-| **Amazon S3** | Simple Storage Service — scalable, durable object storage with versioning and lifecycle policies. |
-| **Amazon RDS (PostgreSQL)** | Managed relational database service handling backups, patching, and Multi-AZ failover. |
-| **Amazon DynamoDB** | Managed NoSQL key-value/document database with single-digit-millisecond latency at scale. |
-| **AWS CodePipeline** | Orchestrates CI/CD release stages (source, build, test, deploy, approval). |
-| **AWS CodeBuild** | Managed build service that compiles, tests, and packages code in a temporary environment. |
-| **AWS Security Hub** | Aggregates and prioritizes security findings across AWS accounts and services. |
-| **Amazon GuardDuty** | Continuous threat-detection service that monitors for malicious or unauthorized activity. |
-| **Amazon Inspector** | Automated vulnerability scanning for EC2 instances and container images. |
-| **AWS Config** | Tracks AWS resource configuration changes and evaluates them against compliance rules. |
-| **AWS AppStream 2.0** | Streams desktop applications to end users through a web browser. |
-| **Amazon SNS** | Pub/sub messaging service used for notifications and alert routing. |
-| **Amazon SQS** | Managed message queuing service for decoupling application components. |
-| **Amazon EventBridge** | Event bus that routes AWS/application events to targets like Lambda or SNS for automated remediation. |
+| **Amazon EC2** | Elastic Compute Cloud provides resizable virtual servers ("instances") in the cloud — you choose the CPU, memory, storage, and networking a workload needs and pay only for what you use, instead of owning physical hardware. |
+| **AWS Systems Manager (SSM)** | A centralized operations hub for managing EC2 and hybrid on-prem/multi-cloud servers at scale — patching, running commands, enforcing configuration, and giving secure shell access — all without opening SSH/RDP ports or maintaining bastion hosts. |
+| **— Session Manager** | An SSM capability that opens a browser-based or CLI shell/PowerShell session directly to an instance via the SSM Agent, giving interactive access with no open inbound ports, no SSH keys to manage, and a full session audit trail in CloudTrail. |
+| **— Run Command** | An SSM capability that executes a predefined or custom command/script against one or thousands of managed instances at once and returns per-instance output — the ad-hoc, "run this right now" counterpart to a full Automation runbook. |
+| **— Automation (Runbooks)** | SSM's workflow engine for multi-step operational procedures (validate → snapshot → patch → reboot → validate → rollback) defined in YAML/JSON, turning an error-prone manual runbook into a repeatable, auditable, self-service action. |
+| **— Patch Manager** | Automates scanning and installing OS/application patches across a fleet on a defined schedule and patch baseline, replacing manual per-server patching with a consistent, reportable process. |
+| **— Maintenance Windows** | Defines a scheduled time window — and which instances/tasks are allowed to run in it — during which disruptive operations like patching or reboots are permitted, keeping that activity out of business hours. |
+| **— State Manager** | Continuously and automatically re-applies a defined configuration (an installed agent, a registry setting, a required package) to managed instances, correcting drift rather than only fixing it after someone notices. |
+| **— Parameter Store** | A hierarchical key-value store for configuration data and encrypted secrets (via KMS-backed SecureString parameters) — commonly used for endpoints, AMI IDs, and other values that don't warrant Secrets Manager's rotation features. |
+| **— Inventory** | Automatically collects and reports metadata (installed applications, OS version, running services, patch state) from managed instances, giving a queryable fleet-wide picture without logging into each box individually. |
+| **Amazon EFS** | A fully managed, elastic NFS file system that many Linux EC2 instances or ECS/Fargate tasks can mount concurrently, growing and shrinking automatically as files are added or removed — unlike a single-instance-attached EBS volume. |
+| **Application Load Balancer (ALB)** | A Layer-7 (HTTP/HTTPS) load balancer that routes requests to backend targets based on host, path, or header rules, health-checks those targets to route only to healthy ones, and terminates TLS — the standard front door for modern web traffic on AWS. |
+| **Amazon Route 53** | AWS's highly available, scalable DNS service — public and private hosted zones, standard record types plus AWS "alias" records, health-check-based failover, and traffic-routing policies (weighted, latency-based, geolocation) for directing users to the right endpoint. |
+| **AWS IAM** | Identity and Access Management is the authentication and authorization backbone of AWS, controlling exactly which users, roles, or services can call which APIs on which resources — the practical implementation of least privilege across an account. |
+| **AWS KMS** | The Key Management Service creates, stores, and manages the encryption keys other AWS services (S3, EBS, RDS, EFS, Secrets Manager) use to encrypt data at rest, with fine-grained IAM-based access control over each key and full audit logging via CloudTrail. |
+| **Amazon Machine Image (AMI)** | A reusable template capturing an EC2 instance's root volume — OS, patches, agents, pre-installed software — used to launch new instances in a known, consistent state; a "golden AMI" bakes in hardening and required agents so every new instance starts compliant. |
+| **Security Groups** | Stateful, instance/ENI-level virtual firewalls that allow-list specific inbound and outbound traffic by protocol/port/source — "stateful" meaning a response to an allowed inbound request is automatically permitted back out without a matching outbound rule. |
+| **Amazon VPC** | A Virtual Private Cloud is a logically isolated, software-defined network within AWS where you control the IP address range, subnets, route tables, and gateways — the foundational network boundary every other networked AWS resource lives inside. |
+| **Internet Gateway** | A horizontally scaled, redundant VPC component that provides the actual path for traffic between public-subnet resources and the internet — without one attached, nothing in the VPC can reach or be reached from the internet. |
+| **NAT Gateway** | A managed service that lets resources in a private subnet initiate outbound internet connections (e.g., downloading updates) while remaining unreachable from the internet, since inbound connections can't be initiated through it. |
+| **Network ACLs** | Stateless, subnet-level firewall rules evaluated in numbered order for both inbound and outbound traffic — "stateless" meaning return traffic must be explicitly allowed by its own rule, unlike a security group — used as a coarse-grained complement to security groups. |
+| **VPC Endpoints** | Private connectivity from inside a VPC to supported AWS services (S3, ECR, SSM, KMS, etc.) that never traverses the public internet — a Gateway Endpoint for S3/DynamoDB (route-table-based, free) or an Interface Endpoint for most other services (ENI-based, via PrivateLink). |
+| **VPC Flow Logs** | Captures metadata about IP traffic to and from network interfaces in a VPC (source/destination, port, protocol, accept/reject) — not packet contents — and is the primary tool for diagnosing "why is this traffic being blocked" and for security/audit investigations. |
+| **Amazon CloudWatch** | AWS's native observability service — collects metrics, logs, and events from AWS resources and applications, and provides alarms, dashboards, and Logs Insights queries for monitoring and alerting on system health. |
+| **— CloudWatch Agent** | An optional agent installed on EC2/on-prem instances that collects OS-level metrics CloudWatch can't see natively (memory, disk usage, running processes) and forwards application or Windows Event Logs, extending CloudWatch past its default hypervisor-visible metrics. |
+| **AWS CloudTrail** | Records every API call made against your AWS account — who (which IAM identity), what action, on which resource, from where, and when — the authoritative source for "who changed this" investigations and compliance audit trails, distinct from CloudWatch's system/application-behavior focus. |
+| **AWS Secrets Manager** | Securely stores, encrypts (via KMS), versions, and can automatically rotate sensitive credentials like database passwords and API keys, with fine-grained IAM access control and full CloudTrail auditing — the higher-feature sibling of Parameter Store's SecureString, purpose-built for credentials specifically. |
+| **Amazon ECR** | Elastic Container Registry is a fully managed, private Docker/OCI image registry integrated with IAM for access control and built-in vulnerability scanning of pushed images — the standard place to store images that ECS or EKS will later pull. |
+| **Amazon ECS** | Elastic Container Service is AWS's native container orchestrator, running containers as "tasks" defined by a task definition, grouped into "services" for scaling/health management, on either self-managed EC2 capacity or the serverless Fargate launch type. |
+| **AWS Lambda** | Serverless, event-driven compute that runs your code in response to a trigger (an API call, a file upload, a schedule) without provisioning or managing any servers, billed per invocation and execution time rather than for idle capacity. |
+| **AWS Step Functions** | A serverless workflow orchestrator that coordinates multiple steps — Lambda invocations, other AWS API calls, human-approval waits — as a visual state machine, handling sequencing, parallel branches, retries, and error handling that would otherwise be hand-rolled glue code. |
+| **Amazon S3** | Simple Storage Service is AWS's core object storage — durable, virtually unlimited-capacity storage for any file type, with versioning, lifecycle rules to transition/expire objects, fine-grained bucket/object policies, and event notifications on object changes. |
+| **Amazon RDS (PostgreSQL)** | A fully managed relational database service running the PostgreSQL engine, where AWS handles patching and automated backups, and — with Multi-AZ enabled — synchronous standby replication and automatic failover, removing most of the operational burden of running a database yourself. |
+| **Amazon DynamoDB** | A fully managed, serverless NoSQL key-value/document database delivering consistent single-digit-millisecond performance at virtually any scale, built around a partition key (and optional sort key) rather than SQL joins. |
+| **AWS CodePipeline** | Orchestrates the end-to-end release process as a series of stages (source, build, test, deploy, manual approval), triggering automatically on a source change and calling out to services like CodeBuild or CodeDeploy to perform each stage's work. |
+| **AWS CodeBuild** | A fully managed build service that checks out source code and runs the commands defined in a `buildspec.yml` (install, build, test, package) inside a fresh, temporary, isolated environment on every run — no build servers to provision or maintain. |
+| **AWS Security Hub** | Aggregates, normalizes, and prioritizes security findings from GuardDuty, Inspector, Config, and other sources (plus third-party tools) into a single dashboard with a security score, so teams don't have to check each source separately. |
+| **Amazon GuardDuty** | A continuous, ML/threat-intelligence-driven detection service that analyzes VPC Flow Logs, DNS logs, and CloudTrail events to flag likely malicious or unauthorized activity (e.g., an instance communicating with a known-bad IP) without requiring any agents to deploy. |
+| **Amazon Inspector** | Automated, continuous vulnerability scanning for EC2 instances and container images in ECR, checking for known CVEs and network reachability issues and surfacing a risk score per finding. |
+| **AWS Config** | Continuously records the configuration state of AWS resources over time and evaluates them against defined compliance rules (e.g., "no public S3 buckets"), flagging and optionally auto-remediating non-compliant resources — the configuration-compliance counterpart to CloudTrail's activity log. |
+| **AWS AppStream 2.0** | A fully managed application-streaming service that runs desktop applications on AWS-hosted instances and streams the rendered output to a user's browser, so specialized or licensed software (like ArcGIS Pro) can be delivered to any device without local installation. |
+| **Amazon SNS** | Simple Notification Service is a fully managed pub/sub messaging service that fans a published message out to many subscribers at once (email, SMS, Lambda, SQS queues) — commonly used for alerting and event broadcast. |
+| **Amazon SQS** | Simple Queue Service is a fully managed message queue that decouples producers from consumers — a producer drops a message on the queue and moves on, while consumers pull and process at their own pace, smoothing out load spikes and adding resilience if a consumer is temporarily down. |
+| **Amazon EventBridge** | A serverless event bus that routes events — from AWS services, SaaS partners, or your own applications — to targets like Lambda, Step Functions, or SNS based on rule-defined event patterns, the backbone of most "when X happens, automatically do Y" automation. |
 
 ## CI/CD and Source Control Tools
 
 | Tool | Description |
 |---|---|
-| **Terraform** | Infrastructure-as-Code tool for declaratively provisioning and managing cloud resources. |
-| **Azure DevOps** | Microsoft platform for repos, YAML pipelines, variable groups, and release approvals. |
-| **GitHub** | Source-control hosting with pull requests, branch protection, and GitHub Actions pipelines. |
+| **Terraform** | HashiCorp's open-source, provider-agnostic Infrastructure-as-Code tool — you declare the desired end state of your infrastructure in HCL, and Terraform determines and executes the create/update/destroy operations needed to reach it, tracking what it manages in a state file. |
+| **Azure DevOps** | Microsoft's application lifecycle platform bundling Git repos, YAML-based CI/CD pipelines, work-item tracking, and artifact feeds — commonly used for CI/CD orchestration, environment-scoped approvals, and variable-group-based secret management even outside pure Azure shops. |
+| **GitHub** | A Git-based source control hosting platform providing pull-request-based code review, branch protection rules, required status checks, and GitHub Actions for CI/CD — the de facto standard for open-source and increasingly for enterprise source control as well. |
 
 ## Automation Languages and Operating Systems
 
 | Item | Description |
 |---|---|
-| **Python** | General-purpose scripting language, commonly paired with Boto3 for AWS automation and Lambda functions. |
-| **YAML** | Human-readable data-serialization format used for pipelines, SSM documents, and configuration. |
-| **Bash** | Unix/Linux shell scripting language for configuration, deployment, and log collection. |
-| **PowerShell** | Windows scripting language/shell used for Windows Server administration and automation. |
-| **Red Hat Linux** | Enterprise Linux distribution administered via systemd, SELinux, firewalld, and package managers. |
-| **Windows Server 2022** | Microsoft server operating system managed via Services, Event Viewer, IIS, and PowerShell. |
+| **Python** | A general-purpose, readable scripting language that's the dominant choice for AWS automation via the Boto3 SDK, Lambda function code, operational tooling, and reporting/remediation scripts. |
+| **YAML** | A human-readable, indentation-based data-serialization format used almost everywhere infrastructure/pipeline configuration needs to be both machine-parseable and human-editable — CI/CD pipeline definitions, SSM Automation documents, configuration files. |
+| **Bash** | The default Linux/Unix shell scripting language, used for instance user-data scripts, deployment steps, log collection, and general Linux automation glue. |
+| **PowerShell** | Microsoft's object-oriented shell and scripting language — the standard tool for Windows Server administration, IIS management, Active Directory tasks, and Windows-side automation in a mixed-OS environment. |
+| **Red Hat Linux** | An enterprise-grade Linux distribution administered through `systemd` (services), SELinux (mandatory access control), `firewalld` (host firewall), and `dnf`/`yum` package management — a common default in regulated or enterprise environments for its support lifecycle and hardening tooling. |
+| **Windows Server 2022** | Microsoft's server operating system, administered via Services, Event Viewer, IIS (web hosting), Windows Firewall, and PowerShell, often integrated with Active Directory for centralized identity and Group Policy. |
 
 ## Code Quality and Security Scanning Tools
 
 | Tool | Description |
 |---|---|
-| **SonarQube** | Static code analysis tool that flags bugs, vulnerabilities, code smells, and enforces quality gates. |
-| **JFrog Artifactory** | Universal artifact repository that stores and promotes versioned build packages (Docker, Java, npm, etc.). |
-| **JFrog Xray** | Security and license-compliance scanning for artifacts stored in Artifactory. |
-| **Checkov** | Static analysis tool that scans Infrastructure-as-Code (e.g., Terraform) for misconfigurations. |
-| **Trivy** | Vulnerability scanner for container images, filesystems, and IaC. |
+| **SonarQube** | A static code analysis platform that scans source code for bugs, security vulnerabilities, "code smells," and duplication, and enforces a configurable Quality Gate that can block a pipeline from proceeding if code quality falls below the bar. |
+| **JFrog Artifactory** | A universal binary/artifact repository that stores and manages versioned build outputs across virtually any package format (Docker, npm, Maven/Java, PyPI, Helm), with promotion workflows to move a vetted artifact from a dev repo to a production-ready one. |
+| **JFrog Xray** | Security and license-compliance scanning integrated directly into Artifactory, analyzing stored artifacts (and their dependencies) for known vulnerabilities and license policy violations before they're consumed downstream. |
+| **Checkov** | An open-source static analysis tool purpose-built for Infrastructure-as-Code (Terraform, CloudFormation, Kubernetes manifests), catching misconfigurations — like an unencrypted S3 bucket or an overly permissive security group — before the infrastructure is ever provisioned. |
+| **Trivy** | An open-source, all-in-one scanner covering container images, filesystems, and IaC configurations for known vulnerabilities (CVEs) and misconfigurations, popular for its speed and broad single-tool coverage. |
 
 ## GIS Platform Tools
 
 | Tool | Description |
 |---|---|
-| **ArcGIS Enterprise** | Esri's GIS platform for mapping, spatial analysis, and geospatial application hosting. |
-| **Portal for ArcGIS** | Web front end for sharing ArcGIS maps, apps, and content among users and groups. |
-| **ArcGIS Server** | Hosts map, feature, geoprocessing, and image services for GIS applications. |
-| **ArcGIS Data Store** | Backend data storage supporting ArcGIS Server's hosted services. |
-| **ArcGIS Pro** | Esri's desktop GIS application for mapping, spatial analysis, and publishing. |
-| **FME Core / FME Engine** | Tooling for geospatial data transformation, format conversion, and integration automation. |
+| **ArcGIS Enterprise** | Esri's on-premises/cloud-deployable GIS platform — a suite of components (Portal, Server, Data Store) working together to publish, manage, and share maps, spatial data, and geospatial applications across an organization. |
+| **Portal for ArcGIS** | The web-based front end of ArcGIS Enterprise where users discover, view, and share maps, apps, and geospatial content, and where user/group access to that content is managed. |
+| **ArcGIS Server** | The component that actually hosts and serves map, feature, geoprocessing, and imagery services consumed by web maps, apps, and desktop GIS clients. |
+| **ArcGIS Data Store** | The managed backend data storage layer supporting ArcGIS Server's hosted feature layers and other hosted services, so Server doesn't have to talk directly to a raw database for every request. |
+| **ArcGIS Pro** | Esri's desktop GIS application for advanced spatial analysis, cartography, and publishing content up to ArcGIS Enterprise or ArcGIS Online. |
+| **FME Core / FME Engine** | Safe Software's spatial ETL (extract-transform-load) engine for converting between GIS data formats, transforming geospatial data structures, and automating integration workflows between disparate systems — the geospatial-data equivalent of a general-purpose ETL tool. |
 
 [⬆ Back to top](#top)
 
