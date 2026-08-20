@@ -13,9 +13,10 @@
 7. [Security Tooling for a Data Science Platform](#security-tooling-for-a-data-science-platform)
 8. [Database Technologies: Athena vs. Oracle vs. MySQL vs. Postgres](#database-technologies-athena-vs-oracle-vs-mysql-vs-postgres)
 9. [CI/CD with Azure DevOps for AWS Environments](#cicd-with-azure-devops-for-aws-environments)
-10. [Interview Questions](#interview-questions)
-11. [Most Important Concepts to Know First](#most-important-concepts-to-know-first)
-12. [30-Second Pitch](#30-second-pitch)
+10. [Tuning, Performance Scaling & Troubleshooting](#tuning-performance-scaling--troubleshooting)
+11. [Interview Questions](#interview-questions)
+12. [Most Important Concepts to Know First](#most-important-concepts-to-know-first)
+13. [30-Second Pitch](#30-second-pitch)
 
 ---
 
@@ -224,6 +225,49 @@ Already a strength on your resume — the JD-specific nuance worth having ready 
 - **Service connections**: Azure DevOps authenticates to AWS via a service connection (AWS credentials or, better, an OIDC-based federated identity) scoped to least-privilege IAM permissions — the AWS-side equivalent of what you already know from Azure-native service connections.
 - **Pipeline shape**: source → `terraform plan` (posted for review) → manual approval gate → `terraform apply`, identical in structure to any Terraform PR-based workflow you've already built, just running from Azure Pipelines YAML instead of GitHub Actions/Jenkins.
 - **Environments & approvals**: Azure DevOps Environments gate promotion between dev/uat/prod AWS accounts — directly maps to your existing dev/uat/prod Terraform environment-per-directory pattern.
+
+[⬆ Back to top](#top)
+
+---
+
+## Tuning, Performance Scaling & Troubleshooting
+
+Per-service depth on the platform components this JD names — each with what to tune, how it actually scales, and how to diagnose it when it's slow or broken.
+
+### AWS Glue
+
+- **Tuning**: pick worker type/count deliberately — `G.1X`/`G.2X` (standard) vs. `G.025X` (smaller, cheaper for light jobs); enable **job bookmarks** so incremental runs only process new/changed data instead of the full dataset every time; partition source data so a job doesn't have to scan the entire lake for a narrow query; avoid the "small file problem" (thousands of tiny S3 objects) by compacting output, since Glue/Spark overhead per file dominates runtime at scale.
+- **Performance scaling**: enable **Auto Scaling** (Glue 3.0+) so a job's DPU (Data Processing Unit) count flexes with actual Spark stage parallelism instead of a fixed worker count sized for worst-case load.
+- **How to check for bottlenecks**: CloudWatch Glue job metrics (`glue.driver.aggregate.numCompletedTasks`, executor CPU/memory utilization) and the Spark UI (accessible via job run details) to see which stage is actually slow; job run history for repeated timeouts or `OutOfMemoryError`.
+- **How to improve**: increase worker count/type if genuinely compute-bound; fix data skew (one partition far larger than others) if a small number of tasks run far longer than the rest; switch source format to Parquet/ORC if reading raw CSV/JSON is the bottleneck.
+
+### Amazon Athena
+
+- **Tuning**: partition data by a commonly filtered column (e.g., date) so queries can skip irrelevant partitions entirely; store data in a **columnar format** (Parquet/ORC) instead of CSV/JSON — often a 10x+ reduction in data scanned, which directly cuts both cost and latency since Athena bills and performs based on bytes scanned; compress files (Snappy/Gzip); avoid `SELECT *` when only a few columns are needed.
+- **Performance scaling**: Athena itself is serverless and scales query execution automatically — there's no compute to size or scale yourself. Performance is almost entirely a function of **data layout**, not anything you provision.
+- **How to check for bottlenecks**: the query's **"Data scanned"** figure in the console/API is the single most useful diagnostic — a query scanning far more data than its actual result size usually means missing partitioning or a non-columnar format; `EXPLAIN` a query to see its execution plan; check for **query queuing/throttling** if many concurrent queries are submitted (Athena has an account-level concurrent-query-execution limit, raisable via Service Quotas).
+- **How to improve**: add/fix partitioning, convert to Parquet, use `CTAS` (`CREATE TABLE AS SELECT`) to pre-materialize an expensive, frequently-run query's result as its own optimized table.
+
+### Amazon SageMaker (Training, Studio, Endpoints)
+
+- **Tuning**: match instance type to the actual workload — CPU instances for classical ML/lightweight inference, GPU instances (`ml.g5`, `ml.p4`) for deep learning training; for training, consider **distributed training** (data-parallel or model-parallel) once a single instance's memory/time becomes the constraint; for inference, right-size between a always-on real-time endpoint, Serverless Inference, or Asynchronous Inference based on traffic shape (see the pattern already covered in the [RAG-Architecture scalability notes](../RAG-Architecture/README.md#9-scalability--performance-by-service)).
+- **Performance scaling**: real-time endpoints scale via instance count + Application Auto Scaling (target-tracking on `InvocationsPerInstance`); training jobs scale by adding instances for distributed training, not by an autoscaler (each job's instance count is fixed at launch).
+- **How to check for bottlenecks**: CloudWatch SageMaker metrics — `CPUUtilization`/`GPUUtilization` (low GPU utilization during training usually means a data-loading bottleneck, not a compute one), `ModelLatency` on endpoints, training job logs for `OutOfMemoryError` or slow epoch times.
+- **How to improve**: if GPU utilization is low during training, the fix is almost always the data pipeline (prefetching, more parallel data loading workers), not a bigger instance; if an endpoint's `ModelLatency` is high under load, check `InvocationsPerInstance` against the configured auto-scaling target before assuming the model itself needs optimizing.
+
+### Amazon EKS (Data Science Workloads)
+
+- **Tuning**: set explicit CPU/memory **requests and limits** on every training/inference pod — omitted requests are the single most common cause of unpredictable scheduling and noisy-neighbor problems on a shared cluster; use node selectors/taints so GPU-hungry pods land only on GPU node pools, not general-purpose ones.
+- **Performance scaling**: Karpenter or Cluster Autoscaler for node-level scaling (see the [Fargate vs. Cluster Autoscaler vs. Karpenter comparison](vanguard.md#eks-node-compute-fargate-vs-cluster-autoscaler-vs-karpenter) for the full breakdown), HPA for inference services that need to scale with request volume.
+- **How to check for bottlenecks**: `kubectl describe pod` for a Pending pod almost always names the exact reason (insufficient GPU capacity, unsatisfied node selector); `kubectl top nodes/pods` for resource pressure; an `OOMKilled` status directly indicates the container exceeded its memory limit.
+- **How to improve**: for chronically Pending GPU pods, the fix is capacity (more GPU nodes, or Karpenter provisioning them just-in-time) not a scheduling tweak; for `OOMKilled`, raise the memory limit only after confirming the workload's actual usage, not as a reflexive fix.
+
+### Databases (Athena / Oracle / MySQL / Postgres)
+
+- **Tuning**: proper indexing on frequently filtered/joined columns; avoid `SELECT *` and unnecessary large joins; connection pooling (RDS Proxy for RDS engines) so short-lived Lambda/application connections don't exhaust the database's max-connections limit.
+- **Performance scaling**: **read replicas** for read-heavy workloads (offload reporting/analytics queries off the primary); vertical scaling (larger instance class) when the workload is genuinely CPU/memory-bound rather than a query-design problem; for MySQL/Postgres specifically, **Aurora** is the scale-up path if RDS's standard engine ceiling is reached.
+- **How to check for bottlenecks**: **Performance Insights** (RDS) for top wait events and top SQL by load; slow query logs; CloudWatch `CPUUtilization`, `FreeableMemory`, `DatabaseConnections` trending toward the instance's limits; for Oracle specifically, AWR (Automatic Workload Repository) reports are the traditional DBA-side equivalent.
+- **How to improve**: add a missing index if Performance Insights shows a query dominated by a full table scan; add a read replica if reads (not writes) are saturating the primary; investigate locking/blocking (long-running transactions holding locks) if `DatabaseConnections` climbs without a corresponding traffic increase — a classic symptom of connections piling up behind a stuck transaction rather than genuine load growth.
 
 [⬆ Back to top](#top)
 
