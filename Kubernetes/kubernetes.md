@@ -1359,16 +1359,99 @@ unsupported and can break the cluster.
 
 ## Certificate Rotation
 
+A kubeadm cluster's PKI lives in `/etc/kubernetes/pki/` — CA certs
+(`ca.crt/key`, `front-proxy-ca`, `etcd/ca`), leaf certs per control-plane
+component (`apiserver.crt`, `apiserver-kubelet-client.crt`,
+`etcd/server.crt`, etc.), and client certs embedded inside `admin.conf`,
+`controller-manager.conf`, `scheduler.conf`, `kubelet.conf`. Leaf certs
+default to **1-year** validity; CA certs default to **10 years**.
+
+### Checking Expiration
+
 ```bash
 kubeadm certs check-expiration
-kubeadm certs renew all
-systemctl restart kubelet
 ```
 
-Control-plane certificates default to a **1-year** expiration —
-letting them lapse unnoticed locks out `kubectl` and every control-plane
+Lists every managed cert, its expiration date, days remaining, and which
+CA signed it.
+
+### Manual Renewal
+
+```bash
+kubeadm certs renew all           # renew every kubeadm-managed cert
+kubeadm certs renew apiserver     # or just one, by name
+```
+
+**Renewing the cert files alone doesn't make the running control-plane
+processes use them** — `kube-apiserver`/`kube-controller-manager`/
+`kube-scheduler` read their certs once at startup, and since these
+containers are managed by the container runtime independently of
+kubelet's own process lifecycle, a plain `systemctl restart kubelet`
+does *not* reliably restart them (kubelet's reconciliation loop finds
+the static Pod manifest unchanged and takes no action, even though the
+underlying cert file did change). The reliable way to force an actual
+restart:
+
+```bash
+mv /etc/kubernetes/manifests/kube-apiserver.yaml /tmp/
+sleep 5   # let the kubelet notice the Pod disappeared
+mv /tmp/kube-apiserver.yaml /etc/kubernetes/manifests/
+# repeat for kube-controller-manager.yaml and kube-scheduler.yaml
+```
+
+Then refresh your own `kubectl` credentials, since `admin.conf` also
+changed:
+
+```bash
+cp /etc/kubernetes/admin.conf $HOME/.kube/config
+```
+
+### Renewal Happens Automatically on Upgrade
+
+`kubeadm upgrade apply` (control plane) and `kubeadm upgrade node`
+(workers) **renew all managed certificates by default** as part of the
+upgrade — pass `--certificate-renewal=false` to opt out. A cluster
+upgraded at least once a year gets certificate rotation for free as a
+side effect of that process; manual `kubeadm certs renew` matters most
+for a cluster going a full year *without* a version bump.
+
+### kubelet Client Certs Are a Separate, Already-Automatic Mechanism
+
+kubelet's own client certificate (used to authenticate to the API
+server) rotates itself via `RotateKubeletClientCertificate`
+(default-enabled since 1.19), requesting a new cert through the
+`certificates.k8s.io` CSR API as the old one nears expiry — no manual
+renewal needed for this one.
+
+### CA Rotation Is a Different, Much Bigger Operation
+
+`kubeadm certs renew` only renews **leaf** certs signed *by* the CA —
+never the CA itself. Actually replacing a CA means regenerating it,
+re-signing every leaf cert, and redistributing the new CA to every node
+and kubeconfig; kubeadm doesn't automate this, which is exactly why CAs
+default to 10 years instead of 1.
+
+### On Managed Kubernetes (EKS / AKS / GKE)
+
+None of this applies — the cloud provider owns and rotates control-plane
+certificates entirely, since there's no SSH/filesystem access to
+control-plane nodes at all on a managed offering. This whole workflow is
+specific to self-managed/kubeadm clusters.
+
+### Verification
+
+```bash
+kubeadm certs check-expiration
+kubectl get nodes
+openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -dates
+```
+
+### Interview Keyword
+Control-plane certificates default to a **1-year** expiration — letting
+them lapse unnoticed locks out `kubectl` and every control-plane
 component simultaneously, a self-inflicted outage worth calendaring
-ahead of.
+ahead of (`kubeadm certs check-expiration` on a schedule, not just when
+someone remembers).
 
 [⬆ Back to top](#top)
 
