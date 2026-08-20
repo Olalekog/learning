@@ -1421,6 +1421,36 @@ credentials, and reconciling drift, in response to the CR existing.
 
 # 20. Helm Deep Dive
 
+**Helm** is a package manager for Kubernetes — templated YAML manifests
+bundled into versioned, distributable "charts," parameterized via a
+`values.yaml` and Go template syntax embedded in the manifests
+themselves. It tracks installed **releases** natively (`helm history`,
+`helm rollback`) and has a real packaging ecosystem (Artifact Hub) for
+installing third-party software as a chart, not just managing your own.
+
+## Helm vs Kustomize
+
+**Kustomize** solves a related but different problem: it's a
+template-free configuration customization tool, built into `kubectl`
+(`kubectl apply -k`), that patches plain YAML you already own via a
+`base/` plus environment-specific `overlays/` — no templating language,
+no packaging/distribution concept, and no built-in release tracking.
+
+| Aspect | Helm | Kustomize |
+|---|---|---|
+| What it is | Package manager — versioned, distributable charts | Configuration customization tool — patches over plain YAML |
+| Templating | Go templates embedded in YAML | None — structured overlays/patches only |
+| Distribution | Real chart ecosystem (Artifact Hub) for installing third-party software | No packaging concept — just your own base/overlay directories |
+| Release tracking | Native (`helm history`/`rollback`) | None built-in — relies on CI/CD or GitOps (ArgoCD/Flux) |
+| Environment variation | `values.yaml` per environment | `overlays/` per environment patching a shared `base/` |
+| Typical use | Installing/packaging reusable, distributable software | Managing environment-specific variants of manifests you already own |
+
+They're commonly combined rather than chosen exclusively: `helm template
+mychart/ | kustomize build` renders a chart to plain manifests, then
+applies environment-specific Kustomize patches on top — Helm's
+packaging strength plus Kustomize's patch-based environment management
+in one pipeline.
+
 ```bash
 helm create mychart                 # scaffold a new chart
 helm lint mychart/                  # validate chart structure/templates
