@@ -275,6 +275,14 @@ failed restore with no fallback is worse than the original problem.
 
 # 4. Pods and Multi-Container Patterns
 
+A **Pod** is the smallest deployable unit in Kubernetes — one or more
+containers that share a network namespace (same IP address, and can reach
+each other over `localhost`), an IPC namespace, and optionally storage
+volumes. Pods are treated as disposable and ephemeral by design: you don't
+patch a running Pod, you replace it. Multiple containers in one Pod exist
+to co-locate genuinely tightly coupled processes (see the patterns below),
+not as a general way to group unrelated workloads.
+
 ## Init Containers
 
 Run to completion, in order, *before* any app container starts — used
@@ -316,6 +324,15 @@ kubectl debug -it <pod-name> --image=busybox:1.36 --target=<container-name>
 ---
 
 # 5. Deployments, ReplicaSets, and Rolling Updates
+
+A **ReplicaSet** guarantees a specified number of identical Pod replicas
+are running at all times, replacing any that die. A **Deployment** sits
+one level above it, managing ReplicaSets to provide declarative updates —
+rolling updates, rollback to a prior revision, and scaling — for
+stateless workloads. In practice you almost never create a ReplicaSet
+directly; every update to a Deployment creates a *new* ReplicaSet rather
+than mutating the existing one, which is exactly what makes rollback
+possible (Kubernetes just switches back to a previous ReplicaSet).
 
 ## Rolling Update Strategy
 
@@ -362,6 +379,16 @@ standard choice for a workload that can't tolerate any capacity dip.
 
 # 6. StatefulSets and DaemonSets
 
+A **StatefulSet** is like a Deployment but for stateful workloads that
+need stable, unique network identities (`pod-0`, `pod-1`, ...) and stable
+per-Pod storage that survives rescheduling — the fit for databases,
+queues, and other clustered software where a client needs to talk to a
+*specific* replica, not just "any healthy one." A **DaemonSet** solves a
+different problem entirely: it ensures exactly one copy of a Pod runs on
+every (or a selected subset of) node automatically, the standard pattern
+for node-level agents like log collectors, CNI plugins, and monitoring
+agents.
+
 ## StatefulSet Ordering Guarantees
 
 - Pods are created **and** terminated in strict ordinal order (`web-0`
@@ -403,6 +430,13 @@ spec:
 ---
 
 # 7. Jobs and CronJobs
+
+A **Job** runs a Pod (or several) to completion for a finite, one-off
+task rather than a long-running service — unlike a Deployment's Pods,
+a Job's Pods are *expected* to exit, and the Job retries a failed Pod up
+to `backoffLimit` before giving up. A **CronJob** creates Jobs on a
+repeating schedule using standard cron syntax — the Kubernetes-native
+equivalent of a crontab entry.
 
 ```yaml
 apiVersion: batch/v1
@@ -487,6 +521,16 @@ an overloaded process makes the overload worse for everyone else).
 
 # 9. ConfigMaps, Secrets, and the Downward API
 
+A **ConfigMap** stores non-sensitive configuration data (key-value pairs,
+whole files) that can be mounted into a Pod as environment variables or
+volumes, decoupling configuration from the container image so the same
+image runs unchanged across dev/staging/prod. A **Secret** is the same
+mechanism for sensitive data (passwords, tokens, certs) — base64-encoded,
+not encrypted, at rest by default. The **Downward API** exposes a Pod's
+own metadata (its name, namespace, resource requests) to itself as
+environment variables or files, without the Pod needing to call the API
+server to find out.
+
 ## Mounting vs Environment Variables
 
 ```yaml
@@ -526,6 +570,13 @@ env:
 ---
 
 # 10. Services and Networking Deep Dive
+
+A **Service** is a stable virtual IP and DNS name that load-balances
+traffic across a dynamic set of Pods matched by a label selector, so
+clients never need to track individual (and constantly changing) Pod
+IPs. The actual list of Pod IPs a Service currently routes to is tracked
+in an **EndpointSlice** object, updated automatically as matching Pods
+come and go.
 
 ## How kube-proxy Actually Routes Traffic
 
@@ -573,6 +624,14 @@ individually addressable by DNS name.
 
 # 11. Ingress and Gateway API
 
+An **Ingress** declares HTTP/HTTPS routing rules (host/path → Service)
+for traffic entering the cluster from outside — but the object is purely
+declarative and does nothing on its own without an **Ingress Controller**
+(NGINX, Traefik, a cloud-native one) actually running to watch and
+implement it. **Gateway API** is the newer, more expressive successor,
+splitting infrastructure-owner concerns (`GatewayClass`/`Gateway`) from
+app-owner concerns (`HTTPRoute`).
+
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -610,6 +669,13 @@ never standardized.
 ---
 
 # 12. Network Policies
+
+A **NetworkPolicy** is a firewall rule set for Pod-to-Pod traffic, scoped
+by label selector — a genuinely important default to internalize: without
+any NetworkPolicy, every Pod in a cluster can reach every other Pod, in
+every namespace, by default. A NetworkPolicy only takes effect if the
+CNI plugin actually enforces it; some CNI plugins silently accept the
+object without enforcing it at all.
 
 ```yaml
 # Default-deny all ingress in a namespace, then explicitly allow what's needed
@@ -649,6 +715,16 @@ with no error, is a real production incident waiting to happen).
 ---
 
 # 13. Storage: Volumes, PV/PVC, StorageClass, CSI
+
+A **PersistentVolume (PV)** is a piece of cluster storage — provisioned
+either statically by an admin or dynamically on demand — that exists
+independently of any Pod's lifecycle, which is what lets data survive a
+Pod being rescheduled elsewhere. A **PersistentVolumeClaim (PVC)** is a
+Pod's *request* for storage, matched against an available PV by size,
+access mode, and StorageClass; Pods always reference the PVC, never the
+PV directly. A **StorageClass** defines *how* to dynamically provision a
+PV on demand (which CSI driver, what parameters, what reclaim policy),
+removing the need to hand-create PVs for every claim.
 
 ## Static vs Dynamic Provisioning
 
@@ -698,6 +774,16 @@ regenerate.
 ---
 
 # 14. Scheduling: Affinity, Taints/Tolerations, Priority
+
+**Affinity/anti-affinity** rules influence *where* a Pod can or should be
+scheduled, relative to node properties (node affinity) or other Pods (pod
+affinity/anti-affinity). **Taints** are applied to *nodes* to repel Pods
+that don't explicitly tolerate them; a **toleration** on a Pod is what
+allows it onto an otherwise-repelling node — taints and tolerations are
+opt-in on the Pod side, the inverse of affinity, which is opt-in on
+neither side by default. A **PriorityClass** assigns Pods a scheduling
+priority so higher-priority Pods can preempt lower-priority ones under
+resource pressure.
 
 ## Node Affinity vs Pod Affinity/Anti-Affinity
 
@@ -766,6 +852,13 @@ Pod's arrival can kill an already-running lower-priority workload.
 ---
 
 # 15. RBAC and AuthN/AuthZ Deep Dive
+
+RBAC (Role-Based Access Control) is built from four objects working in
+pairs: a **Role** (or cluster-scoped **ClusterRole**) defines *what*
+permissions exist — verbs on resources — and a **RoleBinding** (or
+**ClusterRoleBinding**) grants those permissions *to* a specific
+User/Group/ServiceAccount. A Role/ClusterRole alone grants nothing; it
+only takes effect once bound to an identity via a (Cluster)RoleBinding.
 
 ## The Three-Stage Pipeline (repeated from §1, RBAC-focused)
 
@@ -1283,6 +1376,15 @@ ahead of.
 
 # 19. Custom Resources and Operators
 
+A **CustomResourceDefinition (CRD)** registers a brand-new object *kind*
+with the API server, extending the Kubernetes API with domain-specific
+types that `kubectl` and RBAC treat exactly like built-in objects. On its
+own, a CRD is just a schema — an **Operator** is the pattern of pairing a
+CRD with a custom controller that watches instances of it and drives
+real-world state to match, encoding operational knowledge (backup,
+failover, upgrade steps) that would otherwise live in a runbook into code
+that runs continuously.
+
 ```yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -1704,67 +1806,69 @@ exists.
 
 ## Workload Objects
 
-| Object | Definition & Purpose |
+| Object | Definition & Explanation |
 |---|---|
-| **Pod** | The smallest deployable unit — one or more containers that share network namespace, IPC, and (optionally) storage. Everything else in this category exists to manage Pods at scale rather than being run directly. See [§4](#4-pods-and-multi-container-patterns). |
-| **ReplicaSet** | Guarantees a specified number of identical Pod replicas are running at all times, replacing any that die. Almost never created directly — a Deployment manages ReplicaSets for you. See [§5](#5-deployments-replicasets-and-rolling-updates). |
-| **Deployment** | Manages ReplicaSets to provide declarative updates for stateless Pods — rolling updates, rollback to a prior revision, and scaling, all as one object. The default choice for stateless workloads. See [§5](#5-deployments-replicasets-and-rolling-updates). |
-| **StatefulSet** | Like a Deployment but for stateful workloads that need stable, unique network identities (`pod-0`, `pod-1`, ...) and stable per-Pod storage that survives rescheduling, with ordered rolling starts/stops. Used for databases, queues, and other clustered stateful software. See [§6](#6-statefulsets-and-daemonsets). |
-| **DaemonSet** | Ensures exactly one copy of a Pod runs on every (or a selected subset of) node — the pattern for node-level agents: log collectors, CNI plugins, monitoring agents. See [§6](#6-statefulsets-and-daemonsets). |
-| **Job** | Runs a Pod (or several) to completion for a finite, one-off task rather than a long-running service, retrying on failure up to `backoffLimit`. See [§7](#7-jobs-and-cronjobs). |
-| **CronJob** | Creates Jobs on a repeating schedule using cron syntax — the Kubernetes-native equivalent of a crontab entry. See [§7](#7-jobs-and-cronjobs). |
+| **Pod** | The smallest deployable unit in Kubernetes — one or more containers that share a network namespace (same IP, `localhost` between containers), IPC namespace, and optionally storage volumes. Pods are treated as ephemeral and disposable by design; everything else in this category exists to manage Pods at scale (restarting, scaling, ordered rollout) rather than being created and run directly by a human. See [§4](#4-pods-and-multi-container-patterns). |
+| **ReplicaSet** | Guarantees a specified number of identical Pod replicas are running at all times, creating or deleting Pods as needed to match the desired count. Almost never created directly in practice — a Deployment owns and manages ReplicaSets for you, which is *why* you rarely interact with this object on its own. See [§5](#5-deployments-replicasets-and-rolling-updates). |
+| **Deployment** | Manages ReplicaSets to provide declarative updates for stateless Pods — rolling updates, rollback to a prior revision, and scaling, all as one object with a revision history. The default choice for stateless workloads; each update creates a *new* ReplicaSet rather than mutating the old one, which is what makes rollback ("switch back to the previous ReplicaSet") possible. See [§5](#5-deployments-replicasets-and-rolling-updates). |
+| **StatefulSet** | Like a Deployment but for stateful workloads that need stable, unique network identities (`pod-0`, `pod-1`, ...) and stable per-Pod storage that survives rescheduling, with ordered (by default) rolling starts/stops. Used for databases, queues, and other clustered stateful software where "which specific replica am I talking to" matters. See [§6](#6-statefulsets-and-daemonsets). |
+| **DaemonSet** | Ensures exactly one copy of a Pod runs on every (or a selected subset of) node automatically — as nodes are added to the cluster, the DaemonSet controller schedules a Pod onto them without anyone asking it to. The pattern for node-level agents: log collectors, CNI plugins, monitoring agents. See [§6](#6-statefulsets-and-daemonsets). |
+| **Job** | Runs a Pod (or several, via `completions`/`parallelism`) to completion for a finite, one-off task rather than a long-running service, retrying on failure up to `backoffLimit` before being marked failed. Unlike a Deployment, a Job's Pods are expected to *exit*, not run forever. See [§7](#7-jobs-and-cronjobs). |
+| **CronJob** | Creates Jobs on a repeating schedule using standard cron syntax — the Kubernetes-native equivalent of a crontab entry, with `concurrencyPolicy` controlling what happens if a previous run is still active when the next one is due. See [§7](#7-jobs-and-cronjobs). |
 
 ## Service Discovery & Networking Objects
 
-| Object | Definition & Purpose |
+| Object | Definition & Explanation |
 |---|---|
-| **Service** | A stable virtual IP and DNS name that load-balances traffic across a dynamic set of Pods matched by label selector, so clients never need to track individual Pod IPs. See [§10](#10-services-and-networking-deep-dive). |
-| **Endpoints / EndpointSlice** | The actual list of Pod IP:port targets a Service currently routes to, kept in sync automatically as matching Pods come and go; EndpointSlice is the newer, more scalable successor to Endpoints. See [§10](#10-services-and-networking-deep-dive). |
-| **Ingress** | Declares HTTP/HTTPS routing rules (host/path → Service) for traffic entering the cluster from outside — does nothing on its own without an Ingress Controller running to implement it. See [§11](#11-ingress-and-gateway-api). |
-| **IngressClass** | Identifies which Ingress Controller implementation should handle a given Ingress object, when more than one controller is installed in the same cluster. See [§11](#11-ingress-and-gateway-api). |
-| **Gateway / HTTPRoute** | The newer Gateway API split of Ingress into an infrastructure-owned `Gateway` (listener/ports/TLS) and app-owned `HTTPRoute` (routing rules) — more expressive and more role-separated than Ingress. See [§11](#11-ingress-and-gateway-api). |
-| **NetworkPolicy** | Firewall rules for Pod-to-Pod traffic, scoped by label selector — without one, all Pods in a cluster can reach all other Pods by default. See [§12](#12-network-policies). |
+| **Service** | A stable virtual IP and DNS name that load-balances traffic across a dynamic set of Pods matched by label selector, so clients never need to track individual (and constantly changing) Pod IPs. Implemented at the node level by kube-proxy programming iptables/IPVS rules. See [§10](#10-services-and-networking-deep-dive). |
+| **Endpoints / EndpointSlice** | The actual list of Pod IP:port targets a Service currently routes to, kept in sync automatically as matching Pods come and go. EndpointSlice is the newer, more scalable successor to Endpoints — it shards a large backend list across multiple smaller objects instead of one, which matters once a Service has thousands of backing Pods. See [§10](#10-services-and-networking-deep-dive). |
+| **Ingress** | Declares HTTP/HTTPS routing rules (host/path → Service) for traffic entering the cluster from outside — but the object is purely declarative and does nothing on its own without an Ingress Controller (NGINX, Traefik, cloud-native) actually running to watch and implement it. See [§11](#11-ingress-and-gateway-api). |
+| **IngressClass** | Identifies which Ingress Controller implementation should handle a given Ingress object, needed once more than one controller is installed in the same cluster so it's unambiguous which one processes which Ingress. See [§11](#11-ingress-and-gateway-api). |
+| **Gateway / HTTPRoute** | The newer Gateway API's split of Ingress into an infrastructure-owned `Gateway` (listener/ports/TLS, managed by platform teams) and an app-owned `HTTPRoute` (routing rules, managed by app teams) — more expressive than Ingress and supports protocols Ingress never standardized (gRPC, TCP/UDP). See [§11](#11-ingress-and-gateway-api). |
+| **NetworkPolicy** | Firewall rules for Pod-to-Pod traffic, scoped by label selector — without one, every Pod in a cluster can reach every other Pod by default (fully open networking is the Kubernetes default, which surprises people coming from a traditionally segmented network). Only takes effect if the CNI plugin actually enforces NetworkPolicy — some don't. See [§12](#12-network-policies). |
 
 ## Configuration & Storage Objects
 
-| Object | Definition & Purpose |
+| Object | Definition & Explanation |
 |---|---|
-| **ConfigMap** | Stores non-sensitive configuration data (key-value pairs, files) that can be mounted as environment variables or volumes into a Pod, decoupling config from the container image. See [§9](#9-configmaps-secrets-and-the-downward-api). |
-| **Secret** | Like a ConfigMap but for sensitive data (passwords, tokens, certs) — base64-encoded at rest by default, encrypted at rest if `EncryptionConfiguration` is enabled on the API server. See [§9](#9-configmaps-secrets-and-the-downward-api) and [§17](#17-kubernetes-cluster-security-hardening). |
-| **PersistentVolume (PV)** | A piece of cluster storage provisioned (statically by an admin, or dynamically by a StorageClass) and available for a Pod to claim — exists independently of any Pod's lifecycle. See [§13](#13-storage-volumes-pvpvc-storageclass-csi). |
-| **PersistentVolumeClaim (PVC)** | A Pod's request for storage — a namespace-scoped claim against a PV, matched by size/access-mode/StorageClass; Pods reference the PVC, not the PV directly. See [§13](#13-storage-volumes-pvpvc-storageclass-csi). |
-| **StorageClass** | Defines *how* to dynamically provision a PV on demand (which CSI driver, what parameters, what reclaim policy) — the mechanism that removes the need for admins to pre-create PVs by hand. See [§13](#13-storage-volumes-pvpvc-storageclass-csi). |
-| **VolumeAttachment** | An internal object the attach/detach controller and CSI driver use to track that a given volume is attached to a given node — not something you create by hand, but useful to know about when diagnosing stuck volume attach/detach issues. See [§13](#13-storage-volumes-pvpvc-storageclass-csi). |
+| **ConfigMap** | Stores non-sensitive configuration data (key-value pairs, whole files) that can be mounted as environment variables or volumes into a Pod, decoupling configuration from the container image so the same image can run in dev/staging/prod with different config. See [§9](#9-configmaps-secrets-and-the-downward-api). |
+| **Secret** | Like a ConfigMap but for sensitive data (passwords, tokens, certs) — base64-encoded (not encrypted) at rest by default, and actually encrypted at rest only if `EncryptionConfiguration` is explicitly enabled on the API server, a step that's easy to skip and often forgotten. See [§9](#9-configmaps-secrets-and-the-downward-api) and [§17](#17-kubernetes-cluster-security-hardening). |
+| **PersistentVolume (PV)** | A piece of cluster storage provisioned (statically by an admin, or dynamically by a StorageClass) and available for a Pod to claim — a PV exists independently of any Pod's lifecycle, which is what lets storage survive a Pod being rescheduled elsewhere. See [§13](#13-storage-volumes-pvpvc-storageclass-csi). |
+| **PersistentVolumeClaim (PVC)** | A Pod's request for storage — a namespace-scoped claim against a PV, matched by size/access-mode/StorageClass. Pods always reference the PVC, never the PV directly, which is what keeps Pod manifests portable across environments with different underlying storage. See [§13](#13-storage-volumes-pvpvc-storageclass-csi). |
+| **StorageClass** | Defines *how* to dynamically provision a PV on demand — which CSI driver to use, what parameters (e.g., disk type), what reclaim policy — the mechanism that removes the need for admins to pre-create PVs by hand for every claim. See [§13](#13-storage-volumes-pvpvc-storageclass-csi). |
+| **VolumeAttachment** | An internal object the attach/detach controller and CSI driver use to track that a given volume is attached to a given node. Not something you create by hand, but worth knowing about specifically because a stuck `VolumeAttachment` object is a common root cause when a Pod using a PVC hangs in `ContainerCreating`. See [§13](#13-storage-volumes-pvpvc-storageclass-csi). |
 
 ## Cluster, Scaling & Policy Objects
 
-| Object | Definition & Purpose |
+| Object | Definition & Explanation |
 |---|---|
-| **Namespace** | A virtual cluster-within-a-cluster — scopes names, RBAC, ResourceQuota, and NetworkPolicy so multiple teams/environments can share one physical cluster safely. |
-| **Node** | Represents a worker (or control-plane) machine in the cluster — its `status.conditions` (Ready/MemoryPressure/DiskPressure) drive scheduling and are the first thing to check in node troubleshooting. See [§21](#21-troubleshooting-guide-by-failure-domain). |
-| **ResourceQuota** | Caps total resource consumption (CPU, memory, object counts) for an entire namespace — the multi-tenancy guardrail that stops one team from starving another. See [§17](#17-kubernetes-cluster-security-hardening). |
-| **LimitRange** | Sets default/min/max resource requests and limits for individual Pods/containers within a namespace, so workloads that omit requests/limits don't go unbounded. See [§17](#17-kubernetes-cluster-security-hardening). |
-| **HorizontalPodAutoscaler (HPA)** | Automatically scales a Deployment/StatefulSet's replica count up or down based on observed CPU/memory or custom metrics. |
-| **PodDisruptionBudget (PDB)** | Limits how many Pods of a given set can be *voluntarily* disrupted at once (drains, rolling upgrades) — `kubectl drain` refuses to evict past `minAvailable`. See [§18](#18-cluster-maintenance-draining-upgrades-certificates). |
-| **PriorityClass** | Assigns a scheduling priority to Pods, so higher-priority Pods can preempt (evict) lower-priority ones when the cluster is under resource pressure. See [§14](#14-scheduling-affinity-taintstolerations-priority). |
-| **Event** | A short-lived record of something that happened to an object (scheduled, pulled image, failed probe) — the first thing `kubectl describe` surfaces and usually the fastest path to a root cause. See [§21](#21-troubleshooting-guide-by-failure-domain). |
+| **Namespace** | A virtual cluster-within-a-cluster — scopes object names, RBAC, ResourceQuota, and NetworkPolicy so multiple teams/environments can share one physical cluster safely without name collisions or unbounded access to each other's resources. |
+| **Node** | Represents a worker (or control-plane) machine in the cluster — its `status.conditions` (Ready/MemoryPressure/DiskPressure/PIDPressure) drive scheduling decisions and are the first thing to check in node troubleshooting. See [§21](#21-troubleshooting-guide-by-failure-domain). |
+| **ResourceQuota** | Caps total resource consumption (CPU, memory, object counts) for an entire namespace — the multi-tenancy guardrail that stops one team's runaway workload from starving every other team sharing the cluster; without one, Namespaces alone provide no resource isolation. See [§17](#17-kubernetes-cluster-security-hardening). |
+| **LimitRange** | Sets default/min/max resource requests and limits for individual Pods/containers within a namespace, so workloads that omit requests/limits entirely don't go unbounded and silently consume far more than intended. See [§17](#17-kubernetes-cluster-security-hardening). |
+| **HorizontalPodAutoscaler (HPA)** | Automatically scales a Deployment/StatefulSet's *replica count* up or down based on observed CPU/memory or custom/external metrics — it adds or removes whole Pods, not resources within a Pod. Relies on the Metrics Server (or a custom metrics adapter) being installed to actually see utilization data. |
+| **VerticalPodAutoscaler (VPA)** | Automatically adjusts a Pod's CPU/memory *requests and limits* based on observed usage, instead of changing replica count — the complementary axis to HPA (scale a Pod's size vs. scale the number of Pods). In its default `Auto`/`Recreate` update mode it evicts and recreates Pods to apply new resource values, so it isn't safe to run against the same metric HPA is scaling on without care — the two can fight each other if misconfigured together. |
+| **PodDisruptionBudget (PDB)** | Limits how many Pods of a given set can be *voluntarily* disrupted at once (drains, rolling upgrades) — `kubectl drain` refuses to evict past the PDB's `minAvailable`/`maxUnavailable` threshold, the built-in guardrail against a maintenance action taking down more capacity than the workload can tolerate. See [§18](#18-cluster-maintenance-draining-upgrades-certificates). |
+| **PriorityClass** | Assigns a scheduling priority value to Pods, so higher-priority Pods can preempt (evict) lower-priority ones when the cluster is under resource pressure and there's no other way to fit the higher-priority Pod — a real production risk if applied carelessly, since a high-priority Pod's arrival can kill an already-running lower-priority workload. See [§14](#14-scheduling-affinity-taintstolerations-priority). |
+| **Event** | A short-lived record of something that happened to an object (scheduled, image pulled, probe failed) — the first thing `kubectl describe` surfaces and usually the fastest path to a root cause, precisely because Events capture the *sequence* of what the control plane actually did, not just the object's current end state. See [§21](#21-troubleshooting-guide-by-failure-domain). |
 
 ## RBAC & Identity Objects
 
-| Object | Definition & Purpose |
+| Object | Definition & Explanation |
 |---|---|
-| **ServiceAccount** | An identity Pods authenticate to the API server as (distinct from a human User) — every Pod runs as some ServiceAccount, `default` unless one is specified. See [§15](#15-rbac-and-authnauthz-deep-dive). |
-| **Role** | A namespace-scoped set of permissions (verbs on resources) — grants access only within the namespace it's defined in. See [§15](#15-rbac-and-authnauthz-deep-dive). |
-| **RoleBinding** | Grants the permissions in a Role (or a ClusterRole, scoped down) to a User/Group/ServiceAccount within one namespace. See [§15](#15-rbac-and-authnauthz-deep-dive). |
-| **ClusterRole** | Like a Role but cluster-scoped — either for cluster-scoped resources (Nodes, PVs) or as a reusable permission set that gets bound at namespace scope via a RoleBinding. See [§15](#15-rbac-and-authnauthz-deep-dive). |
-| **ClusterRoleBinding** | Grants a ClusterRole's permissions cluster-wide, across every namespace — the highest-blast-radius RBAC object, so least-privilege review should scrutinize these first. See [§15](#15-rbac-and-authnauthz-deep-dive) and [§17](#17-kubernetes-cluster-security-hardening). |
+| **ServiceAccount** | An identity Pods authenticate to the API server as, distinct from a human User (which Kubernetes has no native object for — Users are managed entirely externally, via client certs or an OIDC provider). Every Pod runs as some ServiceAccount, `default` in its namespace unless one is explicitly specified. See [§15](#15-rbac-and-authnauthz-deep-dive). |
+| **Role** | A namespace-scoped set of permissions (verbs like `get`/`list`/`create` on resources like `pods`) — grants access only within the namespace it's defined in, never cluster-wide. See [§15](#15-rbac-and-authnauthz-deep-dive). |
+| **RoleBinding** | Grants the permissions in a Role — or, scoped down, a ClusterRole — to a User/Group/ServiceAccount within one specific namespace. A RoleBinding referencing a ClusterRole is how you reuse a cluster-defined permission set without granting cluster-wide access. See [§15](#15-rbac-and-authnauthz-deep-dive). |
+| **ClusterRole** | Like a Role but cluster-scoped — either because it grants access to genuinely cluster-scoped resources (Nodes, PersistentVolumes), or because it's meant as a reusable permission set that gets bound down to namespace scope via a RoleBinding. Defining a ClusterRole doesn't by itself mean cluster-wide access — the *binding* decides that. See [§15](#15-rbac-and-authnauthz-deep-dive). |
+| **ClusterRoleBinding** | Grants a ClusterRole's permissions cluster-wide, across every namespace at once — the highest-blast-radius RBAC object in the cluster, so any least-privilege review should scrutinize existing ClusterRoleBindings first. See [§15](#15-rbac-and-authnauthz-deep-dive) and [§17](#17-kubernetes-cluster-security-hardening). |
 
 ## Extensibility Objects
 
-| Object | Definition & Purpose |
+| Object | Definition & Explanation |
 |---|---|
-| **CustomResourceDefinition (CRD)** | Registers a new object *kind* with the API server, extending the Kubernetes API with domain-specific types (e.g., `Certificate`, `VirtualService`) — the foundation the Operator pattern is built on. See [§19](#19-custom-resources-and-operators). |
-| **MutatingWebhookConfiguration** | Registers a webhook the API server calls during admission to *modify* an object before it's persisted (e.g., injecting a sidecar container). See [§17](#17-kubernetes-cluster-security-hardening). |
-| **ValidatingWebhookConfiguration** | Registers a webhook the API server calls during admission to *accept or reject* an object based on custom policy (e.g., Kyverno/OPA Gatekeeper policy enforcement). See [§17](#17-kubernetes-cluster-security-hardening). |
+| **CustomResourceDefinition (CRD)** | Registers a brand-new object *kind* with the API server, extending the Kubernetes API with domain-specific types (e.g., `Certificate`, `VirtualService`) that behave exactly like built-in objects to `kubectl` and RBAC — the foundation the Operator pattern is built on. See [§19](#19-custom-resources-and-operators). |
+| **Operator** | The pattern of pairing a CRD with a custom controller that watches instances of that CRD and drives real-world state to match — encoding operational knowledge (backup, failover, upgrade procedures) that would otherwise live in a runbook into code that runs continuously. A CRD without a controller watching it is just inert data; the controller is what makes it an Operator. See [§19](#19-custom-resources-and-operators). |
+| **MutatingWebhookConfiguration** | Registers a webhook the API server calls during admission to *modify* an object before it's persisted (e.g., injecting a sidecar container automatically) — mutating webhooks always run before validating ones, so a mutation can still be rejected by a validating webhook afterward. See [§17](#17-kubernetes-cluster-security-hardening). |
+| **ValidatingWebhookConfiguration** | Registers a webhook the API server calls during admission to *accept or reject* an object based on custom policy (e.g., Kyverno/OPA Gatekeeper enforcing "images must come from an approved registry") — unlike a mutating webhook, it can only allow or deny, never change the object. See [§17](#17-kubernetes-cluster-security-hardening). |
 
 [⬆ Back to top](#top)
