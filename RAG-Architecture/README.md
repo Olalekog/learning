@@ -655,6 +655,25 @@ only defends against with prompt instructions and Guardrails alone —
 Arize is what actually *measures* whether that defense is working in
 production, continuously, rather than assuming it from the design.
 
+## Alternatives to Arize
+
+Arize isn't the only option for this layer — worth knowing the
+landscape, both as genuine alternatives and as an interview signal of
+breadth beyond one named product.
+
+| Category | Tools | Notes |
+|---|---|---|
+| **Direct Arize competitors** (LLM/GenAI eval + observability) | Galileo, Fiddler AI, WhyLabs + LangKit, TruEra/TruLens, HoneyHive | TruLens is open-source and known specifically for the "RAG triad" eval pattern (context relevance, groundedness, answer relevance) — directly applicable to this architecture. |
+| **LLM tracing/dev-tool-first** | LangSmith, Langfuse, W&B Weave, Traceloop (OpenLLMetry), Helicone, Portkey, PromptLayer, Braintrust | Langfuse is the most common free/self-hostable alternative to LangSmith; most of these lean lighter-weight than Arize's full platform. |
+| **Traditional ML monitoring** (pre-LLM, drift-focused) | Evidently AI (open-source), Aporia, Superwise, Seldon Alibi Detect | Built for structured-data model drift before the LLM wave; several have since bolted on LLM eval features. |
+| **AWS-native alternatives** | Amazon SageMaker Model Monitor (drift/data-quality on the SageMaker re-ranker endpoint), SageMaker Clarify (bias/explainability), Amazon Bedrock Model Evaluation | Worth naming specifically for this stack — no new vendor/instrumentation to add if native AWS coverage is "good enough" for the requirement. |
+| **APM vendors extending into AI** | Datadog LLM Observability, New Relic AI Monitoring, Dynatrace | Makes sense if the org is already standardized on one of these for infra observability and wants one vendor instead of a dedicated AI tool. |
+
+All of these differentiate on the same three axes: how deep the
+RAG-specific eval goes (retrieval quality, groundedness), open-source/
+self-hostable vs. commercial-only, and LLM-only vs. also covering
+traditional structured-data model drift.
+
 [⬆ Back to top](#top)
 
 ---
