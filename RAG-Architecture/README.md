@@ -22,10 +22,11 @@ resume bullet:
 6. [Design Decisions and Trade-offs](#6-design-decisions-and-trade-offs)
 7. [Security Architecture](#7-security-architecture)
 8. [Cost Considerations](#8-cost-considerations)
-9. [Infrastructure as Code](#9-infrastructure-as-code)
-10. [Application Code](#10-application-code)
-11. [Observability](#11-observability)
-12. [Interview Talking Points](#12-interview-talking-points)
+9. [Scalability & Performance by Service](#9-scalability--performance-by-service)
+10. [Infrastructure as Code](#10-infrastructure-as-code)
+11. [Application Code](#11-application-code)
+12. [Observability](#12-observability)
+13. [Interview Talking Points](#13-interview-talking-points)
 
 ---
 
@@ -245,7 +246,188 @@ again, which is the expensive and slow part of re-indexing.
 
 ---
 
-# 9. Infrastructure as Code
+# 9. Scalability & Performance by Service
+
+Every component in this architecture scales differently, and — more
+importantly — has a different *ceiling*, a different way to actually
+detect that ceiling being approached, and a different fix. Bedrock is the
+tightest constraint in practice, not the "fully managed, infinitely
+scalable" service its marketing implies.
+
+## S3 (raw docs + S3 Vectors)
+
+Scales storage and request rate transparently and automatically, with
+per-prefix baseline request-rate limits (thousands of requests/sec) that
+scale further as more prefixes are added.
+
+- **What**: Rarely the bottleneck; the one real edge case is a
+  request-rate hot spot on a single key prefix under extreme burst load.
+- **How to check**: CloudWatch S3 request metrics for `4xxErrors`/
+  `5xxErrors` on the bucket; look specifically for `SlowDown` (HTTP 503)
+  responses in application logs or S3 server access logs; S3 Storage
+  Lens for request-pattern analysis across prefixes.
+- **How to improve**: Partition keys across more prefixes (date- or
+  hash-based) so a single burst doesn't concentrate on one prefix; add
+  client-side retry with exponential backoff for the rare `SlowDown`.
+
+## Lambda — Ingestion
+
+Scales horizontally and automatically, one concurrent execution per
+in-flight S3 event, up to the account's concurrency limit (default
+1,000, raisable).
+
+- **What**: Throttling once concurrent executions approach the account
+  or reserved-concurrency limit, or downstream Bedrock/OpenSearch
+  falling behind a burst faster than this function can be throttled to
+  match.
+- **How to check**: CloudWatch Lambda metrics `Throttles` (>0 is the
+  direct signal), `ConcurrentExecutions` trending toward the account
+  limit, `Duration` p99 creeping up (a memory/CPU-bound symptom, not a
+  concurrency one), and CloudWatch Logs Insights queries for `Task
+  timed out` errors.
+- **How to improve**: Buffer S3 events through SQS so ingestion is
+  pulled at a controlled rate instead of firing every event immediately;
+  set **reserved concurrency** to cap this function's max parallelism so
+  it can't starve other functions sharing the account limit; right-size
+  memory (which also scales CPU proportionally) using the AWS Lambda
+  Power Tuning tool rather than guessing.
+
+## Amazon Bedrock (embeddings & generation)
+
+Fully managed, no infrastructure to scale — but throughput is governed
+by **per-model, per-account quotas** (requests/minute and tokens/minute),
+which is the real ceiling in this architecture, not compute.
+
+- **What**: This is the tightest constraint in the whole pipeline —
+  default quotas throttle well before S3/Lambda/OpenSearch would become
+  a problem, especially on the generation model during a query spike.
+- **How to check**: CloudWatch Bedrock metrics (`AWS/Bedrock` namespace)
+  for `InvocationThrottles`/`InvocationClientErrors`; application/Lambda
+  logs for `ThrottlingException`; the Service Quotas console showing
+  current usage against the model's requests-per-minute and
+  tokens-per-minute quota directly.
+- **How to improve**: Request a quota increase proactively for expected
+  volume; buy **Provisioned Throughput** for guaranteed capacity at high
+  sustained volume instead of relying on on-demand quota; implement
+  exponential backoff with jitter on `ThrottlingException`; for **bulk
+  ingestion specifically, use Bedrock's Batch Inference API** instead of
+  synchronous per-chunk `InvokeModel` calls — far higher throughput and
+  lower cost for large backlogs; cache/dedupe embeddings (per the
+  [Cost Considerations](#8-cost-considerations) section) to cut call
+  volume in the first place.
+
+## Amazon OpenSearch (vector engine)
+
+If using **OpenSearch Serverless**: compute (OCUs) auto-scales with
+load, no capacity planning needed. If using a provisioned domain: scale
+by adding data nodes, increasing instance size, or increasing shard
+count to parallelize search across more compute.
+
+- **What**: A provisioned domain sized for average load falls behind
+  during a query spike; too few shards caps how much a single index can
+  parallelize a search across nodes regardless of node count.
+- **How to check**: CloudWatch OpenSearch metrics for `SearchLatency`
+  p99 trending up, `SearchRate`, `SearchThreadPoolRejected` /
+  `IndexingThreadPoolRejected` (>0 means requests are being actively
+  dropped), `CPUUtilization`, `JVMMemoryPressure` (sustained >80% is a
+  red flag), and `ClusterStatus.yellow`/`.red`.
+- **How to improve**: Prefer OpenSearch Serverless for unpredictable/
+  spiky query volume; on a provisioned domain, size shard count for the
+  target corpus size *and* add replicas for read-throughput scaling (not
+  just durability); tune k-NN `ef_search` for the latency/recall
+  trade-off if search latency itself (not rejection) is the issue.
+
+## S3 Vectors
+
+Inherits S3's scaling characteristics since it's built on S3 — the
+bulk/cold path has effectively no capacity ceiling for storage itself.
+
+- **What**: Bulk re-indexing (rebuilding OpenSearch from the full S3
+  Vectors corpus after a model upgrade) is throughput-bound by how fast
+  you can *read and re-process* the corpus — not by S3, and often
+  actually bound by Bedrock's quota (above) once you're re-embedding at
+  scale.
+- **How to check**: Track the re-indexing job's own throughput (records/
+  sec processed) via a custom CloudWatch metric or the Step Functions
+  execution duration; if that's slow, check whether Bedrock throttling
+  metrics (above) are the real cause before assuming S3 read throughput
+  is the bottleneck.
+- **How to improve**: Parallelize the re-indexing job (a Step Functions
+  Distributed Map, or a fleet of batch workers) instead of a single
+  sequential pass; use Bedrock Batch Inference for the re-embedding step
+  specifically, for the same reason as ingestion above.
+
+## SageMaker Real-Time Endpoint (Re-Ranker)
+
+Scales via instance count behind the endpoint plus **Application Auto
+Scaling** (target-tracking on `InvocationsPerInstance` or CPU/GPU
+utilization).
+
+- **What**: A single-instance endpoint (as sized in `dev`) has zero
+  failover and a hard throughput ceiling; scaling needs to add instances
+  *before* load arrives, since auto scaling reacts on a delay too slow
+  for a sudden spike.
+- **How to check**: CloudWatch SageMaker endpoint metrics for
+  `ModelLatency`/`OverheadLatency` trending up, `Invocation4XXErrors`/
+  `Invocation5XXErrors`, `InvocationsPerInstance` against the configured
+  scaling target, and `CPUUtilization`/`GPUUtilization` to tell whether
+  it's instance-count-bound or compute-bound on the current instance
+  type.
+- **How to improve**: Configure target-tracking auto scaling with a
+  sensible cooldown for steady growth, plus scheduled scaling ahead of
+  predictable traffic patterns; switch to **Serverless Inference** for
+  genuinely spiky/low-baseline traffic to remove capacity planning
+  entirely; switch to a larger/GPU instance type if `GPUUtilization` is
+  pegged rather than instance count being the limiter.
+
+## RAG Orchestrator Lambda + API Gateway (Query Path)
+
+Both scale automatically per request, up to account-level concurrency
+(Lambda) and throttle limits (API Gateway, default 10,000 RPS burst,
+raisable).
+
+- **What**: Cold starts on this function directly hurt user-facing query
+  latency, since it's synchronous and on the critical path — unlike the
+  ingestion Lambda, latency here is user-visible, not just a pipeline
+  throughput number.
+- **How to check**: Lambda logs for `Init Duration` entries (the
+  cold-start signal) and `Duration` p99; X-Ray trace segments to see
+  which hop (embed/search/rerank/generate) actually dominates total
+  latency rather than guessing; API Gateway `4XXError`/`5XXError`,
+  `Latency`, `IntegrationLatency`, and `ThrottleCount` metrics.
+- **How to improve**: Use **Provisioned Concurrency** on the orchestrator
+  Lambda to eliminate cold starts for latency-sensitive traffic; raise
+  API Gateway account-level throttle limits or per-client usage-plan
+  quotas so one noisy client can't exhaust the shared budget; if X-Ray
+  shows one hop consistently dominating, that's the specific service
+  section above to focus scaling effort on, not the orchestrator itself.
+
+## VPC Endpoints
+
+Interface endpoints scale automatically via multiple ENIs across AZs as
+traffic grows.
+
+- **What**: Subnet IP exhaustion is the only realistic ceiling, if
+  subnets were sized too small originally.
+- **How to check**: VPC console for available IP count per subnet; VPC
+  Flow Logs for connection failures correlated with endpoint traffic.
+- **How to improve**: Size subnets with real headroom up front — this is
+  rarely revisited once wrong, since fixing it means re-architecting the
+  VPC's CIDR layout, not a quick config change.
+
+**The practical scaling story for this architecture, in one sentence**:
+S3/Lambda/API Gateway scale essentially for free, so the actual work of
+"scaling this system" is almost entirely about respecting and planning
+around **Bedrock's quota ceiling** — through caching, batch inference for
+bulk ingestion, provisioned throughput for sustained volume, and graceful
+backoff everywhere else — rather than adding compute capacity anywhere
+else in the stack.
+
+[⬆ Back to top](#top)
+
+---
+
+# 10. Infrastructure as Code
 
 The stack has two layers: a shared `modules/` library of **six
 single-service modules** (each owns exactly one AWS service's resources,
@@ -438,7 +620,7 @@ python-checks      ─┴─▶ plan (dev, uat, prod in parallel)
 
 ---
 
-# 10. Application Code
+# 11. Application Code
 
 ## Ingestion — Chunk, Embed, Dual-Write
 
@@ -595,7 +777,7 @@ def handler(event, context):
 
 ---
 
-# 11. Observability
+# 12. Observability
 
 This platform needs two distinct layers of observability, because they
 answer two different questions. **Infrastructure observability** answers
@@ -649,7 +831,7 @@ self-hostable companion library, as a lighter-weight starting point
 before adopting the full commercial platform). This is additive, not a
 replacement: CloudWatch/X-Ray stay as the system-health layer; Arize
 becomes the answer-quality layer sitting on top of the same request
-path, closing the gap the [Interview Talking Points](#12-interview-talking-points)
+path, closing the gap the [Interview Talking Points](#13-interview-talking-points)
 section's "how do you keep this from hallucinating" answer otherwise
 only defends against with prompt instructions and Guardrails alone —
 Arize is what actually *measures* whether that defense is working in
@@ -678,7 +860,7 @@ traditional structured-data model drift.
 
 ---
 
-# 12. Interview Talking Points
+# 13. Interview Talking Points
 
 - **"Why two vector stores instead of one?"** — OpenSearch is the
   always-on, low-latency query engine for live traffic; S3 Vectors is the
