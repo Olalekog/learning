@@ -113,6 +113,25 @@ sequenceDiagram
     Orchestrator-->>User: answer + citations
 ```
 
+## VPC Network Architecture (AWS Icons)
+
+The mermaid diagrams above show data flow; this shows the actual network
+topology — the VPC, its two Availability Zones, private subnets,
+security groups, and how everything reaches Bedrock/SageMaker/OpenSearch/S3
+without ever touching the public internet. Built with the real, official
+[AWS Architecture Icons](https://aws.amazon.com/architecture/icons/).
+
+![VPC Network Architecture](assets/vpc-network-architecture.svg)
+
+Both Lambda functions run in **private subnets** across two AZs (no public
+subnet, no Internet Gateway, no NAT Gateway — none are needed, since every
+call out of the VPC targets a managed AWS service reachable via **VPC
+Endpoints**, not the public internet). A **security group** scoped to
+least-privilege egress wraps each subnet's Lambdas; **VPC Endpoints**
+(Gateway for S3, Interface/PrivateLink for Bedrock, SageMaker, and
+OpenSearch) are the only path out, matching the network isolation
+described in [§7 Security Architecture](#7-security-architecture).
+
 [⬆ Back to top](#top)
 
 ---
