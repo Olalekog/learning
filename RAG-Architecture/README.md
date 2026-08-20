@@ -597,6 +597,19 @@ def handler(event, context):
 
 # 11. Observability
 
+This platform needs two distinct layers of observability, because they
+answer two different questions. **Infrastructure observability** answers
+"is the system running correctly" — is Lambda erroring, is Bedrock
+throttling, is OpenSearch slow. **AI/ML observability** answers a
+question infra metrics can't see at all — "is the *answer* actually
+good" — was the retrieved context relevant, is the generated answer
+grounded in it or hallucinated, has the query distribution drifted from
+what the corpus actually covers. A pipeline can be 100% healthy on every
+CloudWatch metric while quietly returning irrelevant or fabricated
+answers — that gap is exactly what the AI/ML layer below exists to close.
+
+## Infrastructure & System-Level Observability
+
 - **CloudWatch Logs/Metrics** — Lambda duration and error rate for both the
   ingestion and query paths; Bedrock invocation throttling/errors; custom
   metrics for chunks-processed-per-document and cache-hit-rate on the
@@ -609,6 +622,38 @@ def handler(event, context):
 - **Alerting** — CloudWatch alarms on Bedrock throttling, SageMaker endpoint
   5xx rate, and OpenSearch cluster health, routed to the same
   ServiceNow-integrated alerting used elsewhere in the platform.
+
+This layer covers the same "golden signals" (latency, traffic, errors,
+saturation) as any other AWS service — necessary, but silent on whether
+the RAG pipeline's *output* is actually correct.
+
+## AI/ML & RAG Quality Observability — Where Arize Fits
+
+**Arize AI** is a specialized ML/LLM observability platform that sits
+*alongside* CloudWatch/X-Ray rather than replacing them — it's purpose-built
+for exactly the RAG-specific failure modes infra monitoring is blind to:
+
+| Concern | What Arize Adds | Why CloudWatch/X-Ray Can't See It |
+|---|---|---|
+| **Retrieval quality** | Continuously scores whether the chunks OpenSearch actually returned are relevant to the question (precision@k / NDCG-style metrics), in production, on real traffic — not just at offline eval time. | X-Ray shows the k-NN search call *succeeded* and how long it took — it has no concept of whether the returned chunks were the *right* chunks. |
+| **Generation groundedness / hallucination detection** | Runs continuous evaluation (often an "LLM-as-judge" pattern) checking whether the final answer is actually supported by the retrieved context, flagging fabricated or unsupported claims. | CloudWatch confirms the Bedrock `InvokeModel` call returned 200 with some latency — it has no idea whether what came back is true. |
+| **Embedding / query drift** | Tracks the production query embedding distribution against the ingested corpus's embedding distribution (PSI/KL-divergence-style drift metrics, plus UMAP visualization for the embedding space itself) — catching the case where users start asking about topics the corpus doesn't cover well, well before it shows up as a spike in vague user complaints. | Nothing in the infra stack looks at vector *content* at all — only at whether the OpenSearch API call itself succeeded. |
+| **Full RAG pipeline tracing** | OpenTelemetry-based tracing (via the OpenInference spec Arize co-developed) across embed → search → rerank → generate, but with the *actual prompts, retrieved chunks, and generated text* captured as first-class trace data — not just generic AWS API call spans. | X-Ray traces the same hop sequence, but only sees "a Bedrock call happened and took 340ms" — it doesn't capture *what* was asked, retrieved, or generated, which is exactly what's needed to debug a bad answer after the fact. |
+| **Cost/token tracking per call** | Per-request token usage and cost attribution for both the embedding and generation calls, at finer grain than CloudWatch's aggregate Bedrock invocation metrics. | CloudWatch can show invocation *counts*, but not token-level cost broken down per query or per user. |
+
+**How it plugs into this architecture concretely**: both Lambdas
+(ingestion and the RAG orchestrator) get instrumented with the
+OpenInference/OpenTelemetry SDK alongside their existing `boto3` calls,
+exporting spans to Arize (or **Arize Phoenix**, the open-source,
+self-hostable companion library, as a lighter-weight starting point
+before adopting the full commercial platform). This is additive, not a
+replacement: CloudWatch/X-Ray stay as the system-health layer; Arize
+becomes the answer-quality layer sitting on top of the same request
+path, closing the gap the [Interview Talking Points](#12-interview-talking-points)
+section's "how do you keep this from hallucinating" answer otherwise
+only defends against with prompt instructions and Guardrails alone —
+Arize is what actually *measures* whether that defense is working in
+production, continuously, rather than assuming it from the design.
 
 [⬆ Back to top](#top)
 
