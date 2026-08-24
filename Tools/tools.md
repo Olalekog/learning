@@ -71,15 +71,74 @@ This table is the quick-reference layer.
 
 ## 3. Kubernetes Package & Config Management
 
-Full comparison table (templating, packaging/distribution, release
-tracking, typical use cases) already lives in
-[kubernetes.md §20](../Kubernetes/kubernetes.md#20-helm-deep-dive) — this
-is the condensed version.
-
 | Tool | Definition & Explanation | Use Case | Preferred Over the Alternative When |
 |---|---|---|
 | **Helm** | A package manager for Kubernetes — templated YAML manifests (Go templates) bundled into versioned, distributable "charts," parameterized via `values.yaml`; tracks installed **releases** natively (`helm history`/`rollback`) and has a real packaging ecosystem (Artifact Hub) for installing third-party software. | Installing/packaging reusable, distributable software — third-party charts (Prometheus, cert-manager) or packaging your own app for others to consume. | You need a real chart ecosystem, release/rollback tracking, or are consuming third-party software already distributed as a chart. |
-| **Kustomize** | A template-free Kubernetes configuration customization tool built into `kubectl` (`kubectl apply -k`) — patches plain YAML you already own via a `base/` plus environment-specific `overlays/`, with no templating language at all. | Managing environment-specific variants of manifests you already own, without needing to package or distribute them. | You want to avoid a templating language entirely and prefer plain, diffable YAML with structured overlays — often combined with Helm (`helm template \| kustomize build`) rather than a strict either/or. |
+| **Kustomize** | A **template-free** Kubernetes configuration customization tool built into `kubectl` (`kubectl apply -k`) — patches plain YAML you already own via a `base/` plus environment-specific `overlays/`, using strategic-merge or JSON patches and generators (`configMapGenerator`, `secretGenerator`), with no templating language at all. | Managing environment-specific variants of manifests you already own, without needing to package or distribute them. | You want to avoid a templating language entirely and prefer plain, diffable YAML with structured overlays. |
+
+### Helm Chart vs. Kustomize — Full Comparison
+
+| Aspect | Helm | Kustomize |
+|---|---|---|
+| **What it is** | Package manager — versioned, distributable charts | Configuration customization tool — patches over plain YAML |
+| **Templating** | Go templates embedded directly in YAML (`{{ .Values.replicas }}`) | None — structured overlays/patches only, no template syntax |
+| **Distribution/packaging** | Real chart ecosystem (Artifact Hub) — install third-party software as a chart, or package your own for others | No packaging concept — just your own `base/` + `overlays/` directories, nothing to "install" from a registry |
+| **Release tracking** | Native — `helm history`, `helm rollback <release> <revision>` | None built-in — relies on your CI/CD or GitOps tool (Argo CD/Flux) for versioning and rollback |
+| **Environment variation** | A `values.yaml` per environment, fed into the templates | An `overlays/dev`, `overlays/prod`, etc., each patching a shared `base/` |
+| **Tooling** | Separate `helm` CLI | Built into `kubectl` (`kubectl apply -k`), plus a standalone `kustomize` CLI for more features |
+| **Debuggability** | `helm template`/`--dry-run --debug` to render locally — but templating logic can still obscure what's actually produced | `kustomize build` output is generally easier to reason about since there's no templating language hiding the transformation |
+| **Common criticism** | Go templates embedded in YAML are "stringly typed" — whitespace-sensitive, easy to produce invalid YAML from valid-looking template logic | No native templating makes conditional/loop logic awkward — leans on generators and patches instead |
+| **Typical use** | Installing/packaging reusable, distributable software | Managing environment-specific variants of manifests you already own |
+
+**Example directory layouts**, showing the structural difference directly:
+
+```text
+# Helm chart layout — one chart, values.yaml per environment
+mychart/
+├── Chart.yaml
+├── values.yaml            # defaults
+├── values-dev.yaml        # dev overrides
+├── values-prod.yaml       # prod overrides
+└── templates/
+    ├── deployment.yaml     # {{ .Values.replicas }}, {{ .Values.image }}, etc.
+    ├── service.yaml
+    └── configmap.yaml
+
+# Kustomize layout — one base, plain-YAML overlays per environment
+base/
+├── kustomization.yaml
+├── deployment.yaml          # plain YAML, no template syntax at all
+├── service.yaml
+└── configmap.yaml
+overlays/
+├── dev/
+│   ├── kustomization.yaml   # references ../../base, patches replica count down
+│   └── patch-replicas.yaml
+└── prod/
+    ├── kustomization.yaml   # references ../../base, patches replica count up
+    └── patch-replicas.yaml
+```
+
+```bash
+# Kustomize commands, for comparison against the Helm commands below
+kustomize build overlays/prod/ | less     # render locally — see the final YAML before applying
+kubectl apply -k overlays/prod/           # apply directly via kubectl, no separate binary needed
+kubectl diff -k overlays/prod/            # preview the diff against the live cluster
+```
+
+```bash
+helm create mychart                           # scaffold a new chart
+helm template mychart/ -f values-prod.yaml | less   # render locally — the Helm equivalent of `kustomize build`
+helm install web mychart/ -f values-prod.yaml
+helm upgrade web mychart/ -f values-prod.yaml
+helm rollback web 2                            # to a specific revision — Kustomize has no equivalent of this
+```
+
+**The core distinction in one sentence**: Helm *templates* YAML from variables to produce many possible outputs from one chart, and tracks what it installed as a versioned release; Kustomize *patches* YAML you already wrote, layering environment-specific overrides on a shared base, with no templating and no built-in release history at all.
+
+They're commonly combined rather than chosen exclusively: `helm template mychart/ | kustomize build -` renders a chart to plain manifests, then applies environment-specific Kustomize patches on top — Helm's packaging strength plus Kustomize's patch-based environment management in one pipeline.
+
+See [kubernetes.md §20](../Kubernetes/kubernetes.md#20-helm-deep-dive) for the full Helm CLI cheat sheet (lint, dry-run, upgrade, rollback workflow).
 
 [⬆ Back to top](#top)
 
@@ -120,17 +179,62 @@ and [DevSecOps.md §10 (DAST)](../DevSecOps/DevSecOps.md#10-dynamic-application-
 
 ## 6. Service Mesh & eBPF Networking
 
-Istio vs. Linkerd is covered in
-[container.md §15](../Container/container.md#15-service-mesh). **Cilium**
-is a newer entrant not yet covered elsewhere, and increasingly discussed
-alongside (or instead of) a traditional sidecar-based mesh.
+### What a Service Mesh Actually Is
+
+A **service mesh** is a dedicated infrastructure layer that transparently
+handles service-to-service traffic — mutual TLS encryption, traffic
+shaping (canary/blue-green routing, retries, timeouts, circuit
+breaking), and rich telemetry — **without any application code changes**.
+The classic implementation injects a sidecar proxy (typically Envoy)
+alongside every Pod, so every byte of in/out traffic passes through that
+proxy rather than going straight app-to-app; the proxies are what
+actually enforce mTLS and routing rules, coordinated by a central
+control plane.
+
+**Why one at all, instead of handling this in application code**: mTLS,
+retries, circuit breaking, and traffic-shifting logic would otherwise
+need to be built into every service, in every language, consistently —
+a mesh centralizes that as infrastructure so no team re-implements it,
+and a policy change (e.g., a new mTLS requirement) rolls out platform-wide
+without touching a single application.
 
 | Tool | Definition & Explanation | Use Case | Preferred Over the Alternative When |
 |---|---|---|
-| **Istio** | A full-featured service mesh — injects an Envoy sidecar proxy alongside every Pod to transparently provide mTLS, fine-grained traffic management (canary/blue-green routing, retries, circuit breaking via `VirtualService`/`DestinationRule`), and rich telemetry, without changing application code. Traditionally sidecar-based, though newer "ambient mesh" mode removes the per-Pod sidecar. | Advanced traffic management (canary rollouts, fault injection, fine-grained routing rules) where the added operational complexity is worth it. | You need Istio's depth of traffic-management/telemetry features specifically and can absorb its operational overhead — vs Linkerd's simpler, lighter-weight mTLS+reliability focus. |
-| **Cilium** | A CNI (Container Network Interface) plugin built on **eBPF** (extended Berkeley Packet Filter) — programs the Linux kernel directly for networking, network policy enforcement, load balancing, and observability (via its **Hubble** component), without the packet-processing overhead of traditional iptables-based CNIs. Increasingly used for L3/L4 (and via its service-mesh mode, L7) traffic control **without** requiring a sidecar proxy per Pod, positioning it as a lighter-weight alternative to a full sidecar-based mesh for many use cases. | The cluster's core CNI (Pod networking + NetworkPolicy enforcement) at high scale/performance, or as a sidecar-free alternative to Istio for teams that don't need Istio's full traffic-management feature set. | You need CNI-level performance at scale (eBPF avoids iptables' linear rule-matching overhead), deep network observability via Hubble, or want service-mesh-adjacent capabilities without paying Istio's sidecar resource/complexity tax. |
+| **Istio** | A full-featured, traditionally sidecar-based service mesh — injects an Envoy proxy alongside every Pod for mTLS, fine-grained traffic management (`VirtualService`/`DestinationRule` for canary/blue-green routing, fault injection, retries, circuit breaking), and rich telemetry. Newer "ambient mesh" mode removes the per-Pod sidecar in exchange for a shared per-node proxy layer. | Advanced traffic management (canary rollouts, fault injection, fine-grained routing rules) where the added operational complexity is worth it. | You need Istio's depth of traffic-management/telemetry features specifically and can absorb its operational overhead — the richest feature set of the three, at the highest complexity cost. |
+| **Linkerd** | A lightweight, simpler service mesh focused on mTLS and reliability (automatic retries, timeouts) rather than Istio's full traffic-management surface — a much smaller, Rust-based "micro-proxy" per sidecar means meaningfully lower resource overhead and a smaller operational learning curve. | mTLS and basic reliability features with minimal operational burden, where Istio's full routing/fault-injection feature set isn't actually needed. | You want the core service-mesh value (mTLS + retries/timeouts) without Istio's configuration surface and resource cost — trades some advanced routing flexibility for simplicity. |
+| **Cilium** | A CNI (Container Network Interface) plugin built on **eBPF** — programs the Linux kernel directly for networking, NetworkPolicy enforcement, load balancing, and observability (via its **Hubble** component), avoiding the packet-processing overhead of traditional iptables-based CNIs. Its service-mesh mode adds L7 traffic control **without a sidecar proxy per Pod at all**, positioning it as a fundamentally different architecture from Istio/Linkerd, not just a lighter version of the same one. | The cluster's core CNI (Pod networking + NetworkPolicy enforcement) at high scale/performance, or as a sidecar-free alternative to a traditional mesh for teams that don't need Istio's full L7 feature set. | You need CNI-level performance at scale (eBPF avoids iptables' linear rule-matching overhead), deep network observability via Hubble, or service-mesh-adjacent capabilities without paying any sidecar's resource/complexity tax. |
 
-**Interview point**: Istio and Cilium aren't strictly either/or — Cilium can serve purely as the CNI underneath a cluster that *also* runs Istio for L7 traffic management, or it can replace much of what a sidecar mesh does on its own via eBPF, depending on how much L7 control is actually needed.
+**Sidecar vs. sidecar-free, the actual architectural split**:
+
+```text
+Istio / Linkerd (sidecar model)
+  Pod
+  ├── app container
+  └── sidecar proxy container (Envoy / linkerd2-proxy)
+        ↑ every packet in/out of the Pod passes through this proxy
+        — one extra container, and extra CPU/memory, per Pod
+
+Cilium (eBPF, sidecar-free)
+  Pod
+  └── app container only — no sidecar
+        ↑ traffic is intercepted at the kernel level via eBPF programs
+          attached to the node, shared across every Pod on that node
+        — no per-Pod proxy container or its resource cost
+```
+
+**Interview point**: Istio/Cilium (and Linkerd/Cilium) aren't strictly
+either/or — Cilium very commonly serves purely as the cluster's CNI
+underneath a mesh that *also* runs Istio or Linkerd for L7 traffic
+management, or it can replace much of what a sidecar mesh does on its
+own via eBPF, depending on how much L7 control is actually needed. The
+three-way decision in practice: Istio for maximum traffic-management
+depth, Linkerd for mTLS/reliability with minimal overhead, Cilium when
+CNI-level performance and sidecar-free architecture matter more than
+Istio's routing feature depth.
+
+See [container.md §15](../Container/container.md#15-service-mesh) for
+the condensed Istio/Linkerd table alongside the rest of the container
+networking material.
 
 [⬆ Back to top](#top)
 
