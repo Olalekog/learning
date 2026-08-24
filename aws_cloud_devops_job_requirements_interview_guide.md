@@ -1259,8 +1259,18 @@ My experience aligns with the role’s main requirements: AWS, Terraform, System
 
 # Strong Interview Introduction
 
+## For This Role (GIS / Enterprise Application Focus)
+
 I am an AWS Cloud and DevOps Engineer with experience designing, automating, securing, and supporting cloud infrastructure. My background includes Terraform, AWS Systems Manager, CI/CD pipelines, EC2, networking, IAM, KMS, S3, RDS, ECS, ECR, CloudWatch, CloudTrail, Linux, Windows Server, and automation using Python, Bash, PowerShell, and YAML.
 
 I focus on reusable infrastructure, secure deployment processes, operational automation, monitoring, and clear technical documentation. My experience aligns strongly with the cloud and DevOps responsibilities of this role, and I am prepared to apply those skills to the organization’s GIS and enterprise application environment.
+
+## General-Purpose Pitch — Senior Cloud & DevOps Engineer
+
+For roles not specifically GIS-focused, or as a broader opening pitch grounded directly in the resume's actual metrics and certifications:
+
+> "I'm a Senior Cloud Infrastructure Engineer with 10+ years designing, automating, and securing large-scale environments across AWS, Azure, and GCP. My core strength is Infrastructure as Code and Kubernetes — I've built reusable Terraform modules standardizing deployments across dev through production, and run multi-tenant EKS clusters serving compute-intensive and AI/ML workloads. On the DevOps side, I've modernized CI/CD pipelines — migrating legacy Jenkins to GitHub Actions and Harness — and embedded security directly into the pipeline: SAST, IaC scanning, and policy-as-code gates with OPA and Sentinel, which is the DevSecOps half of how I work, not an afterthought. That combination has driven real numbers: 99.99% platform availability, 40% faster deployments, a 35% cut in incident detection and recovery time, and 20-25% in sustained infrastructure cost savings through FinOps practices. I'm AWS Solutions Architect Professional and Security Specialty certified, Terraform Associate, and a Certified Kubernetes Administrator — and I bring that same rigor to regulated environments, having supported HIPAA and SOC 2 compliant platforms in financial services and healthcare."
+
+~135 words, roughly 45-50 seconds spoken — trim the FinOps or compliance sentence for a tighter 30-second version on a phone screen.
 
 [⬆ Back to top](#top)
