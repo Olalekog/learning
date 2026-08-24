@@ -53,32 +53,21 @@ connector's Designer offers that option).
 
 ```mermaid
 flowchart TD
-    A[Candidate uploads resume
-via careers portal] --> B[Blob Storage
-Account: olalekog
-Container: ogogundare]
-    B --> C[Logic App Trigger
-When a blob is added or modified]
+    A["Candidate uploads resume<br/>via careers portal"] --> B["Blob Storage<br/>Account: olalekog<br/>Container: ogogundare"]
+    B --> C["Logic App Trigger<br/>When a blob is added or modified"]
     C --> D[Get blob content / metadata]
-    D --> E[Compose: extract candidate name
-from file name]
-    E --> F{Already past 3 PM today
-in HR's time zone?}
+    D --> E["Compose: extract candidate name<br/>from file name"]
+    E --> F{"Already past 3 PM today<br/>in HR's time zone?"}
     F -->|No| G[Interview date = today]
     F -->|Yes| H[Interview date = tomorrow]
-    G --> I{Interview date falls on
-Sat or Sun?}
+    G --> I{"Interview date falls on<br/>Sat or Sun?"}
     H --> I
     I -->|Yes| J[Roll forward to next Monday]
     I -->|No| K[Keep computed date]
-    J --> L[Compose Start = date @ 15:00
-End = date @ 15:30]
+    J --> L["Compose Start = date @ 15:00<br/>End = date @ 15:30"]
     K --> L
-    L --> M[Google Calendar:
-Create event on HR calendar
-(+ Google Meet link, if available)]
-    M --> N[HR sees the interview
-on their calendar at 3 PM]
+    L --> M["Google Calendar:<br/>Create event on HR calendar<br/>(+ Google Meet link, if available)"]
+    M --> N["HR sees the interview<br/>on their calendar at 3 PM"]
 ```
 
 [⬆ Back to top](#top)

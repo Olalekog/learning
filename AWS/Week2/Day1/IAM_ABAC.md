@@ -19,12 +19,8 @@ ABAC commonly compares:
 
 ```mermaid
 flowchart LR
-    P[User or Role
-PrincipalTag: Project=Payments
-Environment=Dev] --> IAM[AWS IAM Policy Evaluation]
-    R[AWS Resource
-ResourceTag: Project=Payments
-Environment=Dev] --> IAM
+    P["User or Role<br/>PrincipalTag: Project=Payments<br/>Environment=Dev"] --> IAM[AWS IAM Policy Evaluation]
+    R["AWS Resource<br/>ResourceTag: Project=Payments<br/>Environment=Dev"] --> IAM
     IAM --> D{Do tags match?}
     D -->|Yes| Allow[Access Allowed]
     D -->|No| Deny[Access Denied]

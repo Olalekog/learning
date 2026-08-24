@@ -259,33 +259,23 @@ full definitions here.
 
 ```mermaid
 flowchart TB
-    IAC[Terraform
-Provision cloud infra + K8s cluster] --> CLUSTER[Kubernetes Cluster]
+    IAC["Terraform<br/>Provision cloud infra + K8s cluster"] --> CLUSTER["Kubernetes Cluster"]
 
-    DEV[Developer commits code] --> SAST[SAST
-Scan source before merge]
-    SAST --> BUILD[Docker build
-OCI image]
-    BUILD --> REGISTRY[Container Registry]
-    REGISTRY --> WORKFLOWS[Argo Workflows
-CI/ML/batch pipeline DAG]
+    DEV["Developer commits code"] --> SAST["SAST<br/>Scan source before merge"]
+    SAST --> BUILD["Docker build<br/>OCI image"]
+    BUILD --> REGISTRY["Container Registry"]
+    REGISTRY --> WORKFLOWS["Argo Workflows<br/>CI/ML/batch pipeline DAG"]
 
-    BUILD --> MANIFESTS[Helm chart / Kustomize overlay
-in a manifests repo]
-    MANIFESTS --> ARGOCD[Argo CD
-GitOps reconciliation]
+    BUILD --> MANIFESTS["Helm chart / Kustomize overlay<br/>in a manifests repo"]
+    MANIFESTS --> ARGOCD["Argo CD<br/>GitOps reconciliation"]
     ARGOCD --> CLUSTER
 
-    CLUSTER --> STAGING[Staging environment]
-    STAGING --> DAST[DAST
-Scan the running app]
+    CLUSTER --> STAGING["Staging environment"]
+    STAGING --> DAST["DAST<br/>Scan the running app"]
 
-    CLUSTER --> MESH[Istio / Cilium
-mTLS, traffic mgmt, network policy]
-    CLUSTER --> PROM[Prometheus
-Scrape metrics]
-    PROM --> GRAFANA[Grafana
-Dashboards]
+    CLUSTER --> MESH["Istio / Cilium<br/>mTLS, traffic mgmt, network policy"]
+    CLUSTER --> PROM["Prometheus<br/>Scrape metrics"]
+    PROM --> GRAFANA["Grafana<br/>Dashboards"]
 ```
 
 Reading it left to right: **Terraform** provisions the cluster itself;

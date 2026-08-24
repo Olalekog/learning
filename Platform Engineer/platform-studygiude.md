@@ -40,28 +40,19 @@ The core mechanism is the **golden path**: a supported, paved-road way to provis
 
 ```mermaid
 flowchart TB
-    DEV[Application Developers] --> PORTAL[Developer Portal
-Backstage / Port / Cortex]
-    PORTAL --> CATALOG[Service Catalog
-ownership, docs, dependencies]
-    PORTAL --> TEMPLATES[Software Templates
-scaffolding, golden paths]
-    TEMPLATES --> GIT[Git
-app code + IaC + manifests]
-    GIT --> CI[CI Pipeline
-build, test, scan, SBOM]
+    DEV[Application Developers] --> PORTAL["Developer Portal<br/>Backstage / Port / Cortex"]
+    PORTAL --> CATALOG["Service Catalog<br/>ownership, docs, dependencies"]
+    PORTAL --> TEMPLATES["Software Templates<br/>scaffolding, golden paths"]
+    TEMPLATES --> GIT["Git<br/>app code + IaC + manifests"]
+    GIT --> CI["CI Pipeline<br/>build, test, scan, SBOM"]
     CI --> REG[Artifact/Container Registry]
-    GIT --> IAC[IaC Engine
-Terraform / Crossplane]
-    IAC --> CLOUD[Cloud Provider(s)
-AWS / Azure / GCP]
-    GIT --> GITOPS[GitOps Controller
-ArgoCD / Flux]
+    GIT --> IAC["IaC Engine<br/>Terraform / Crossplane"]
+    IAC --> CLOUD["Cloud Provider(s)<br/>AWS / Azure / GCP"]
+    GIT --> GITOPS["GitOps Controller<br/>ArgoCD / Flux"]
     GITOPS --> K8S[Kubernetes Cluster]
     REG --> K8S
     CLOUD --> K8S
-    K8S --> OBS[Observability
-Metrics, Logs, Traces, SLOs]
+    K8S --> OBS["Observability<br/>Metrics, Logs, Traces, SLOs"]
     OBS --> PORTAL
 ```
 
@@ -100,18 +91,13 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    A[Git Repo
-Source of truth] --> B[GitOps Controller
-ArgoCD / Flux]
+    A["Git Repo<br/>Source of truth"] --> B["GitOps Controller<br/>ArgoCD / Flux"]
     B -->|Pull, not push| C[Kubernetes Cluster]
-    C --> D{Live state
-matches Git?}
+    C --> D{"Live state<br/>matches Git?"}
     D -->|Yes| E[No-op]
-    D -->|No — drift detected| F[Auto-reconcile
-or alert]
+    D -->|No — drift detected| F["Auto-reconcile<br/>or alert"]
     F --> C
-    B --> G[Audit Trail
-every change is a commit]
+    B --> G["Audit Trail<br/>every change is a commit"]
 ```
 
 [⬆ Back to top](#top)

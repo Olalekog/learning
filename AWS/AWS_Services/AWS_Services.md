@@ -41,37 +41,24 @@ A strong AWS engineer should understand what each service does, its defining cha
 
 ```mermaid
 flowchart TB
-    Users[Users / Clients] --> R53[Amazon Route 53
-DNS]
-    R53 --> CF[Amazon CloudFront
-CDN]
-    CF --> WAF[AWS WAF
-Web protection]
+    Users[Users / Clients] --> R53["Amazon Route 53<br/>DNS"]
+    R53 --> CF["Amazon CloudFront<br/>CDN"]
+    CF --> WAF["AWS WAF<br/>Web protection"]
     WAF --> ALB[Application Load Balancer]
 
-    ALB --> APP[Compute Layer
-EC2 / ECS / EKS / Lambda]
-    APP --> DB[Database Layer
-RDS / Aurora / DynamoDB]
-    APP --> S3[Storage Layer
-S3 / EBS / EFS / FSx]
+    ALB --> APP["Compute Layer<br/>EC2 / ECS / EKS / Lambda"]
+    APP --> DB["Database Layer<br/>RDS / Aurora / DynamoDB"]
+    APP --> S3["Storage Layer<br/>S3 / EBS / EFS / FSx"]
 
-    IAM[IAM / IAM Identity Center
-Access control] --> APP
-    KMS[AWS KMS
-Encryption keys] --> DB
+    IAM["IAM / IAM Identity Center<br/>Access control"] --> APP
+    KMS["AWS KMS<br/>Encryption keys"] --> DB
     KMS --> S3
-    SM[Secrets Manager
-Secrets and credentials] --> APP
+    SM["Secrets Manager<br/>Secrets and credentials"] --> APP
 
-    CW[CloudWatch
-Metrics, logs, alarms] --> APP
-    CT[CloudTrail
-API audit logs] --> IAM
-    CFG[AWS Config
-Compliance tracking] --> DB
-    SH[Security Hub / GuardDuty
-Security findings] --> IAM
+    CW["CloudWatch<br/>Metrics, logs, alarms"] --> APP
+    CT["CloudTrail<br/>API audit logs"] --> IAM
+    CFG["AWS Config<br/>Compliance tracking"] --> DB
+    SH["Security Hub / GuardDuty<br/>Security findings"] --> IAM
 ```
 
 ---
@@ -107,17 +94,12 @@ sequenceDiagram
 ```mermaid
 flowchart LR
     Dev[Developer] --> Git[GitHub / CodeCommit]
-    Git --> CI[CI Pipeline
-GitHub Actions / CodeBuild]
-    CI --> Scan[Security Checks
-SAST, IaC scan, dependency scan]
-    Scan --> Build[Build Artifact
-Container image or package]
+    Git --> CI["CI Pipeline<br/>GitHub Actions / CodeBuild"]
+    CI --> Scan["Security Checks<br/>SAST, IaC scan, dependency scan"]
+    Scan --> Build["Build Artifact<br/>Container image or package"]
     Build --> ECR[Amazon ECR / S3 Artifact Bucket]
-    ECR --> Deploy[Deploy
-ECS / EKS / Lambda / EC2]
-    Deploy --> Monitor[CloudWatch + X-Ray
-Monitoring and tracing]
+    ECR --> Deploy["Deploy<br/>ECS / EKS / Lambda / EC2"]
+    Deploy --> Monitor["CloudWatch + X-Ray<br/>Monitoring and tracing"]
     Monitor --> Feedback[Feedback to team]
 ```
 
@@ -127,27 +109,18 @@ Monitoring and tracing]
 
 ```mermaid
 flowchart TB
-    ORG[AWS Organizations] --> SCP[Service Control Policies
-Prevent risky actions]
-    ORG --> CTOWER[AWS Control Tower
-Landing zone]
-    CTOWER --> ACCOUNTS[Workload Accounts
-Dev / Test / Prod / Security / Logging]
+    ORG[AWS Organizations] --> SCP["Service Control Policies<br/>Prevent risky actions"]
+    ORG --> CTOWER["AWS Control Tower<br/>Landing zone"]
+    CTOWER --> ACCOUNTS["Workload Accounts<br/>Dev / Test / Prod / Security / Logging"]
     SCP --> ACCOUNTS
 
-    IAM[IAM Identity Center
-Centralized access] --> ACCOUNTS
-    CLOUDTRAIL[CloudTrail
-API audit logs] --> LOGGING[Logging Account]
-    CONFIG[AWS Config
-Resource compliance] --> SECURITY[Security Account]
-    GUARDDUTY[GuardDuty
-Threat detection] --> SECURITY
-    SECURITYHUB[Security Hub
-Central findings] --> SECURITY
+    IAM["IAM Identity Center<br/>Centralized access"] --> ACCOUNTS
+    CLOUDTRAIL["CloudTrail<br/>API audit logs"] --> LOGGING[Logging Account]
+    CONFIG["AWS Config<br/>Resource compliance"] --> SECURITY[Security Account]
+    GUARDDUTY["GuardDuty<br/>Threat detection"] --> SECURITY
+    SECURITYHUB["Security Hub<br/>Central findings"] --> SECURITY
 
-    SECURITY --> SNOW[Ticketing / Alerting
-ServiceNow, SNS, EventBridge]
+    SECURITY --> SNOW["Ticketing / Alerting<br/>ServiceNow, SNS, EventBridge"]
 ```
 
 [⬆ Back to top](#top)

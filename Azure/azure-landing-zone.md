@@ -152,27 +152,20 @@ archetype does workload X belong in."
 
 ```mermaid
 flowchart TB
-    ROOT[Tenant Root Group] --> IR[Intermediate Root
-Management Group]
+    ROOT[Tenant Root Group] --> IR["Intermediate Root<br/>Management Group"]
     IR --> PLAT[Platform]
     IR --> LZ[Landing Zones]
     IR --> SAND[Sandbox]
     IR --> DECOM[Decommissioned]
 
-    PLAT --> IDN[Identity
-Subscription]
-    PLAT --> MGMT[Management
-Subscription]
-    PLAT --> CONN[Connectivity
-Subscription]
+    PLAT --> IDN["Identity<br/>Subscription"]
+    PLAT --> MGMT["Management<br/>Subscription"]
+    PLAT --> CONN["Connectivity<br/>Subscription"]
 
-    LZ --> CORP[Corp
-Subscriptions]
-    LZ --> ONLINE[Online
-Subscriptions]
+    LZ --> CORP["Corp<br/>Subscriptions"]
+    LZ --> ONLINE["Online<br/>Subscriptions"]
 
-    POLICY[Azure Policy
-assigned at IR] -.inherits down.-> PLAT
+    POLICY["Azure Policy<br/>assigned at IR"] -.inherits down.-> PLAT
     POLICY -.inherits down.-> LZ
     POLICY -.inherits down.-> SAND
 ```
@@ -185,8 +178,7 @@ subscription created tomorrow inherits it with zero additional action.
 
 ```mermaid
 flowchart LR
-    ONPREM[On-Premises
-Datacenter] -- ExpressRoute/VPN --> GW[VPN/ER Gateway]
+    ONPREM["On-Premises<br/>Datacenter"] -- ExpressRoute/VPN --> GW[VPN/ER Gateway]
 
     subgraph HUB["Hub VNet (Connectivity Subscription)"]
         GW
@@ -195,12 +187,9 @@ Datacenter] -- ExpressRoute/VPN --> GW[VPN/ER Gateway]
         BASTION[Azure Bastion]
     end
 
-    HUB -- VNet Peering --> SPOKE1[Spoke VNet
-Corp Subscription A]
-    HUB -- VNet Peering --> SPOKE2[Spoke VNet
-Online Subscription B]
-    HUB -- VNet Peering --> SPOKE3[Spoke VNet
-Corp Subscription C]
+    HUB -- VNet Peering --> SPOKE1["Spoke VNet<br/>Corp Subscription A"]
+    HUB -- VNet Peering --> SPOKE2["Spoke VNet<br/>Online Subscription B"]
+    HUB -- VNet Peering --> SPOKE3["Spoke VNet<br/>Corp Subscription C"]
 
     SPOKE1 --> FW
     SPOKE2 --> FW

@@ -96,38 +96,27 @@ flowchart TB
     SMSTUDIO --> TRAIN[SageMaker Training Jobs]
     SMSTUDIO --> S3[S3 Data Lake]
 
-    S3 --> GLUE[AWS Glue
-Crawlers + Data Catalog + ETL]
-    GLUE --> ATHENA[Amazon Athena
-Serverless SQL over S3]
-    GLUE --> LF[Lake Formation
-Fine-grained data lake access control]
+    S3 --> GLUE["AWS Glue<br/>Crawlers + Data Catalog + ETL"]
+    GLUE --> ATHENA["Amazon Athena<br/>Serverless SQL over S3"]
+    GLUE --> LF["Lake Formation<br/>Fine-grained data lake access control"]
 
     S3 --> ORACLE[(Oracle)]
     S3 --> MYSQL[(MySQL / RDS)]
     S3 --> PG[(PostgreSQL / RDS)]
 
-    PLATFORM[Platform Team] --> TF[Terraform
-Environment provisioning]
-    PLATFORM --> ADO[Azure DevOps
-CI/CD pipelines]
-    TF --> AWSACCT[AWS Accounts
-per Data Science team/env]
+    PLATFORM[Platform Team] --> TF["Terraform<br/>Environment provisioning"]
+    PLATFORM --> ADO["Azure DevOps<br/>CI/CD pipelines"]
+    TF --> AWSACCT["AWS Accounts<br/>per Data Science team/env"]
     ADO --> AWSACCT
 
-    PLATFORM --> IMG[Image Management Lifecycle
-Golden AMIs, ECR images, patching]
+    PLATFORM --> IMG["Image Management Lifecycle<br/>Golden AMIs, ECR images, patching"]
     IMG --> ECR[Amazon ECR]
-    IMG --> EKS[Amazon EKS
-Data Science workloads]
+    IMG --> EKS["Amazon EKS<br/>Data Science workloads"]
 
     PLATFORM --> SEC[Security & Guardrails]
-    SEC --> AQUA[Aqua Security
-Container/image scanning]
-    SEC --> KENNA[Kenna
-Risk-based vuln prioritization]
-    SEC --> AUDIT[CloudTrail / Config
-Audit logs]
+    SEC --> AQUA["Aqua Security<br/>Container/image scanning"]
+    SEC --> KENNA["Kenna<br/>Risk-based vuln prioritization"]
+    SEC --> AUDIT["CloudTrail / Config<br/>Audit logs"]
 
     AWSACCT --> EKS
     AWSACCT --> SMSTUDIO

@@ -91,27 +91,18 @@ What you can already speak to confidently versus what needs fresh prep, based on
 
 ```mermaid
 flowchart TB
-    DEV[Engineering Teams] --> CI[CI/CD
-Jenkins / GitHub Actions / CodePipeline]
-    CI --> IAC[IaC
-Terraform / CloudFormation / Ansible]
-    IAC --> AWS[AWS Platform
-EC2, EKS, ECS, Lambda, S3, RDS, Redshift, VPC]
-    CI --> EKS[Amazon EKS
-Kubernetes workloads]
+    DEV[Engineering Teams] --> CI["CI/CD<br/>Jenkins / GitHub Actions / CodePipeline"]
+    CI --> IAC["IaC<br/>Terraform / CloudFormation / Ansible"]
+    IAC --> AWS["AWS Platform<br/>EC2, EKS, ECS, Lambda, S3, RDS, Redshift, VPC"]
+    CI --> EKS["Amazon EKS<br/>Kubernetes workloads"]
     AWS --> EKS
     EKS --> APP[Application & ML Services]
-    APP --> INFRA_OBS[Infra Observability
-CloudWatch, Prometheus, Grafana, ELK, OpenTelemetry]
-    APP --> ML_OBS[AI/ML Observability
-Arize — drift, data quality, LLM tracing]
-    INFRA_OBS --> SRE[SRE Practice
-SLI/SLO, on-call, RCA]
+    APP --> INFRA_OBS["Infra Observability<br/>CloudWatch, Prometheus, Grafana, ELK, OpenTelemetry"]
+    APP --> ML_OBS["AI/ML Observability<br/>Arize — drift, data quality, LLM tracing"]
+    INFRA_OBS --> SRE["SRE Practice<br/>SLI/SLO, on-call, RCA"]
     ML_OBS --> SRE
-    SRE --> INCIDENT[Incident Response
-PagerDuty/Jira, postmortems]
-    SRE --> STAKEHOLDER[Stakeholder Communication
-Eng, Data, ML teams]
+    SRE --> INCIDENT["Incident Response<br/>PagerDuty/Jira, postmortems"]
+    SRE --> STAKEHOLDER["Stakeholder Communication<br/>Eng, Data, ML teams"]
 ```
 
 [⬆ Back to top](#top)

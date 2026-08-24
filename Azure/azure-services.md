@@ -45,33 +45,22 @@ A strong Azure engineer should understand what each service does, its defining c
 ```mermaid
 flowchart TB
     Users[Users / Clients] --> DNS[Azure DNS]
-    DNS --> FD[Azure Front Door
-Global CDN + WAF]
-    FD --> WAF[Azure WAF
-Web protection]
+    DNS --> FD["Azure Front Door<br/>Global CDN + WAF"]
+    FD --> WAF["Azure WAF<br/>Web protection"]
     WAF --> AGW[Application Gateway / Load Balancer]
 
-    AGW --> APP[Compute Layer
-VMs / AKS / App Service / Functions]
-    APP --> DB[Database Layer
-Azure SQL / Cosmos DB]
-    APP --> ST[Storage Layer
-Blob / Disk / Files]
+    AGW --> APP["Compute Layer<br/>VMs / AKS / App Service / Functions"]
+    APP --> DB["Database Layer<br/>Azure SQL / Cosmos DB"]
+    APP --> ST["Storage Layer<br/>Blob / Disk / Files"]
 
-    ENTRA[Microsoft Entra ID
-Access control] --> APP
-    KV[Azure Key Vault
-Secrets and keys] --> DB
+    ENTRA["Microsoft Entra ID<br/>Access control"] --> APP
+    KV["Azure Key Vault<br/>Secrets and keys"] --> DB
     KV --> ST
 
-    MON[Azure Monitor
-Metrics, logs, alarms] --> APP
-    AL[Activity Log
-Control-plane audit] --> ENTRA
-    POL[Azure Policy
-Compliance tracking] --> DB
-    DEF[Defender for Cloud / Sentinel
-Security findings] --> ENTRA
+    MON["Azure Monitor<br/>Metrics, logs, alarms"] --> APP
+    AL["Activity Log<br/>Control-plane audit"] --> ENTRA
+    POL["Azure Policy<br/>Compliance tracking"] --> DB
+    DEF["Defender for Cloud / Sentinel<br/>Security findings"] --> ENTRA
 ```
 
 [⬆ Back to top](#top)
@@ -111,17 +100,12 @@ sequenceDiagram
 ```mermaid
 flowchart LR
     Dev[Developer] --> Git[GitHub / Azure Repos]
-    Git --> CI[CI Pipeline
-Azure Pipelines / GitHub Actions]
-    CI --> Scan[Security Checks
-SAST, IaC scan, dependency scan]
-    Scan --> Build[Build Artifact
-Container image or package]
+    Git --> CI["CI Pipeline<br/>Azure Pipelines / GitHub Actions"]
+    CI --> Scan["Security Checks<br/>SAST, IaC scan, dependency scan"]
+    Scan --> Build["Build Artifact<br/>Container image or package"]
     Build --> ACR[Azure Container Registry / Artifacts Feed]
-    ACR --> Deploy[Deploy
-AKS / App Service / Functions / VM]
-    Deploy --> Monitor[Azure Monitor + Application Insights
-Monitoring and tracing]
+    ACR --> Deploy["Deploy<br/>AKS / App Service / Functions / VM"]
+    Deploy --> Monitor["Azure Monitor + Application Insights<br/>Monitoring and tracing"]
     Monitor --> Feedback[Feedback to team]
 ```
 
@@ -134,25 +118,17 @@ Monitoring and tracing]
 ```mermaid
 flowchart TB
     TENANT[Microsoft Entra Tenant] --> MG[Management Groups]
-    MG --> POL[Azure Policy
-Prevent risky configurations]
-    MG --> LZ[Landing Zone
-Azure Landing Zone accelerator]
-    LZ --> SUBS[Subscriptions
-Dev / Test / Prod / Security / Logging]
+    MG --> POL["Azure Policy<br/>Prevent risky configurations"]
+    MG --> LZ["Landing Zone<br/>Azure Landing Zone accelerator"]
+    LZ --> SUBS["Subscriptions<br/>Dev / Test / Prod / Security / Logging"]
     POL --> SUBS
 
-    ENTRA[Microsoft Entra ID
-Centralized access] --> SUBS
-    ACTIVITY[Activity Log
-Control-plane audit] --> LOGGING[Logging Subscription]
-    DEFENDER[Defender for Cloud
-Resource compliance] --> SECURITY[Security Subscription]
-    SENTINEL[Microsoft Sentinel
-SIEM / threat detection] --> SECURITY
+    ENTRA["Microsoft Entra ID<br/>Centralized access"] --> SUBS
+    ACTIVITY["Activity Log<br/>Control-plane audit"] --> LOGGING[Logging Subscription]
+    DEFENDER["Defender for Cloud<br/>Resource compliance"] --> SECURITY[Security Subscription]
+    SENTINEL["Microsoft Sentinel<br/>SIEM / threat detection"] --> SECURITY
 
-    SECURITY --> ALERT[Ticketing / Alerting
-ServiceNow, Logic Apps, Event Grid]
+    SECURITY --> ALERT["Ticketing / Alerting<br/>ServiceNow, Logic Apps, Event Grid"]
 ```
 
 [⬆ Back to top](#top)
