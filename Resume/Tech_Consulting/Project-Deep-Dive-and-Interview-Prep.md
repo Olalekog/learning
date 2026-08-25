@@ -75,8 +75,9 @@ systematic incident response.
 ### Regeneron Pharmaceuticals — Cloud Data & DevOps Architect (Jul 2022–Dec 2023, Pharma)
 
 **Context**: A research platform moving clinical and genomic data
-between AWS and Azure, constrained by **GxP** (Good [Clinical/Laboratory/
-Manufacturing] Practice) — the regulatory framework governing data
+between AWS and Azure, constrained by **GxP** — shorthand for the
+family of regulatory frameworks (Good Clinical Practice, Good
+Laboratory Practice, Good Manufacturing Practice) governing data
 integrity, traceability, and validated environments in pharma/clinical
 research.
 
@@ -110,7 +111,7 @@ secure cross-cloud data movement that never broke compliance controls.
 
 **Context**: An energy utility running OT (operational technology)
 analytics — the kind of environment where connectivity and data-pipeline
-reliability has real operational consequences, not just user-facing
+reliability have real operational consequences, not just user-facing
 downtime.
 
 **What was built**: Azure for OT-related analytics with selected
@@ -125,7 +126,7 @@ through better alerts, runbooks, and automated recovery steps.
 
 **Key technical decisions**: Splitting OT analytics onto Azure while
 keeping specific workloads on AWS is a deliberate best-tool-per-workload
-choice rather than a full migration either direction — a pattern worth
+choice rather than a full migration in either direction — a pattern worth
 being able to justify specifically (which workload characteristics drove
 which cloud). Utility/energy environments carry real audit-trail and
 change-control weight (adjacent to frameworks like NERC CIP even where
@@ -232,8 +233,8 @@ and fast recovery early; a small pilot application on Google Cloud
 (Compute Engine/Cloud Storage), the source of the "moderate" GCP
 experience noted in the skills section.
 
-**Impact**: the base every later multi-cloud architecture role
-compounds on — least glamorous role on the resume, but the one an
+**Impact**: the base every later multi-cloud architecture role compounds
+on. It's the least glamorous role on the resume, but the one an
 interviewer asking "how did you get started" should hear about
 specifically, since it grounds the "12+ years of AWS+Azure" claim in an
 actual beginning rather than implying it started fully formed.
