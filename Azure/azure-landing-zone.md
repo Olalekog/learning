@@ -76,11 +76,12 @@ into their existing IT environments,"* providing best practices and
 guidance across the cloud journey — not a product, but a methodology.
 
 As of Microsoft's current documentation, CAF organizes guidance into
-**seven core methodologies**: four *foundational* ones that run
-sequentially (Strategy, Plan, Ready, Adopt), and three *operational*
-ones that run in parallel once workloads are live (Govern, Secure,
-Manage) — Microsoft restructured **Secure** out as its own methodology,
-distinct from Govern, in a recent CAF revision.
+**seven core methodologies**, split into two groups:
+
+- **Foundational** (run sequentially) — Strategy, Plan, Ready, Adopt.
+- **Operational** (run in parallel, once workloads are live) — Govern,
+  Secure, Manage. Microsoft restructured **Secure** out as its own
+  methodology here, distinct from Govern, in a recent CAF revision.
 
 ```text
 Foundational (sequential): Strategy → Plan → Ready → Adopt
@@ -137,29 +138,34 @@ whole tenant.
 |---|---|---|
 | **Evaluates** | The organization's Azure adoption journey | A single workload's design |
 | **Scope** | Tenant/organization-wide | One application/service at a time |
-| **Structure** | 6 phases (Strategy → Plan → Ready → Adopt → Govern → Manage) | 5 pillars (Reliability, Security, Cost, Operational Excellence, Performance Efficiency) |
+| **Structure** | 7 methodologies (Strategy → Plan → Ready → Adopt → Govern → Secure → Manage) | 5 pillars (Reliability, Security, Cost, Operational Excellence, Performance Efficiency) |
 | **Concrete artifact** | The landing zone (Ready phase output) | A Well-Architected Review score/report per workload |
 | **Applied by** | Platform/cloud architecture team, once per organization (then evolved) | Application/workload teams, per application, repeatedly over its lifetime |
 
 They operate at different altitudes and are complementary, not
-competing: a workload can be perfectly well-architected (all five WAF
-pillars scored high) while sitting in an organization with no
-CAF-aligned landing zone at all — and conversely, a mature, well-governed
-landing zone doesn't guarantee any individual workload deployed into it
-is well-architected. Mature organizations run both — CAF once to build
-and govern the landing zone every workload lands into, WAF repeatedly,
-per workload, as each one is designed and evolves.
+competing:
+
+- A workload can be perfectly well-architected (all five WAF pillars
+  scored high) while sitting in an organization with no CAF-aligned
+  landing zone at all.
+- Conversely, a mature, well-governed landing zone doesn't guarantee
+  any individual workload deployed into it is well-architected.
+
+Mature organizations run both — CAF once to build and govern the
+landing zone every workload lands into, WAF repeatedly, per workload,
+as each one is designed and evolves.
 
 ## Interview Keyword
-If asked "what's the difference between CAF and a landing zone," lead
-with *CAF is the six-phase methodology, a landing zone is the Ready
-phase's concrete output* — naming the phases in order (Strategy → Plan
-→ Ready → Adopt → Govern → Manage) signals you know the full lifecycle,
-not just the infrastructure pattern. If asked "what's the difference
-between CAF and WAF," lead with *altitude* — CAF governs the
-organization's adoption, WAF scores one workload's design against five
-pillars — and note they're complementary, not substitutes for each
-other.
+- If asked "what's the difference between CAF and a landing zone," lead
+  with *CAF is the seven-methodology framework, a landing zone is the
+  Ready methodology's concrete output* — naming the methodologies in
+  order (Strategy → Plan → Ready → Adopt → Govern → Secure → Manage)
+  signals you know the full lifecycle, not just the infrastructure
+  pattern.
+- If asked "what's the difference between CAF and WAF," lead with
+  *altitude* — CAF governs the organization's adoption, WAF scores one
+  workload's design against five pillars — and note they're
+  complementary, not substitutes for each other.
 
 [⬆ Back to top](#top)
 
@@ -445,9 +451,10 @@ identity, network, guardrails) a workload lands into — the concrete
 output of the Cloud Adoption Framework's Ready phase.
 
 **"What's the difference between the Cloud Adoption Framework and a landing zone?"**
-CAF is the six-phase methodology (Strategy → Plan → Ready → Adopt →
-Govern → Manage) for adopting Azure at the organizational level; a
-landing zone is the concrete infrastructure the Ready phase produces.
+CAF is the seven-methodology framework (Strategy → Plan → Ready →
+Adopt → Govern → Secure → Manage) for adopting Azure at the
+organizational level; a landing zone is the concrete infrastructure the
+Ready methodology produces.
 CAF is also frequently confused with the Well-Architected Framework —
 WAF scores a single workload's design, CAF governs the whole
 organization's adoption.
