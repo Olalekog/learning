@@ -37,56 +37,11 @@ folder.
 
 ## 2. Network Diagram (VNet + VPC)
 
-```mermaid
-flowchart TB
-    USERS["Customers<br/>(web + mobile)"]
+Built with the real, official
+[Azure Architecture Icons](https://learn.microsoft.com/en-us/azure/architecture/icons/)
+and [AWS Architecture Icons](https://aws.amazon.com/architecture/icons/).
 
-    subgraph EDGE["Edge — Azure Front Door"]
-        AFD["Azure Front Door<br/>(WAF + global CDN caching)"]
-    end
-
-    subgraph HUBVNET["Hub VNet (Connectivity Subscription)"]
-        FW["Azure Firewall"]
-        GW["VPN/ExpressRoute Gateway"]
-    end
-
-    subgraph SPOKE1["Spoke VNet — Store Apps"]
-        subgraph SUB1["Subnet: App Tier"]
-            VMSS["VMSS / App Service<br/>(autoscale on queue depth + CPU)"]
-        end
-        subgraph SUB2["Subnet: Data Tier"]
-            REDIS["Azure Cache for Redis<br/>(session/cart cache)"]
-            SQL["Azure SQL<br/>(read replicas for peak reads)"]
-        end
-    end
-
-    subgraph SPOKE2["Spoke VNet — Digital/API Apps"]
-        subgraph SUB3["Subnet: API Tier"]
-            API["API Apps<br/>(order, inventory lookup)"]
-        end
-    end
-
-    subgraph AWSVPC["AWS VPC — Selected Services"]
-        subgraph PRIVSUB["Private Subnet"]
-            FORECAST["Demand Forecasting Service"]
-        end
-        subgraph PUBSUB["Public Subnet"]
-            NATGW["NAT Gateway"]
-        end
-        S3STATIC["S3 + CloudFront<br/>(static assets)"]
-    end
-
-    USERS --> AFD
-    AFD -- cache miss --> HUBVNET
-    HUBVNET -- VNet Peering --> SPOKE1
-    HUBVNET -- VNet Peering --> SPOKE2
-    VMSS --> REDIS
-    VMSS --> SQL
-    API -- private link --> GW
-    GW -- VPN/Direct Connect --> AWSVPC
-    API --> FORECAST
-    AFD -.static content.-> S3STATIC
-```
+![TJ Maxx Network Architecture](assets/tjmaxx-network-architecture.svg)
 
 **Reading the diagram**: Azure Front Door is the first line of defense —
 its CDN cache and WAF absorb and filter most of the traffic spike before

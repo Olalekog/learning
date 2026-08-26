@@ -141,41 +141,11 @@ network at any hop.
 
 ### Network Diagram (VNet + VPC, Subnet-Level)
 
-```mermaid
-flowchart TB
-    subgraph HUBVNET["Hub VNet (Connectivity Subscription)"]
-        ERGW["ExpressRoute Gateway"]
-        FW["Azure Firewall"]
-    end
+Built with the real, official
+[Azure Architecture Icons](https://learn.microsoft.com/en-us/azure/architecture/icons/)
+and [AWS Architecture Icons](https://aws.amazon.com/architecture/icons/).
 
-    subgraph DATAVNET["Spoke VNet — Data Platform"]
-        subgraph SUB_PE["Subnet: Private Endpoints"]
-            PE_ADLS["Private Endpoint:<br/>ADLS Gen2"]
-            PE_DBX["Private Endpoint:<br/>Databricks"]
-            PE_AOAI["Private Endpoint:<br/>Azure OpenAI"]
-            PE_SEARCH["Private Endpoint:<br/>Azure AI Search"]
-        end
-        subgraph SUB_DBX["Subnet: Databricks Compute"]
-            DBXC["Databricks Clusters<br/>(no public IP)"]
-        end
-    end
-
-    subgraph AWSVPC["AWS VPC — ML Platform"]
-        subgraph SUB_SM["Private Subnet: SageMaker"]
-            SMENI["SageMaker Training/Endpoints<br/>(VPC-attached, no internet route)"]
-        end
-        subgraph SUB_S3["S3 Gateway Endpoint"]
-            S3GW["S3 Gateway Endpoint<br/>(curated feature store)"]
-        end
-    end
-
-    ERGW <-- "ExpressRoute + Direct Connect<br/>(private circuit)" --> AWSVPC
-    DATAVNET --- HUBVNET
-    DBXC --> PE_ADLS
-    DBXC --> PE_AOAI
-    SMENI --> S3GW
-    PE_SEARCH --> PE_AOAI
-```
+![Regeneron Network Architecture](assets/regeneron-network-architecture.svg)
 
 **Reading the diagram**: nothing in either the Azure spoke or the AWS
 VPC has a public IP or an internet route. Databricks compute reaches
