@@ -2,25 +2,26 @@
 
 # Azure Landing Zone — Deep Dive
 
-A focused deep-dive on **Azure Landing Zones**: what they are, the design
-areas that make one up, reference architectures, how to configure one, and
-the ways teams actually deploy one. For the broader Cloud Adoption
-Framework phases a landing zone fits into (Strategy → Plan → **Ready** →
-Adopt → Govern → Manage) and the AZ-305 exam framing, see
-[azure-services.md § AZ-305: Solutions Architect Design Concepts](azure-services.md#az-305-solutions-architect-design-concepts)
-first — this doc goes deeper, not wider.
+A focused deep-dive on **Azure Landing Zones**: what they are, the Cloud
+Adoption Framework phases they fit into, the design areas that make one
+up, reference architectures, how to configure one, and the ways teams
+actually deploy one. For the AZ-305 exam framing and migration strategy
+framework, see
+[azure-services.md § AZ-305: Solutions Architect Design Concepts](azure-services.md#az-305-solutions-architect-design-concepts) —
+this doc goes deeper, not wider.
 
 ## Table of Contents
 
 1. [What Is an Azure Landing Zone](#1-what-is-an-azure-landing-zone)
-2. [Design Principles (8 CAF Design Areas)](#2-design-principles-8-caf-design-areas)
-3. [Key Features & Characteristics](#3-key-features--characteristics)
-4. [Landing Zone Archetypes](#4-landing-zone-archetypes)
-5. [Reference Architecture](#5-reference-architecture)
-6. [Configuration](#6-configuration)
-7. [Deployment Options](#7-deployment-options)
-8. [Landing Zone vs Traditional Subscription Design](#8-landing-zone-vs-traditional-subscription-design)
-9. [Interview Questions](#9-interview-questions)
+2. [Cloud Adoption Framework (CAF) — The Six Phases](#2-cloud-adoption-framework-caf--the-six-phases)
+3. [Design Principles (8 CAF Design Areas)](#3-design-principles-8-caf-design-areas)
+4. [Key Features & Characteristics](#4-key-features--characteristics)
+5. [Landing Zone Archetypes](#5-landing-zone-archetypes)
+6. [Reference Architecture](#6-reference-architecture)
+7. [Configuration](#7-configuration)
+8. [Deployment Options](#8-deployment-options)
+9. [Landing Zone vs Traditional Subscription Design](#9-landing-zone-vs-traditional-subscription-design)
+10. [Interview Questions](#10-interview-questions)
 
 ---
 
@@ -53,7 +54,86 @@ before any workload exists*, not with a specific tool name.
 
 ---
 
-# 2. Design Principles (8 CAF Design Areas)
+# 2. Cloud Adoption Framework (CAF) — The Six Phases
+
+**CAF** is Microsoft's prescriptive methodology for adopting Azure at
+the *organizational* level — not a product, but a phased framework of
+guidance, tooling, and reference architectures for taking a company from
+"we want to use Azure" to "we run Azure well at scale."
+
+```text
+Strategy → Plan → Ready → Adopt (Migrate / Innovate) → Govern → Manage
+```
+
+| Phase | What Happens |
+|---|---|
+| **Strategy** | Business justification — why move to the cloud, what outcomes matter. |
+| **Plan** | Digital estate assessment — inventory what exists, build the adoption roadmap. |
+| **Ready** | Build the **landing zone**: Management Group hierarchy, subscription design, identity foundation, hub-and-spoke network, baseline Azure Policy guardrails — everything the rest of this document covers. |
+| **Adopt** | Migrate existing workloads (Migrate track) or build new cloud-native ones (Innovate track) — see [azure-services.md § Migration Strategy Framework](azure-services.md#migration-strategy-framework) for the 7 R's (Rehost/Refactor/Rearchitect/Rebuild/Replace/Retire/Retain). |
+| **Govern** | Ongoing Azure Policy, cost management, and security baseline enforcement across every landing zone. |
+| **Manage** | Day-two operations — monitoring, backup, platform updates. |
+
+**Key distinction**: a landing zone is not CAF itself — it's the
+concrete *output* of CAF's Ready phase. CAF is the methodology; the
+landing zone is what actually gets built, which is why the rest of this
+document (design areas, reference architecture, configuration) never
+needs to mention "Strategy" or "Plan" again — those phases happen
+*before* a landing zone exists.
+
+## Azure Well-Architected Framework (WAF)
+
+Where CAF governs *how an organization adopts* Azure, **WAF** evaluates
+*how well a single workload is designed*, through five pillars:
+
+| Pillar | Core Question | Key Azure Tools |
+|---|---|---|
+| **Reliability** | Can the workload recover from failure and meet its availability target? | Availability Zones, Azure Site Recovery, Azure Backup, Traffic Manager/Front Door failover routing |
+| **Security** | Is the workload protected, with confidentiality/integrity/availability maintained? | Entra ID, Conditional Access, Defender for Cloud, Key Vault, Azure Policy |
+| **Cost Optimization** | Is spend aligned to the value delivered? | Cost Management, Advisor, Reservations/Savings Plans, Azure Hybrid Benefit |
+| **Operational Excellence** | Can operations run, monitor, and improve the workload reliably? | Azure Monitor, Automation/Update Manager, Bicep/ARM/Terraform, Azure DevOps |
+| **Performance Efficiency** | Does the workload use resources efficiently as demand changes? | Autoscale (VMSS/App Service), Azure Monitor insights, Front Door/CDN caching, Advisor right-sizing |
+
+WAF is applied per-workload (usually via the **Azure Well-Architected
+Review**, a self-assessment scored against these five pillars) — an
+architect runs it against one application's design, not against the
+whole tenant.
+
+## CAF vs WAF — The Difference
+
+| | Cloud Adoption Framework (CAF) | Well-Architected Framework (WAF) |
+|---|---|---|
+| **Evaluates** | The organization's Azure adoption journey | A single workload's design |
+| **Scope** | Tenant/organization-wide | One application/service at a time |
+| **Structure** | 6 phases (Strategy → Plan → Ready → Adopt → Govern → Manage) | 5 pillars (Reliability, Security, Cost, Operational Excellence, Performance Efficiency) |
+| **Concrete artifact** | The landing zone (Ready phase output) | A Well-Architected Review score/report per workload |
+| **Applied by** | Platform/cloud architecture team, once per organization (then evolved) | Application/workload teams, per application, repeatedly over its lifetime |
+
+They operate at different altitudes and are complementary, not
+competing: a workload can be perfectly well-architected (all five WAF
+pillars scored high) while sitting in an organization with no
+CAF-aligned landing zone at all — and conversely, a mature, well-governed
+landing zone doesn't guarantee any individual workload deployed into it
+is well-architected. Mature organizations run both — CAF once to build
+and govern the landing zone every workload lands into, WAF repeatedly,
+per workload, as each one is designed and evolves.
+
+## Interview Keyword
+If asked "what's the difference between CAF and a landing zone," lead
+with *CAF is the six-phase methodology, a landing zone is the Ready
+phase's concrete output* — naming the phases in order (Strategy → Plan
+→ Ready → Adopt → Govern → Manage) signals you know the full lifecycle,
+not just the infrastructure pattern. If asked "what's the difference
+between CAF and WAF," lead with *altitude* — CAF governs the
+organization's adoption, WAF scores one workload's design against five
+pillars — and note they're complementary, not substitutes for each
+other.
+
+[⬆ Back to top](#top)
+
+---
+
+# 3. Design Principles (8 CAF Design Areas)
 
 Every Azure Landing Zone is built by making a deliberate decision in each
 of eight design areas — skipping one just means the decision gets made
@@ -80,7 +160,7 @@ framework, not just a hub-and-spoke VNet.
 
 ---
 
-# 3. Key Features & Characteristics
+# 4. Key Features & Characteristics
 
 | Feature | Definition & Characteristics | Preferred Over the Alternative When |
 |---|---|---|
@@ -89,14 +169,14 @@ framework, not just a hub-and-spoke VNet.
 | **Subscription democratization** | Application teams get their own subscription (a natural scale/billing/blast-radius boundary) rather than sharing one subscription cluster-wide — governed centrally via Management Group policy, but operated with team-level autonomy underneath. | Teams need Owner-level autonomy within their own boundary without risking other teams' workloads — a single shared subscription can't offer that isolation. |
 | **Centralized identity foundation** | One Microsoft Entra ID tenant is the authoritative identity source for every subscription in the landing zone — no per-subscription identity silos. | Always, in a single-organization landing zone — federated identity per subscription reintroduces exactly the inconsistency landing zones exist to remove. |
 | **Hub-and-spoke (or Virtual WAN) connectivity** | Spoke VNets (one per subscription/workload) peer to a central hub that holds shared services (Azure Firewall, VPN/ExpressRoute Gateway, DNS forwarders) — spokes don't each need their own gateway or firewall. | You have multiple spokes that all need the same shared egress/firewall/on-prem connectivity — duplicating a gateway or firewall per spoke is both more expensive and harder to govern consistently. |
-| **Landing zone archetypes** | Pre-defined subscription templates (Corp, Online, Platform, Sandbox — see §4) that come with a matching Azure Policy set and network pattern already attached, rather than a blank subscription. | Onboarding a new workload/team and you want it correctly governed from minute one, not governed retroactively once someone notices it's missing controls. |
+| **Landing zone archetypes** | Pre-defined subscription templates (Corp, Online, Platform, Sandbox — see §5) that come with a matching Azure Policy set and network pattern already attached, rather than a blank subscription. | Onboarding a new workload/team and you want it correctly governed from minute one, not governed retroactively once someone notices it's missing controls. |
 | **Platform vs application landing zones** | *Platform* landing zones (Identity, Management, Connectivity) host shared services every workload depends on; *application* landing zones host the actual workloads and consume the platform's shared services rather than duplicating them. | Any landing zone with more than one workload team — without this split, every team re-provisions its own firewall/DNS/logging instead of consuming a shared one. |
 
 [⬆ Back to top](#top)
 
 ---
 
-# 4. Landing Zone Archetypes
+# 5. Landing Zone Archetypes
 
 The ALZ accelerator ships with a standard Management Group structure and a
 set of subscription **archetypes**, each with a matching Azure Policy
@@ -146,7 +226,7 @@ archetype does workload X belong in."
 
 ---
 
-# 5. Reference Architecture
+# 6. Reference Architecture
 
 ## Management Group & Policy Inheritance
 
@@ -211,7 +291,7 @@ the internet — that single detail is the crux of hub-and-spoke.
 
 ---
 
-# 6. Configuration
+# 7. Configuration
 
 ## Management Groups & Policy Assignment
 
@@ -271,7 +351,7 @@ regardless of who requests it.
 
 ---
 
-# 7. Deployment Options
+# 8. Deployment Options
 
 | Option | Definition & Characteristics | Preferred Over the Alternative When |
 |---|---|---|
@@ -298,7 +378,7 @@ pattern, not testing a specific tool preference.
 
 ---
 
-# 8. Landing Zone vs Traditional Subscription Design
+# 9. Landing Zone vs Traditional Subscription Design
 
 | Aspect | Traditional (Ad Hoc) Subscription Design | Azure Landing Zone |
 |---|---|---|
@@ -318,12 +398,30 @@ more, the hierarchy's overhead may exceed its benefit.
 
 ---
 
-# 9. Interview Questions
+# 10. Interview Questions
 
 **"What is an Azure Landing Zone, in one sentence?"**
 The pre-provisioned, policy-governed environment (Management Groups,
 identity, network, guardrails) a workload lands into — the concrete
 output of the Cloud Adoption Framework's Ready phase.
+
+**"What's the difference between the Cloud Adoption Framework and a landing zone?"**
+CAF is the six-phase methodology (Strategy → Plan → Ready → Adopt →
+Govern → Manage) for adopting Azure at the organizational level; a
+landing zone is the concrete infrastructure the Ready phase produces.
+CAF is also frequently confused with the Well-Architected Framework —
+WAF scores a single workload's design, CAF governs the whole
+organization's adoption.
+
+**"How do CAF and the Well-Architected Framework work together in practice?"**
+CAF's Ready phase builds the landing zone every workload lands into
+(governance, network, identity — set once, organization-wide); WAF's
+five pillars (Reliability, Security, Cost Optimization, Operational
+Excellence, Performance Efficiency) then get applied per-workload, via
+a Well-Architected Review, as each application is designed and evolves.
+Neither replaces the other — a landing zone gives every workload a
+governed starting point, but a Well-Architected Review is still what
+tells you whether a specific workload's design is actually sound.
 
 **"How does policy inheritance work in a landing zone?"**
 Azure Policy assigned at a Management Group scope applies to every
