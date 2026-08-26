@@ -15,8 +15,9 @@ it. Companion to [Elevator-Pitch.md](Elevator-Pitch.md) in this folder.
 4. [Performance](#performance)
 5. [Scaling](#scaling)
 6. [High Availability](#high-availability)
-7. [Interview Questions](#interview-questions)
-8. [Most Important Concepts to Know First](#most-important-concepts-to-know-first)
+7. [Cloud Adoption Framework (CAF) & Landing Zones](#cloud-adoption-framework-caf--landing-zones)
+8. [Interview Questions](#interview-questions)
+9. [Most Important Concepts to Know First](#most-important-concepts-to-know-first)
 
 ---
 
@@ -297,6 +298,46 @@ actual beginning rather than implying it started fully formed.
 
 ---
 
+## Cloud Adoption Framework (CAF) & Landing Zones
+
+"Landing Zone Design, Governance" is listed directly in the skills
+section, and "Landing Zone concepts and policy" work shows up explicitly
+at **Liberty Mutual** (first company-wide patterns), **Rivian**
+(Landing Zones + AWS Organizations templates), **Regeneron**
+(company-wide Landing Zones/Azure Policy), and **Truist Bank**
+(reusable AWS+Azure landing zone patterns) — four of the seven roles.
+CAF is the methodology behind all of that work; a landing zone is its
+concrete output.
+
+**What CAF is**: Microsoft's prescriptive methodology for adopting
+Azure at the *organizational* level — not a product, but a phased
+framework of guidance, tooling, and reference architectures:
+
+```text
+Strategy → Plan → Ready → Adopt (Migrate / Innovate) → Govern → Manage
+```
+
+| Phase | What Happens | Where It Shows Up on This Resume |
+|---|---|---|
+| **Strategy / Plan** | Business justification, digital estate assessment | Implicit in every "created standard designs" bullet — deciding *why* and *what* before building |
+| **Ready** | Build the **landing zone**: Management Group hierarchy, subscription design, identity foundation, hub-and-spoke network, baseline policy guardrails | Liberty Mutual (first version), Rivian/Regeneron (mature templates), Truist (bank-wide reusable pattern) |
+| **Adopt** | Migrate existing workloads or build new cloud-native ones | The EKS/AKS platform builds and AI/ML pipeline work at every role from Rivian onward |
+| **Govern** | Ongoing policy, cost management, and security baseline enforcement | The SCPs/Azure Policy/Security Hub/Sentinel/Defender for Cloud unification described throughout |
+| **Manage** | Day-two operations — monitoring, backup, platform updates | The reliability/incident-response thread running through every single role |
+
+**Key distinction to hold onto**: a **landing zone is not CAF itself** —
+it's the concrete *output* of CAF's Ready phase. CAF is the
+methodology; the landing zone is what actually gets built. Also
+commonly confused with the **Well-Architected Framework (WAF)**: WAF
+evaluates a single *workload's* design, while CAF is the broader
+methodology for adopting Azure across an entire *organization* — a
+workload can be well-architected while the organization around it has
+no CAF-aligned landing zone at all.
+
+[⬆ Back to top](#top)
+
+---
+
 ## Interview Questions
 
 ### Project-Specific
@@ -332,6 +373,9 @@ RTO is how long a system can be down before it's unacceptable; RPO is how much d
 
 **10. How do you decide what belongs on AWS versus Azure for a given workload, rather than just picking one cloud?**
 Answer shape: data residency/compliance constraints, existing team expertise, specific managed-service fit (e.g., SageMaker vs. Databricks), and cost — the Southern Company OT-analytics-on-Azure-with-AWS-for-select-workloads split is a concrete example of this being a deliberate per-workload decision, not an arbitrary one.
+
+**11. What's the difference between the Cloud Adoption Framework and a landing zone, and where did that show up across your roles?**
+CAF is the methodology (Strategy → Plan → Ready → Adopt → Govern → Manage); a landing zone is the concrete output of CAF's Ready phase — the actual Management Group hierarchy, identity, network, and policy guardrails a workload lands into. It showed up as a recurring thread from the earliest company-wide patterns at Liberty Mutual, through the more mature Landing Zone + AWS Organizations templates at Rivian and Regeneron, to the bank-wide reusable pattern at Truist — each iteration building on the last rather than starting over.
 
 [⬆ Back to top](#top)
 
