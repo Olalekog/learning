@@ -18,6 +18,7 @@ in this folder.
 5. [TJ Maxx — Surviving Peak Holiday Traffic](#tj-maxx)
 6. [Liberty Mutual — No Company-Wide Cloud Security Standard](#liberty-mutual)
 7. [Alteryx — Manual, Error-Prone Internal Administration](#alteryx)
+8. [Cross-Cutting — Unifying AWS and Azure Security Posture](#unified-security-posture)
 
 ---
 
@@ -210,5 +211,62 @@ automation, and monitoring skills that every later multi-cloud
 architecture role — Liberty Mutual through Truist Bank — scaled up
 from, plus the moderate GCP experience carried into the skills section
 today.
+
+[⬆ Back to top](#top)
+
+---
+
+## Cross-Cutting — Unifying AWS and Azure Security Posture {#unified-security-posture}
+
+Not tied to one role — this pattern recurs at Truist Bank, Southern
+Company, and Regeneron, all of which needed a single security picture
+across two clouds running side by side.
+
+**Situation**: Each cloud's security tooling operated in its own
+silo — AWS Organizations/SCPs, Security Hub, and GuardDuty on one side,
+Microsoft Sentinel, Defender for Cloud, and Azure Policy on the
+other — leaving security and compliance teams switching between two
+consoles and reconciling findings by hand instead of seeing one picture
+of risk.
+
+**Task**: Build a single, coherent view of security posture across
+both clouds, without ripping out either cloud's native tooling or
+standing up a whole separate platform just to reconcile the two.
+
+**Options Considered**:
+- **Keep the two consoles separate and reconcile manually.** Rejected —
+  doesn't scale past a handful of accounts/subscriptions, and cross-cloud
+  incidents (the kind that actually matter) get missed or correlated too
+  slowly when nobody's looking at both consoles at once.
+- **Adopt a third-party CNAPP (Wiz or Prisma Cloud) as a single pane of
+  glass across every cloud.** Genuinely viable — both appear in the
+  skills section — but means standing up and governing an entirely new
+  vendor relationship and tool, on top of security tooling already
+  built into both clouds natively.
+- **Use each cloud's native security stack, and connect AWS into the
+  Azure-native tools already in place (Defender for Cloud, Sentinel).**
+  Chosen — reuses tooling and skills already in place on the Azure side,
+  avoids a net-new vendor relationship, and both Defender for Cloud and
+  Sentinel ship purpose-built AWS connectors for exactly this.
+
+**Action**: Connected AWS to **Microsoft Defender for Cloud** via its
+native AWS connector — Defender for Cloud discovers AWS resources
+directly through a federated-trust connection (no long-lived AWS keys
+stored) and folds them into the same Secure Score, recommendations, and
+regulatory compliance dashboard Azure resources already show up in.
+Connected AWS to **Microsoft Sentinel** separately via its own AWS
+connector (CloudTrail/S3-based log ingestion) so AWS alerts and logs
+flow into the same SIEM workspace and get correlated against Azure
+signals. Paired this with AWS-side automation (Organizations + SCPs for
+preventive guardrails, Security Hub for posture, GuardDuty for threat
+detection, automated remediation) so drift gets fixed on the AWS side
+without waiting on the unified view to catch it after the fact.
+
+**Result**: One Secure Score/compliance view and one SIEM workspace
+spanning both clouds instead of two disconnected tool sets — the
+pattern underlying Truist Bank's ~40% faster release cycle time
+(security wasn't a bottleneck because posture was already consistent)
+and Regeneron's ability to move GxP-regulated data across clouds
+without breaking compliance controls.
 
 [⬆ Back to top](#top)
