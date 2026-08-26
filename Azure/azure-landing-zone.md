@@ -13,7 +13,7 @@ this doc goes deeper, not wider.
 ## Table of Contents
 
 1. [What Is an Azure Landing Zone](#1-what-is-an-azure-landing-zone)
-2. [Cloud Adoption Framework (CAF) — The Six Phases](#2-cloud-adoption-framework-caf--the-six-phases)
+2. [Cloud Adoption Framework (CAF) — The Seven Methodologies](#2-cloud-adoption-framework-caf--the-seven-methodologies)
 3. [Design Principles (8 CAF Design Areas)](#3-design-principles-8-caf-design-areas)
 4. [Key Features & Characteristics](#4-key-features--characteristics)
 5. [Landing Zone Archetypes](#5-landing-zone-archetypes)
@@ -27,14 +27,28 @@ this doc goes deeper, not wider.
 
 # 1. What Is an Azure Landing Zone
 
-An **Azure Landing Zone** is the pre-provisioned, policy-governed
-environment a workload "lands into" — the Management Group hierarchy,
-subscriptions, identity foundation, network topology, and guardrails
-(Azure Policy, RBAC, monitoring, security baselines) that exist *before*
-any application team deploys a single resource. It is the concrete output
-of the Cloud Adoption Framework's **Ready** phase, not a product you buy —
-it's an architecture pattern Microsoft publishes as the **Azure Landing
-Zone (ALZ) accelerator**, implementable via portal, Bicep, or Terraform.
+Microsoft's official definition: *"An Azure landing zone is a proven
+and flexible architecture for governing, securing, and scaling a
+multi-subscription Azure environment."* In plainer terms, it's the
+pre-provisioned, policy-governed environment a workload "lands into" —
+the Management Group hierarchy, subscriptions, identity foundation,
+network topology, and guardrails (Azure Policy, RBAC, monitoring,
+security baselines) that exist *before* any application team deploys a
+single resource. It is the concrete output of the Cloud Adoption
+Framework's **Ready** methodology, not a product you buy — it's an
+architecture pattern Microsoft publishes as the **Azure Landing Zone
+(ALZ) accelerator**, implementable via portal, Bicep, or Terraform.
+
+Current Microsoft guidance describes an Azure landing zone as having
+**two components**:
+
+- **Platform landing zone** — the centralized foundation establishing
+  governance, security, and shared resources for every workload. Most
+  organizations have exactly one per Microsoft Entra tenant.
+- **Application (workload) landing zones** — the environments where
+  workload teams deploy and operate resources within the platform
+  landing zone's guardrails. Each workload gets its own, spanning
+  whatever dev/test/prod subscriptions it needs.
 
 The core idea: instead of every team hand-rolling their own subscription's
 governance (and inevitably doing it inconsistently), a platform team builds
@@ -54,32 +68,50 @@ before any workload exists*, not with a specific tool name.
 
 ---
 
-# 2. Cloud Adoption Framework (CAF) — The Six Phases
+# 2. Cloud Adoption Framework (CAF) — The Seven Methodologies
 
-**CAF** is Microsoft's prescriptive methodology for adopting Azure at
-the *organizational* level — not a product, but a phased framework of
-guidance, tooling, and reference architectures for taking a company from
-"we want to use Azure" to "we run Azure well at scale."
+**CAF** is Microsoft's official description: *"a structured roadmap
+that helps organizations successfully adopt Azure and integrate it
+into their existing IT environments,"* providing best practices and
+guidance across the cloud journey — not a product, but a methodology.
+
+As of Microsoft's current documentation, CAF organizes guidance into
+**seven core methodologies**: four *foundational* ones that run
+sequentially (Strategy, Plan, Ready, Adopt), and three *operational*
+ones that run in parallel once workloads are live (Govern, Secure,
+Manage) — Microsoft restructured **Secure** out as its own methodology,
+distinct from Govern, in a recent CAF revision.
 
 ```text
-Strategy → Plan → Ready → Adopt (Migrate / Innovate) → Govern → Manage
+Foundational (sequential): Strategy → Plan → Ready → Adopt
+Operational (parallel, once live): Govern · Secure · Manage
 ```
 
-| Phase | What Happens |
-|---|---|
-| **Strategy** | Business justification — why move to the cloud, what outcomes matter. |
-| **Plan** | Digital estate assessment — inventory what exists, build the adoption roadmap. |
-| **Ready** | Build the **landing zone**: Management Group hierarchy, subscription design, identity foundation, hub-and-spoke network, baseline Azure Policy guardrails — everything the rest of this document covers. |
-| **Adopt** | Migrate existing workloads (Migrate track) or build new cloud-native ones (Innovate track) — see [azure-services.md § Migration Strategy Framework](azure-services.md#migration-strategy-framework) for the 7 R's (Rehost/Refactor/Rearchitect/Rebuild/Replace/Retire/Retain). |
-| **Govern** | Ongoing Azure Policy, cost management, and security baseline enforcement across every landing zone. |
-| **Manage** | Day-two operations — monitoring, backup, platform updates. |
+| Methodology | Outcome | How |
+|---|---|---|
+| **1. Strategy** | Cloud adoption aligned to business goals | Map business drivers to cloud outcomes. |
+| **2. Plan** | A plan for cloud adoption | Operating model, cloud skills, migration plan, cloud cost estimation. |
+| **3. Ready** | An Azure environment ready for workloads | Azure purchasing, tenant setup, platform landing zone, application landing zones — everything the rest of this document covers. |
+| **4. Adopt** | Workloads in Azure meeting business needs | Migrate, modernize, or build cloud-native workloads — see [azure-services.md § Migration Strategy Framework](azure-services.md#migration-strategy-framework) for the 7 R's (Rehost/Refactor/Rearchitect/Rebuild/Replace/Retire/Retain). |
+| **5. Govern** | Control workloads | Assess cloud risks and mitigate with Azure and Microsoft tools. |
+| **6. Secure** | Protect workloads | Apply security controls with Azure and Microsoft tools. |
+| **7. Manage** | Optimize workloads | Administer workloads with Azure and Microsoft tools. |
 
 **Key distinction**: a landing zone is not CAF itself — it's the
-concrete *output* of CAF's Ready phase. CAF is the methodology; the
-landing zone is what actually gets built, which is why the rest of this
-document (design areas, reference architecture, configuration) never
-needs to mention "Strategy" or "Plan" again — those phases happen
-*before* a landing zone exists.
+concrete *output* of the Ready methodology. CAF is the overall
+methodology; the landing zone is what actually gets built, which is why
+the rest of this document (design areas, reference architecture,
+configuration) never needs to mention "Strategy" or "Plan" again —
+those happen *before* a landing zone exists.
+
+## Interview Keyword
+Older CAF material (and plenty of interviewers) still describes CAF as
+"six phases" ending in Govern → Manage — know that current Microsoft
+guidance splits **Secure out as its own seventh methodology**,
+distinct from Govern, running in parallel with Govern and Manage once
+workloads are live. Naming Secure as its own methodology (not folded
+into Govern) signals you're working from current documentation, not an
+older mental model.
 
 ## Azure Well-Architected Framework (WAF)
 
@@ -141,7 +173,7 @@ implicitly (and usually inconsistently) later, per-subscription.
 
 | Design Area | Key Decisions |
 |---|---|
-| **Azure Billing & Microsoft Entra Tenant** | How many tenants, EA/MCA enrollment structure, which tenant hosts the landing zone. |
+| **Azure Billing & Active Directory Tenant** | How many tenants, EA/MCA enrollment structure, which tenant hosts the landing zone. Officially named "Azure billing and Active Directory tenant" in CAF's own design-area docs, even though the identity product itself is now branded Microsoft Entra ID. |
 | **Identity & Access Management** | Entra ID as the single identity source, RBAC model, Privileged Identity Management (PIM) for just-in-time elevation, break-glass accounts. |
 | **Resource Organization** | Management Group hierarchy, naming/tagging conventions, subscription democratization model (how many subscriptions, who gets one). |
 | **Network Topology & Connectivity** | Hub-and-spoke vs Virtual WAN, on-prem connectivity (VPN/ExpressRoute), DNS strategy, IP address planning. |
@@ -169,7 +201,7 @@ framework, not just a hub-and-spoke VNet.
 | **Subscription democratization** | Application teams get their own subscription (a natural scale/billing/blast-radius boundary) rather than sharing one subscription cluster-wide — governed centrally via Management Group policy, but operated with team-level autonomy underneath. | Teams need Owner-level autonomy within their own boundary without risking other teams' workloads — a single shared subscription can't offer that isolation. |
 | **Centralized identity foundation** | One Microsoft Entra ID tenant is the authoritative identity source for every subscription in the landing zone — no per-subscription identity silos. | Always, in a single-organization landing zone — federated identity per subscription reintroduces exactly the inconsistency landing zones exist to remove. |
 | **Hub-and-spoke (or Virtual WAN) connectivity** | Spoke VNets (one per subscription/workload) peer to a central hub that holds shared services (Azure Firewall, VPN/ExpressRoute Gateway, DNS forwarders) — spokes don't each need their own gateway or firewall. | You have multiple spokes that all need the same shared egress/firewall/on-prem connectivity — duplicating a gateway or firewall per spoke is both more expensive and harder to govern consistently. |
-| **Landing zone archetypes** | Pre-defined subscription templates (Corp, Online, Platform, Sandbox — see §5) that come with a matching Azure Policy set and network pattern already attached, rather than a blank subscription. | Onboarding a new workload/team and you want it correctly governed from minute one, not governed retroactively once someone notices it's missing controls. |
+| **Landing zone archetypes** | Pre-defined subscription templates (Platform, Corp, Online, Local, Sandbox — see §5) that come with a matching Azure Policy set and network pattern already attached, rather than a blank subscription. | Onboarding a new workload/team and you want it correctly governed from minute one, not governed retroactively once someone notices it's missing controls. |
 | **Platform vs application landing zones** | *Platform* landing zones (Identity, Management, Connectivity) host shared services every workload depends on; *application* landing zones host the actual workloads and consume the platform's shared services rather than duplicating them. | Any landing zone with more than one workload team — without this split, every team re-provisions its own firewall/DNS/logging instead of consuming a shared one. |
 
 [⬆ Back to top](#top)
@@ -190,8 +222,9 @@ Tenant Root Group
     │   ├── Management       (Log Analytics, Automation, centralized monitoring)
     │   └── Connectivity     (hub VNet, Azure Firewall, VPN/ExpressRoute Gateway, DNS)
     ├── Landing Zones
-    │   ├── Corp              (internal-facing workloads, no direct internet inbound)
-    │   └── Online             (internet-facing workloads, public endpoints allowed)
+    │   ├── Corp ("Internal")  (internal-facing workloads, no direct internet inbound)
+    │   ├── Online             (internet-facing workloads, public endpoints allowed)
+    │   └── Local               (Azure Local/hybrid workloads — Microsoft's newer third archetype)
     ├── Sandbox                (individual experimentation — isolated, no production data, spending capped)
     └── Decommissioned          (holding area for subscriptions being retired)
 ```
@@ -210,6 +243,11 @@ Tenant Root Group
   internet-facing (public web apps, APIs) — a lighter-weight, more
   permissive policy set than Corp, since these workloads are designed
   for public exposure.
+- **Landing Zones / Local** — application subscriptions for Azure
+  Local/hybrid workloads, placed under a dedicated Local management
+  group rather than folded into Corp or Online — current Microsoft
+  guidance now places every application landing zone subscription in
+  one of these three (Corp, Online, or Local).
 - **Sandbox** — deliberately isolated from the hub and from production
   data, with tight spending limits, so individuals can experiment freely
   without risking anything else in the tenant.
@@ -218,9 +256,10 @@ Tenant Root Group
 
 ## Interview Keyword
 Know the **Platform / Landing Zones / Sandbox / Decommissioned** split by
-name, and specifically that Corp vs Online is the "internet-facing or
-not" distinction — a very common AZ-305 scenario question is "which
-archetype does workload X belong in."
+name, and that Landing Zones now split three ways — Corp (internal,
+no direct internet inbound), Online (internet-facing), and Local (Azure
+Local/hybrid) — not just the older Corp-vs-Online framing. A common
+AZ-305 scenario question is "which archetype does workload X belong in."
 
 [⬆ Back to top](#top)
 

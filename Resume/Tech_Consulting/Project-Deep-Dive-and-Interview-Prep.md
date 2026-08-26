@@ -9,7 +9,7 @@ it. Companion to [Elevator-Pitch.md](Elevator-Pitch.md) in this folder.
 For the Cloud Adoption Framework methodology behind the Landing Zone
 work referenced throughout (Liberty Mutual, Rivian, Regeneron, Truist
 Bank), see
-[Azure/azure-landing-zone.md § 2. Cloud Adoption Framework](../../Azure/azure-landing-zone.md#2-cloud-adoption-framework-caf--the-six-phases).
+[Azure/azure-landing-zone.md § 2. Cloud Adoption Framework](../../Azure/azure-landing-zone.md#2-cloud-adoption-framework-caf--the-seven-methodologies).
 
 ## Table of Contents
 

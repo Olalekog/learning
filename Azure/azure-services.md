@@ -471,10 +471,13 @@ active-active when the business can tolerate 30 minutes of downtime is a common
 ### Azure Cloud Adoption Framework (CAF) & Landing Zones
 
 CAF is Microsoft's prescriptive methodology for adopting Azure at the
-organizational level, structured in phases:
+organizational level, structured into seven methodologies — four
+foundational ones that run sequentially, then three operational ones
+that run in parallel once workloads are live:
 
 ```text
-Strategy  → Plan → Ready → Adopt (Migrate / Innovate) → Govern → Manage
+Foundational (sequential): Strategy → Plan → Ready → Adopt
+Operational (parallel, once live): Govern · Secure · Manage
 ```
 
 - **Strategy/Plan** — business justification, digital estate assessment.
@@ -482,9 +485,14 @@ Strategy  → Plan → Ready → Adopt (Migrate / Innovate) → Govern → Manag
   subscription design, identity foundation (Entra ID), network topology
   (hub-and-spoke), and baseline Azure Policy guardrails a workload lands into.
 - **Adopt** — migrate existing workloads or build new cloud-native ones.
-- **Govern** — ongoing Azure Policy, cost management, and security baseline
+- **Govern** — ongoing Azure Policy, cost management, and compliance
   enforcement across every landing zone.
+- **Secure** — apply security controls (a distinct methodology from Govern
+  in current CAF guidance, not folded into it).
 - **Manage** — day-two operations: monitoring, backup, platform updates.
+
+See [azure-landing-zone.md § 2](azure-landing-zone.md#2-cloud-adoption-framework-caf--the-seven-methodologies)
+for the full phase-by-phase breakdown.
 
 A **landing zone** is the actual environment produced by the Ready phase — see
 [Azure Landing Zones](#5-security-identity-and-compliance) in §5 for the
