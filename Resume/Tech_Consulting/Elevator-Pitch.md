@@ -45,10 +45,31 @@ or "walk me through your resume" opener.
 > systematically reducing recovery time through better alerts, runbooks,
 > and automation."
 
-~260 words, roughly 100-110 seconds spoken. For a tighter ~45-second
-version, drop the middle paragraph (Rivian/Southern Company/Regeneron)
-and go straight from the Alteryx/Liberty Mutual/TJ Maxx opener into the
-Truist Bank paragraph.
+~260 words, roughly 100-110 seconds spoken.
+
+### 1a. Tight ~45-Second Version
+
+Drops the Alteryx sentence and the entire Rivian/Southern
+Company/Regeneron middle paragraph, going straight from the Liberty
+Mutual/TJ Maxx opener into a trimmed Truist Bank close — every sentence
+below is lifted verbatim from the full version above, nothing reworded.
+
+> "I have 14+ years in IT, with the last 12 focused specifically on
+> designing and operating AWS and Azure *together*, not as separate
+> silos. At Liberty Mutual and then TJ Maxx, I helped establish some of
+> the first company-wide Azure Landing Zone patterns at each
+> organization, standardizing how new applications got deployed
+> securely from day one — including surviving TJ Maxx's peak holiday
+> retail traffic without disruption. Today, as Senior Multi-Cloud
+> DevOps & Security Engineer at Truist Bank, I've defined the reusable
+> AWS-Azure patterns other teams across the bank build on, run
+> companion EKS and AKS clusters, unified AWS and Azure security
+> posture (Organizations/SCPs/Security Hub/GuardDuty alongside
+> Sentinel/Defender for Cloud/Azure Policy) into one view of risk, and
+> cut release cycle time by roughly 40% using Azure DevOps and GitHub
+> Actions."
+
+~130 words, roughly 45 seconds spoken.
 
 If asked to go deeper on the Regeneron line specifically, see
 [Regeneron-Architecture-Design.md](Regeneron-Architecture-Design.md)

@@ -40,9 +40,34 @@ resume" opener.
 > Administrator — and I'm comfortable operating in regulated,
 > high-stakes environments, from banking to healthcare."
 
-~215 words, roughly 80-90 seconds spoken. For a tighter ~45-second
-version, drop the Luminous Logistic/Texas A&M paragraph and go straight
-from the storage-background opener into the Citibank paragraph.
+~215 words, roughly 80-90 seconds spoken.
+
+### 1a. Tight ~45-Second Version
+
+Drops the Luminous Logistic/Texas A&M paragraph and goes straight from
+the storage-background opener into the Citibank paragraph — use when
+time is genuinely short or the interviewer signals they want the
+condensed version.
+
+> "My background spans over a decade in infrastructure, starting in
+> enterprise storage — leading SAN/NAS architecture and disaster
+> recovery for MTN Nigeria's environment — before moving fully into
+> cloud in 2019. My most recent full-time role was AVP of Public Cloud
+> Service at Citibank, where I owned reusable Terraform modules
+> standardizing AWS deployments across environments, ran multi-tenant
+> EKS clusters, and embedded DevSecOps directly into CI/CD — SAST, IaC
+> scanning, and policy-as-code gates with OPA and Sentinel. That work
+> drove 99.99% platform availability, 40% faster deployments, and a 35%
+> cut in incident detection and recovery time. Today, I'm applying all
+> of that as a multi-cloud DevOps engineer across AWS, Azure, and GCP,
+> backed by deep certification — AWS Solutions Architect Professional,
+> Security Specialty, Terraform Associate, and Certified Kubernetes
+> Administrator."
+
+~130 words, roughly 45 seconds spoken. Every sentence here is lifted
+verbatim from the full version above — nothing reworded, just the
+Luminous Logistic/Texas A&M paragraph, the AI/ML platform sentence, and
+the closing MLOps/regulated-environments clause cut entirely.
 
 [⬆ Back to top](#olalekan-ogundare--elevator-pitches)
 
