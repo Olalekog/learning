@@ -78,6 +78,10 @@ systematic incident response.
 
 ### Regeneron Pharmaceuticals — Cloud Data & DevOps Architect (Jul 2022–Dec 2023, Pharma)
 
+For a full architecture design (diagram, data pipeline walkthrough,
+GxP controls mapped to design decisions), see
+[Regeneron-Architecture-Design.md](Regeneron-Architecture-Design.md).
+
 **Context**: A research platform moving clinical and genomic data
 between AWS and Azure, constrained by **GxP** — shorthand for the
 family of regulatory frameworks (Good Clinical Practice, Good

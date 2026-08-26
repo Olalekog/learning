@@ -50,6 +50,11 @@ version, drop the middle paragraph (Rivian/Southern Company/Regeneron)
 and go straight from the Alteryx/Liberty Mutual/TJ Maxx opener into the
 Truist Bank paragraph.
 
+If asked to go deeper on the Regeneron line specifically, see
+[Regeneron-Architecture-Design.md](Regeneron-Architecture-Design.md)
+for the full architecture (diagram, data pipeline, GxP controls mapped
+to design decisions).
+
 [⬆ Back to top](#gabriel-o--elevator-pitches)
 
 ---
