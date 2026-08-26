@@ -178,6 +178,10 @@ automated remediation.
 
 ### TJ Maxx — Azure / Multi-Cloud DevOps Engineer (Jan 2016–Feb 2018, Retail)
 
+For a full architecture design (VNet/VPC network diagram, autoscaling
+strategy, release-freeze windows), see
+[TJ-Maxx-Architecture-Design.md](TJ-Maxx-Architecture-Design.md).
+
 **Context**: Retail and e-commerce with a hard, narrow, revenue-critical
 peak — holiday shopping traffic — where the system either survives the
 spike or it doesn't.

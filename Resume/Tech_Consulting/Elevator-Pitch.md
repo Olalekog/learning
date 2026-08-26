@@ -53,7 +53,9 @@ Truist Bank paragraph.
 If asked to go deeper on the Regeneron line specifically, see
 [Regeneron-Architecture-Design.md](Regeneron-Architecture-Design.md)
 for the full architecture (diagram, data pipeline, GxP controls mapped
-to design decisions).
+to design decisions). For the TJ Maxx peak-holiday-traffic line, see
+[TJ-Maxx-Architecture-Design.md](TJ-Maxx-Architecture-Design.md) for
+the VNet/VPC network diagram and autoscaling strategy.
 
 [⬆ Back to top](#gabriel-o--elevator-pitches)
 

@@ -140,6 +140,10 @@ recovery time.
 
 ## TJ Maxx — Surviving Peak Holiday Traffic {#tj-maxx}
 
+For the full architecture behind this (VNet/VPC network diagram,
+autoscaling, release-freeze windows), see
+[TJ-Maxx-Architecture-Design.md](TJ-Maxx-Architecture-Design.md).
+
 **Situation**: TJ Maxx's store and digital applications faced a hard,
 narrow, revenue-critical peak every year — holiday shopping traffic —
 where a platform failure had immediate, outsized business impact.
