@@ -18,7 +18,8 @@ in this folder.
 ## Table of Contents
 
 1. [Part 1 — Behavioral Questions (Resume-Grounded)](#part-1)
-2. [Part 2 — Engineering Practice Questions (Generic)](#part-2)
+2. [Conflict Resolution — A Case Study Per Role](#conflict-case-studies)
+3. [Part 2 — Engineering Practice Questions (Generic)](#part-2)
 
 ---
 
@@ -36,6 +37,10 @@ fully automated, so teams could see what *would* have changed before it
 did. The disagreement made the rollout safer, and he became one of the
 strongest advocates for the automation once he'd seen it in audit mode
 first.
+
+For six more design/solution disagreements — one per role — see
+[Conflict Resolution — A Case Study Per Role](#conflict-case-studies)
+below.
 
 ### A mistake at work
 
@@ -266,6 +271,166 @@ Azure Policy mistake above is exactly the kind of thing that gets
 discussed as "here's the gap in our rollout process," not "here's who
 made the error." A team that trusts incidents get discussed that way is
 a team that actually surfaces problems early instead of hiding them.
+
+[⬆ Back to top](#top)
+
+---
+
+## Conflict Resolution — A Case Study Per Role {#conflict-case-studies}
+
+The single-answer version above (Truist Bank) is the quick one to give
+live in an interview. This is the deeper version — a genuine
+design/solution disagreement at *every* role, each with a different
+shape of conflict and a different resolution mechanism, since "how do
+you resolve conflict" is really asking about judgment across different
+kinds of disagreement, not one repeatable trick.
+
+### Truist Bank — Dual EKS/AKS vs. Standardizing on One Platform
+
+**The disagreement**: A platform engineer argued that running EKS *and*
+AKS side by side was needless complexity and cost — pick one, migrate
+everything, and cut the operational overhead of maintaining two
+Kubernetes platforms' worth of scaling, upgrade, and hardening
+expertise. He wasn't wrong that dual-platform has a real cost; the
+disagreement was whether that cost was worth paying.
+
+**How I resolved it**: Rather than defend the dual-cluster approach on
+principle, I pulled the actual workload data — which teams' workloads
+had hard dependencies (Windows-based services, existing Azure-native
+integrations) that made a forced migration to one platform genuinely
+expensive versus which didn't. That turned an abstract "complexity vs.
+simplicity" argument into a concrete, workload-by-workload decision
+framework both of us could apply consistently, rather than a one-time
+platform mandate either of us had to defend forever.
+
+**Outcome/principle**: Most platform vs. platform arguments are really
+proxy fights over which workloads' needs get prioritized — surfacing
+the actual workload constraints resolves it faster than arguing
+architecture preference in the abstract.
+
+### Regeneron — How Much Access Should the Conversational AI Have?
+
+**The disagreement**: Compliance wanted to block any LLM access to
+research data entirely, given GxP stakes — the safest position on
+paper. Product wanted broad conversational access to accelerate
+research. Neither position, taken fully, was workable: one killed a
+genuinely valuable capability, the other was an unacceptable compliance
+risk.
+
+**How I resolved it**: Designed a middle architecture instead of
+picking a side — Azure OpenAI querying only a de-identified, curated
+Azure AI Search index, never raw data directly — and brought compliance
+a concrete data-flow diagram proving the LLM had no network or
+credential path to raw records at all, not just a verbal assurance. Ran
+it as a scoped pilot with one research team before proposing org-wide
+rollout, so compliance could evaluate a real system instead of a
+proposal.
+
+**Outcome/principle**: When two sides both have legitimate, opposed
+constraints, the resolution is usually a third architecture neither
+side originally proposed — and proving safety with a concrete diagram
+and a small pilot moves people faster than arguing risk tolerance in
+the abstract.
+
+### Southern Company — Which Cloud Should Host OT Analytics?
+
+**The disagreement**: Several engineers wanted to keep everything on
+AWS, where the team already had deep operational expertise, rather than
+add Azure into the OT analytics path and take on a second platform's
+learning curve.
+
+**How I resolved it**: Reframed it explicitly as a workload-fit
+question, not a loyalty question — ran a small proof-of-concept
+comparing both clouds against the actual OT data patterns (ingestion
+shape, latency needs, existing tooling fit) rather than debating cloud
+preference. Let the proof-of-concept's results, not either side's
+starting opinion, make the call.
+
+**Outcome/principle**: "Which tool do we already know" and "which tool
+actually fits this workload" are different questions — separating them
+explicitly, and settling the second one with a real test, defuses a
+preference-based argument before it becomes personal.
+
+### Rivian — Blue-Green/Canary vs. Faster Rolling Updates
+
+**The disagreement**: Some engineers wanted simpler, faster rolling
+updates for vehicle software to increase release velocity; I was
+pushing for blue-green/canary specifically because a bad OTA update
+reaches real vehicles, not just a web server — but canary adds real
+release overhead that a velocity-focused team doesn't want to carry.
+
+**How I resolved it**: Didn't just assert the safety case — quantified
+it. Walked through how many vehicles a bad rollout under a simple
+rolling-update strategy could actually reach before anyone noticed,
+versus the blast radius canary caps it to. Then addressed the
+"it's slower" objection directly by automating the promotion step once
+canary signals came back clean, so the safety mechanism didn't cost as
+much velocity as the team initially assumed.
+
+**Outcome/principle**: A safety argument lands much better as a
+quantified blast-radius number than as a general risk-aversion
+statement — and addressing the *other* side's real objection (velocity)
+head-on, instead of just repeating your own priority, is what actually
+moves the disagreement.
+
+### TJ Maxx — Hard Freeze vs. Flexible Releases Near Peak
+
+**The disagreement**: Some team members wanted a hard freeze on *all*
+changes in the run-up to peak holiday traffic — the safest-feeling
+option. Others wanted to keep shipping fixes freely, worried a rigid
+freeze would leave a real bug unpatched during the highest-stakes
+weekend of the year.
+
+**How I resolved it**: Neither absolute was right — proposed splitting
+"new feature releases" (frozen) from "validated hotfixes" (still
+allowed, through the same approval-gated pipeline, just held to a
+higher urgency bar). That gave the freeze proponents the stability they
+wanted and the flexibility proponents a real path to ship a genuine
+fix.
+
+**Outcome/principle**: A lot of "freeze vs. no freeze"-shaped
+disagreements aren't actually opposed — they're arguing about two
+different categories of change that just hadn't been separated yet.
+
+### Liberty Mutual — How Strict Should the First Landing Zone Baseline Be?
+
+**The disagreement**: Security wanted a highly restrictive baseline for
+the organization's first company-wide Azure pattern — reasonable, given
+it was protecting sensitive insurance data with no prior precedent to
+lean on. Development teams, among the earliest Azure adopters at the
+company, worried it would be too rigid to actually build against and
+would just get worked around informally.
+
+**How I resolved it**: Split the baseline into two tiers instead of
+treating it as one uniform bar — non-negotiable guardrails (identity,
+data protection, network isolation) that held firm regardless of
+objection, and advisory guidance where teams had real flexibility. That
+let security hold the line where the actual risk was, without forcing
+every decision through the same level of friction.
+
+**Outcome/principle**: Not every control deserves the same rigidity —
+distinguishing "this is non-negotiable" from "this is a strong
+recommendation" upfront prevents teams from quietly treating
+*everything* as optional once they've successfully pushed back on one
+thing.
+
+### Alteryx — Automating a Manual Process a Senior Colleague Trusted
+
+**The disagreement**: I proposed automating a routine but manual
+administration task with PowerShell/Bash; a more senior colleague was
+skeptical — not because the automation was wrong, but because the
+manual process was familiar and trusted, and "we've always done it this
+way" carried real weight for something touching internal systems.
+
+**How I resolved it**: Didn't push for an immediate full replacement —
+proposed running the automated version in parallel with the manual
+process for a trial period, so the senior colleague could compare
+results directly rather than take the automation's correctness on
+faith. Low-stakes proof beat argument.
+
+**Outcome/principle**: Early in a career, the fastest way through a
+credibility-based disagreement isn't a better argument — it's a
+low-risk way for the skeptical party to verify the claim themselves.
 
 [⬆ Back to top](#top)
 
