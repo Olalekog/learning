@@ -71,12 +71,16 @@ below is lifted verbatim from the full version above, nothing reworded.
 
 ~130 words, roughly 45 seconds spoken.
 
-If asked to go deeper on the Regeneron line specifically, see
-[Regeneron-Architecture-Design.md](Regeneron-Architecture-Design.md)
-for the full architecture (diagram, data pipeline, GxP controls mapped
-to design decisions). For the TJ Maxx peak-holiday-traffic line, see
-[TJ-Maxx-Architecture-Design.md](TJ-Maxx-Architecture-Design.md) for
-the VNet/VPC network diagram and autoscaling strategy.
+Full architecture designs (network diagrams built from real Azure/AWS
+icons, plus interview questions) exist for every role in this pitch:
+[Truist-Bank-Architecture-Design.md](Truist-Bank-Architecture-Design.md),
+[Regeneron-Architecture-Design.md](Regeneron-Architecture-Design.md),
+[Southern-Company-Architecture-Design.md](Southern-Company-Architecture-Design.md),
+[Rivian-Architecture-Design.md](Rivian-Architecture-Design.md),
+[TJ-Maxx-Architecture-Design.md](TJ-Maxx-Architecture-Design.md), and
+[Liberty-Mutual-Architecture-Design.md](Liberty-Mutual-Architecture-Design.md)
+(deliberately the simplest of the six — the earliest role, shown at its
+actual maturity level rather than inflated to match the later ones).
 
 [⬆ Back to top](#gabriel-o--elevator-pitches)
 

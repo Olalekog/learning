@@ -47,6 +47,10 @@ synthesis of all of it in a banking-regulated environment.
 
 ### Truist Bank — Senior Multi-Cloud DevOps & Security Engineer (Jan 2024–Present, Banking)
 
+For a full architecture design (unified security network diagram,
+companion EKS/AKS rationale, the ~40% release-cycle number explained),
+see [Truist-Bank-Architecture-Design.md](Truist-Bank-Architecture-Design.md).
+
 **Context**: A regulated bank running both AWS and Azure needed
 consistent, bank-wide patterns instead of every team inventing its own
 networking/security/CI-CD approach per cloud.
@@ -117,6 +121,10 @@ secure cross-cloud data movement that never broke compliance controls.
 
 ### Southern Company — Multi-Cloud DevOps & Data Specialist (May 2020–Jun 2022, Energy)
 
+For a full architecture design (OT analytics network diagram,
+why-Azure-for-OT reasoning, cross-cloud connectivity troubleshooting),
+see [Southern-Company-Architecture-Design.md](Southern-Company-Architecture-Design.md).
+
 **Context**: An energy utility running OT (operational technology)
 analytics — the kind of environment where connectivity and data-pipeline
 reliability have real operational consequences, not just user-facing
@@ -145,6 +153,10 @@ changes are called out specifically here.
 outages through systematically improved alerting and automation.
 
 ### Rivian Automotive — Cloud DevOps Engineer, Multi-Cloud Platform (Mar 2018–Apr 2020, Automotive)
+
+For a full architecture design (OTA canary/blue-green network diagram,
+why canary before blue-green, observability rationale), see
+[Rivian-Architecture-Design.md](Rivian-Architecture-Design.md).
 
 **Context**: An EV manufacturer needing reusable patterns for vehicle
 telemetry, over-the-air (OTA) update services, and factory systems —
@@ -207,6 +219,11 @@ rather than treating each peak as a one-off fire drill.
 disruption at each subsequent peak event.
 
 ### Liberty Mutual — Cloud Infrastructure & DevOps Engineer (Jan 2014–Dec 2015, Insurance)
+
+For a full architecture design (the earliest, deliberately simpler
+single-VNet network diagram, and why it's shown less mature than later
+roles on purpose), see
+[Liberty-Mutual-Architecture-Design.md](Liberty-Mutual-Architecture-Design.md).
 
 **Context**: Early-stage Azure adoption for claims and policy
 applications handling sensitive insurance data, before "Landing Zone" was

@@ -1,0 +1,42 @@
+<svg width="1300" height="680" viewBox="0 0 1300 680" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<defs><marker id="ah" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#545B64"/></marker><marker id="ah-blue" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#0078D4"/></marker></defs>
+<rect x="0" y="0" width="1300" height="680" fill="#FFFFFF"/>
+<text x="650" y="34" font-size="22" font-weight="700" text-anchor="middle" fill="#16191F">Liberty Mutual — First Company-Wide Azure Landing Zone</text>
+<text x="650" y="56" font-size="13" text-anchor="middle" fill="#545B64">Deliberately Simpler Than Later Roles — the Earliest Version of This Career's Landing Zone Pattern — Insurance</text>
+<rect x="60" y="90" width="1180" height="540" rx="6" fill="none" stroke="#0078D4" stroke-width="2"/>
+<text x="70" y="108" font-size="13" font-weight="700" text-anchor="start" fill="#0078D4">Azure — Single VNet (no hub-spoke yet — that maturity comes later, at Rivian/Regeneron/Truist)</text>
+<rect x="80" y="130" width="1140" height="140" rx="4" fill="#F3F9FF" stroke="#0078D4" stroke-width="1.5" stroke-dasharray="4,3"/>
+<text x="90" y="148" font-size="11" font-weight="600" fill="#0078D4">Shared Identity &amp; Secrets Foundation</text>
+<g transform="translate(372.00,192.00) scale(3.1111)"><defs><radialGradient id="kv-fb114c93-7c16-4540-899a-0796041629e6" cx="9" cy="9" r="8.5" gradientUnits="userSpaceOnUse"><stop offset="0.18" stop-color="#5ea0ef" /><stop offset="0.56" stop-color="#5c9fee" /><stop offset="0.69" stop-color="#559ced" /><stop offset="0.78" stop-color="#4a97e9" /><stop offset="0.86" stop-color="#3990e4" /><stop offset="0.93" stop-color="#2387de" /><stop offset="0.99" stop-color="#087bd6" /><stop offset="1" stop-color="#0078d4" /></radialGradient><radialGradient id="kv-ec478bd3-5b38-4e7f-b661-11f355578bff" cx="38.95" cy="182.07" r="9.88" gradientTransform="translate(-28.71 -163.24) scale(0.94 0.94)" gradientUnits="userSpaceOnUse"><stop offset="0.27" stop-color="#ffd70f" /><stop offset="0.49" stop-color="#ffcb12" /><stop offset="0.88" stop-color="#feac19" /><stop offset="1" stop-color="#fea11b" /></radialGradient></defs><title>Icon-security-245</title><path id="kv-aacf8311-a317-400f-b613-74bd00da5ce3" d="M9,.5A8.5,8.5,0,1,0,17.5,9,8.51,8.51,0,0,0,9,.5ZM9,16.34A7.34,7.34,0,1,1,16.34,9,7.34,7.34,0,0,1,9,16.34Z" fill="url(#kv-fb114c93-7c16-4540-899a-0796041629e6)" /><circle cx="9" cy="9" r="7.34" fill="#fff" /><g><path id="kv-bd983c41-db73-40ec-a4f4-da1213fc9924" d="M13.44,7.33a1.84,1.84,0,0,0,0-2.59h0L10.29,1.58a1.83,1.83,0,0,0-2.58,0h0L4.56,4.74a1.84,1.84,0,0,0,0,2.59L7.18,10a.51.51,0,0,1,.15.36v4.88a.63.63,0,0,0,.18.44l1.2,1.2a.41.41,0,0,0,.58,0l1.16-1.16h0l.68-.68a.25.25,0,0,0,0-.34l-.49-.49a.27.27,0,0,1,0-.37l.49-.49a.25.25,0,0,0,0-.34l-.49-.49a.27.27,0,0,1,0-.37l.49-.49a.25.25,0,0,0,0-.34l-.68-.69v-.25ZM9,2.35A1,1,0,0,1,9,4.42,1,1,0,1,1,9,2.35Z" fill="url(#kv-ec478bd3-5b38-4e7f-b661-11f355578bff)" /><path id="kv-ad2e7e44-9bfd-4775-8bf4-8ef26a544921" d="M8.18,15.3h0a.23.23,0,0,0,.38-.17v-4a.24.24,0,0,0-.11-.2h0a.22.22,0,0,0-.34.2v4A.28.28,0,0,0,8.18,15.3Z" fill="#ff9300" opacity="0.75" /><rect id="kv-a996fbff-3936-4b24-b407-369336c143ba" x="6.48" y="5.79" width="5.17" height="0.61" rx="0.28" fill="#ff9300" opacity="0.75" /><rect id="kv-bb12d31c-3352-4a18-87dd-a169a4a8721d" x="6.48" y="6.78" width="5.17" height="0.61" rx="0.28" fill="#ff9300" opacity="0.75" /></g></g>
+<text x="400" y="258" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" text-anchor="middle" fill="#16191F">Key Vault</text>
+<text x="400" y="272" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" text-anchor="middle" fill="#545B64">(secrets/keys, one per environment)</text>
+<g transform="translate(722.00,192.00) scale(3.1111)"><defs><linearGradient id="identity-be92901b-ec33-4c65-adf1-9b0eed06d677" x1="9" y1="6.88" x2="9" y2="20.45" gradientUnits="userSpaceOnUse"><stop offset="0.22" stop-color="#32d4f5" /><stop offset="1" stop-color="#198ab3" /></linearGradient><linearGradient id="identity-b46fc246-25d8-4398-8779-1042e8cacae7" x1="8.61" y1="-0.4" x2="9.6" y2="11.92" gradientUnits="userSpaceOnUse"><stop offset="0.22" stop-color="#32d4f5" /><stop offset="1" stop-color="#198ab3" /></linearGradient></defs><title>Icon-identity-230</title><path d="M15.72,18a1.45,1.45,0,0,0,1.45-1.45.47.47,0,0,0,0-.17C16.59,11.81,14,8.09,9,8.09S1.34,11.24.83,16.39A1.46,1.46,0,0,0,2.14,18H15.72Z" fill="url(#identity-be92901b-ec33-4c65-adf1-9b0eed06d677)" /><path d="M9,9.17a4.59,4.59,0,0,1-2.48-.73L9,14.86l2.44-6.38A4.53,4.53,0,0,1,9,9.17Z" fill="#fff" opacity="0.8" /><circle cx="9.01" cy="4.58" r="4.58" fill="url(#identity-b46fc246-25d8-4398-8779-1042e8cacae7)" /></g>
+<text x="750" y="258" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" text-anchor="middle" fill="#16191F">Azure AD Identity</text>
+<text x="750" y="272" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="normal" text-anchor="middle" fill="#545B64">(directory-based access control)</text>
+<rect x="80" y="300" width="550" height="180" rx="4" fill="#FAFAFA" stroke="#605E5C" stroke-width="1.5"/>
+<text x="90" y="318" font-size="11" font-weight="600" fill="#16191F">Subnet: Claims Applications</text>
+<text x="90" y="345" font-size="10.5" fill="#545B64">NSG-isolated from Policy subnet — sensitive</text>
+<text x="90" y="361" font-size="10.5" fill="#545B64">claims data has its own network boundary,</text>
+<text x="90" y="377" font-size="10.5" fill="#545B64">not shared blast radius with Policy apps.</text>
+<text x="90" y="405" font-size="10.5" fill="#545B64">Every new claims app follows this same</text>
+<text x="90" y="421" font-size="10.5" fill="#545B64">baseline pattern from day one, instead of</text>
+<text x="90" y="437" font-size="10.5" fill="#545B64">each team designing its own network/identity.</text>
+<rect x="670" y="300" width="550" height="180" rx="4" fill="#FAFAFA" stroke="#605E5C" stroke-width="1.5"/>
+<text x="680" y="318" font-size="11" font-weight="600" fill="#16191F">Subnet: Policy Applications</text>
+<text x="680" y="345" font-size="10.5" fill="#545B64">Same baseline pattern, separate network</text>
+<text x="680" y="361" font-size="10.5" fill="#545B64">boundary — the "first company-wide pattern"</text>
+<text x="680" y="377" font-size="10.5" fill="#545B64">is the repeatability, not any single control.</text>
+<text x="680" y="405" font-size="10.5" fill="#545B64">Both subnets consume the same Key Vault</text>
+<text x="680" y="421" font-size="10.5" fill="#545B64">and identity foundation above — shared,</text>
+<text x="680" y="437" font-size="10.5" fill="#545B64">not duplicated per app.</text>
+<rect x="80" y="500" width="1140" height="110" rx="4" fill="#FAFAFA" stroke="#605E5C" stroke-width="1.5"/>
+<text x="90" y="518" font-size="11" font-weight="600" fill="#16191F">Release Management</text>
+<text x="90" y="540" font-size="10.5" fill="#545B64">Era's Azure DevOps tooling manages release/approval/environment promotion —</text>
+<text x="90" y="556" font-size="10.5" fill="#545B64">bringing structure to how infrastructure and applications moved toward production,</text>
+<text x="90" y="572" font-size="10.5" fill="#545B64">where none had existed before this pattern was established.</text>
+<text x="90" y="595" font-size="10.5" fill="#545B64">Reliability support: improved monitoring + documented recovery steps for critical claims/policy platforms.</text>
+<line x1="400" y1="240" x2="350" y2="300" stroke="#0078D4" stroke-width="1.5" marker-end="url(#ah-blue)"/>
+<line x1="400" y1="240" x2="920" y2="300" stroke="#0078D4" stroke-width="1.5" marker-end="url(#ah-blue)"/>
+<line x1="750" y1="250" x2="500" y2="300" stroke="#0078D4" stroke-width="1.5" marker-end="url(#ah-blue)" stroke-dasharray="3,2"/>
+<line x1="750" y1="250" x2="900" y2="300" stroke="#0078D4" stroke-width="1.5" marker-end="url(#ah-blue)" stroke-dasharray="3,2"/>
+</svg>
