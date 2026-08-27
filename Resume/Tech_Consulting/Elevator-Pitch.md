@@ -7,69 +7,60 @@ whichever fits the question being asked.
 
 ## 1. "Walk Me Through Your Background" (Experience-Narrative)
 
-Chronological career story across six industries, hitting the key
-platforms and metrics — best for an open-ended "tell me about yourself"
-or "walk me through your resume" opener.
+Leadership-toned chronological story focused on the three highest-impact
+roles (Liberty Mutual, TJX, Truist) rather than all seven — best for an
+open-ended "tell me about yourself" or "walk me through your resume"
+opener where a tight, high-signal narrative lands better than full
+career coverage.
 
-> "I have 14+ years in IT, with the last 12 focused specifically on
-> designing and operating AWS and Azure *together*, not as separate
-> silos. I started at Alteryx as a systems administrator, running early
-> cloud experiments on both AWS and Azure — that's where I built the
-> foundational identity, networking, and automation skills everything
-> since has scaled from. At Liberty Mutual and then TJ Maxx, I helped
-> establish some of the first company-wide Azure Landing Zone patterns
-> at each organization, standardizing how new applications got deployed
-> securely from day one — including surviving TJ Maxx's peak holiday
-> retail traffic without disruption.
+> "I'm a multi-cloud DevOps and security leader with 14 years in IT,
+> including 12 building AWS and Azure as a single operating model
+> rather than two separate clouds. That's the thread through my whole
+> career: making the secure path the fastest path.
 >
-> That multi-cloud standardization work carried into Rivian, where I
-> built and ran EKS and AKS clusters side by side for vehicle telemetry
-> and OTA update services, and used SageMaker for predictive maintenance
-> models on factory and vehicle data. At Southern Company, I extended
-> that into OT-related analytics, and at Regeneron Pharmaceuticals I
-> designed the AWS-Azure architecture for a research platform handling
-> clinical and genomic data under strict GxP controls — pairing
-> SageMaker with Azure Databricks, and integrating Azure OpenAI so
-> scientists could query results conversationally under proper access
-> controls.
+> At Liberty Mutual and TJX, I helped design the enterprise Azure
+> Landing Zone patterns that turned governed, secure deployment into
+> the default for application teams instead of an afterthought. At
+> TJX, those foundations carried business-critical retail workloads
+> through peak holiday traffic, the highest-stakes window in retail,
+> with zero disruption.
 >
-> Today, as Senior Multi-Cloud DevOps & Security Engineer at Truist
-> Bank, I've defined the reusable AWS-Azure patterns other teams across
-> the bank build on, run companion EKS and AKS clusters, unified AWS and
-> Azure security posture (Organizations/SCPs/Security Hub/GuardDuty
-> alongside Sentinel/Defender for Cloud/Azure Policy) into one view of
-> risk, and cut release cycle time by roughly 40% using Azure DevOps and
-> GitHub Actions — all while keeping full audit trails for banking
-> regulators. Across every one of these roles, reliability has been a
-> constant thread: setting uptime goals, leading incident response, and
-> systematically reducing recovery time through better alerts, runbooks,
-> and automation."
+> Today at Truist, I own the reusable AWS–Azure platform patterns that
+> engineering teams across the bank build on. I run EKS and AKS at
+> scale, and I've consolidated cloud security across both providers,
+> from org-level guardrails and policy to threat detection and SIEM,
+> into a single risk view that leadership can actually act on. Those
+> controls aren't documents on a shelf; they're embedded directly in
+> the delivery pipelines, so every release is compliant by
+> construction.
+>
+> The result: by standardizing CI/CD on Azure DevOps and GitHub
+> Actions, we reduced release cycle time by roughly 40% while
+> strengthening governance and operational resilience at the same
+> time. Faster and safer - that's the outcome I'm known for delivering,
+> and it's what I'd bring here."
 
-~260 words, roughly 100-110 seconds spoken.
+~220 words, roughly 85-90 seconds spoken.
 
 ### 1a. Tight ~45-Second Version
 
-Drops the Alteryx sentence and the entire Rivian/Southern
-Company/Regeneron middle paragraph, going straight from the Liberty
-Mutual/TJ Maxx opener into a trimmed Truist Bank close — every sentence
-below is lifted verbatim from the full version above, nothing reworded.
+Drops the Liberty Mutual/TJX paragraph and the detailed Truist
+paragraph, keeping the opening claim, a short current-role ownership
+line, and the closing result — every sentence below is lifted verbatim
+from the full version above, nothing reworded.
 
-> "I have 14+ years in IT, with the last 12 focused specifically on
-> designing and operating AWS and Azure *together*, not as separate
-> silos. At Liberty Mutual and then TJ Maxx, I helped establish some of
-> the first company-wide Azure Landing Zone patterns at each
-> organization, standardizing how new applications got deployed
-> securely from day one — including surviving TJ Maxx's peak holiday
-> retail traffic without disruption. Today, as Senior Multi-Cloud
-> DevOps & Security Engineer at Truist Bank, I've defined the reusable
-> AWS-Azure patterns other teams across the bank build on, run
-> companion EKS and AKS clusters, unified AWS and Azure security
-> posture (Organizations/SCPs/Security Hub/GuardDuty alongside
-> Sentinel/Defender for Cloud/Azure Policy) into one view of risk, and
-> cut release cycle time by roughly 40% using Azure DevOps and GitHub
-> Actions."
+> "I'm a multi-cloud DevOps and security leader with 14 years in IT,
+> including 12 building AWS and Azure as a single operating model
+> rather than two separate clouds. That's the thread through my whole
+> career: making the secure path the fastest path. Today at Truist, I
+> own the reusable AWS–Azure platform patterns that engineering teams
+> across the bank build on. The result: by standardizing CI/CD on Azure
+> DevOps and GitHub Actions, we reduced release cycle time by roughly
+> 40% while strengthening governance and operational resilience at the
+> same time. Faster and safer - that's the outcome I'm known for
+> delivering, and it's what I'd bring here."
 
-~130 words, roughly 45 seconds spoken.
+~110 words, roughly 45 seconds spoken.
 
 Full architecture designs (network diagrams built from real Azure/AWS
 icons, plus interview questions) exist for every role in this pitch:
