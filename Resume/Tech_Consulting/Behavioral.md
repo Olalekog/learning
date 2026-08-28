@@ -2,7 +2,7 @@
 
 # Gabriel O — Behavioral Interview Answers
 
-Two sets of answers. **Part 1** is grounded in the actual Gabriel O
+Three sets of answers. **Part 1** is grounded in the actual Gabriel O
 resume (Truist Bank, Regeneron, Southern Company, Rivian, TJ Maxx,
 Liberty Mutual, Alteryx) — every answer ties back to something real on
 that resume. **Part 2** answers a separate batch of frontend/engineering
@@ -10,7 +10,10 @@ practice questions (React Native, module federation, reusable
 components) that don't match this resume's actual work history — those
 are answered generically, from general engineering best practice, and
 explicitly flagged as such rather than invented as Gabriel O experience.
-Companion to
+**Part 3** covers identity-engineering and team-leadership questions
+that are **not part of the Gabriel O resume at all** — real but
+thin/unverified answers built from a few short facts provided directly,
+not from any resume document, and flagged as such. Companion to
 [STAR-Scenarios.md](STAR-Scenarios.md) and
 [Project-Deep-Dive-and-Interview-Prep.md](Project-Deep-Dive-and-Interview-Prep.md)
 in this folder.
@@ -20,6 +23,7 @@ in this folder.
 1. [Part 1 — Behavioral Questions (Resume-Grounded)](#part-1)
 2. [Conflict Resolution — A Case Study Per Role](#conflict-case-studies)
 3. [Part 2 — Engineering Practice Questions (Generic)](#part-2)
+4. [Part 3 — Identity Engineering & Team Leadership (Separate, Unverified)](#part-3)
 
 ---
 
@@ -551,5 +555,54 @@ missing bit of documentation, a flaky test). The personal-interest
 project is valuable too, but Friday afternoon with real focus time is
 exactly the slot where a small, concrete team improvement is most
 likely to actually ship rather than stay a good intention.
+
+[⬆ Back to top](#top)
+
+---
+
+## Part 3 — Identity Engineering & Team Leadership (Separate, Unverified) {#part-3}
+
+**Not part of the Gabriel O resume or any other document in this
+folder.** Built from a handful of short facts provided directly in
+conversation, not from a resume — several details (what the team
+specifically built, the scale of the identity work, concrete
+outcomes/incidents) were never provided and remain unfilled. Treat
+these as a starting draft, not a finished, interview-ready answer —
+each one will not survive a specific technical follow-up question
+without those gaps closed first.
+
+### "Tell me about your experience leading identity engineering with Entra ID, specifically Conditional Access and authentication frameworks."
+
+> "I configured Conditional Access policies in Microsoft Entra ID
+> requiring both multi-factor authentication and device registration
+> before granting access — so authentication verified both the person
+> and the device, not just one or the other. MFA alone confirms the
+> user; device registration confirms the endpoint is one the
+> organization actually recognizes and trusts. Requiring both together
+> closes a gap that either policy alone leaves open — a compromised
+> credential with MFA satisfied on an unmanaged, unknown device is
+> still a real risk that device-based conditions catch."
+
+**Known gap**: no specifics on environment scale, a concrete incident
+or audit driver, or outcomes/metrics — the first likely follow-up
+("what problem did this actually solve, and how do you know it
+worked?") isn't yet answerable from what's been provided.
+
+### "Have you supervised a team of engineers in a hybrid cloud environment?"
+
+> "I've led a team of five engineers working across multiple cloud
+> providers, combining technical and people leadership rather than
+> just one or the other. On the technical side, I set direction for
+> the team's work and reviewed their designs before they shipped, so I
+> was accountable for the quality and consistency of what the team
+> delivered across both cloud environments. On the people side, I had
+> input into hiring decisions for the team and was involved in their
+> career development — not just directing day-to-day work, but
+> investing in where each person was headed."
+
+**Known gap**: what the team was actually responsible for building or
+operating was never specified — "reviewed their designs" invites the
+immediate question "designs of what?" and that isn't yet answerable
+either.
 
 [⬆ Back to top](#top)
