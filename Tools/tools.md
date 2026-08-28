@@ -87,6 +87,33 @@ This table is the quick-reference layer.
 | **Helm** | Official CNCF tagline: **"The Kubernetes Package Manager."** CNCF graduated project (graduated May 2020) — templated YAML manifests (Go templates) bundled into versioned, distributable "charts," parameterized via `values.yaml`; tracks installed **releases** natively (`helm history`/`rollback`) and has a real packaging ecosystem (Artifact Hub) for installing third-party software. | Installing/packaging reusable, distributable software — third-party charts (Prometheus, cert-manager) or packaging your own app for others to consume. | You need a real chart ecosystem, release/rollback tracking, or are consuming third-party software already distributed as a chart. |
 | **Kustomize** | A **template-free** Kubernetes configuration customization tool built into `kubectl` (`kubectl apply -k`) — patches plain YAML you already own via a `base/` plus environment-specific `overlays/`, using strategic-merge or JSON patches and generators (`configMapGenerator`, `secretGenerator`), with no templating language at all. Not a separately CNCF-listed project — maintained as a Kubernetes SIG-CLI subproject, under the CNCF-graduated Kubernetes project's own governance. | Managing environment-specific variants of manifests you already own, without needing to package or distribute them. | You want to avoid a templating language entirely and prefer plain, diffable YAML with structured overlays. |
 
+### Helm Glossary: Client, Chart, Release, Repository
+
+"Helm" names both the whole project and several distinct parts of it —
+worth being precise about which one a question is actually asking
+about. Official definitions, from the
+[Helm glossary](https://helm.sh/docs/glossary/):
+
+| Term | Official Definition |
+|---|---|
+| **Helm Client (CLI)** | The `helm` command-line binary itself — "a platform-specific binary which is installed on your computer or server" that performs Helm operations (`install`, `upgrade`, `rollback`, etc.). This is the tool; a Chart is what it operates on. |
+| **Chart** | "A Helm package that contains information sufficient for installing a set of Kubernetes resources into a Kubernetes cluster." |
+| **Release** | "When a chart is installed, the Helm library creates a release to track that installation" — a single chart can be installed multiple times, each as its own release, each independently upgradable/rollback-able. |
+| **Repository (Chart Repository)** | An HTTP server hosting charts, with an index file describing what's available and where to download it from — what `helm repo add` points at, and what Artifact Hub aggregates. |
+
+## Interview Keyword
+If asked "what is Helm," the precise answer names all four: the
+**Client** is the binary you run, a **Chart** is the package it
+installs, installing a Chart creates a **Release** (trackable,
+upgradable, rollback-able), and a **Repository** is where Charts are
+hosted for the Client to pull from. Conflating "Helm" with just "the
+CLI" misses that a Chart and a Release are the actual artifacts Helm's
+value comes from.
+
+[⬆ Back to top](#top)
+
+---
+
 ### Helm Chart vs. Kustomize — Full Comparison
 
 | Aspect | Helm | Kustomize |
