@@ -2,13 +2,13 @@
 
 +1-214-564-5701 | ogogundare@gmail.com | [linkedin.com/in/olalekan-o-08276144](https://www.linkedin.com/in/olalekan-o-08276144/)
 
-**Senior Cloud Infrastructure Engineer | DevOps & DevSecOps**
+**Senior Infrastructure | DevOps and Platform Engineer**
 
 ---
 
 ## Summary
 
-Senior Cloud Infrastructure Engineer and DevOps/DevSecOps specialist with 10+ years designing, automating, and securing large-scale AWS and Azure environments. Deep expertise in Infrastructure as Code (Terraform), Kubernetes (EKS), CI/CD pipeline engineering (Jenkins, GitHub Actions, Harness), and embedding security controls (SAST, IaC scanning, policy-as-code) directly into the software delivery lifecycle. Modernized multi-account, multi-billion-dollar cloud platforms to 99.99% availability and 40% faster deployments, while operating in regulated financial and healthcare environments (SOC 2, HIPAA).
+Senior Infrastructure, DevOps, and Platform Engineer with 10+ years designing, automating, and securing large-scale AWS and Azure environments — building the reusable platforms, pipelines, and guardrails other engineering teams build on, not just point solutions. Deep expertise in Infrastructure as Code (Terraform), Kubernetes (EKS), CI/CD pipeline engineering (Jenkins, GitHub Actions, Harness), and embedding security controls (SAST, IaC scanning, policy-as-code) directly into the software delivery lifecycle — the DevSecOps discipline of making the secure path the default path. Modernized multi-account, multi-billion-dollar cloud platforms to 99.99% availability and 40% faster deployments, while operating in regulated financial and healthcare environments (SOC 2, HIPAA).
 
 ---
 
@@ -16,16 +16,16 @@ Senior Cloud Infrastructure Engineer and DevOps/DevSecOps specialist with 10+ ye
 
 | Category | Skills |
 |---|---|
-| **Cloud Platforms** | AWS (EC2, VPC, S3, EBS, EFS, FSx, RDS, DynamoDB, EKS, Lambda, IAM, KMS, CloudFront, Route 53, ELB, SNS/SQS, EventBridge, Organizations, Control Tower), Microsoft Azure (VMs, VNet, Storage, Entra ID, hybrid connectivity) |
+| **Cloud Platforms** | AWS (EC2, VPC, S3, EBS, EFS, FSx, RDS, DynamoDB, EKS, Fargate, ECS, Lambda, IAM, KMS, CloudFront, Route 53, ELB, SNS/SQS, EventBridge, Organizations, Control Tower), Microsoft Azure (VMs, VM Scale Sets, AKS, Container Apps, VNet, Storage, Entra ID, Azure Policy, hybrid connectivity) |
 | **Infrastructure as Code** | Terraform (modules, remote state, Sentinel/OPA policy gates), Terragrunt, Bicep, AWS CloudFormation, Ansible |
 | **Containers & Orchestration** | Kubernetes (EKS), Docker, Helm, multi-tenant RBAC & namespace isolation |
-| **CI/CD & DevOps Tooling** | Jenkins, GitHub Actions, Harness, GitLab CI, Bitbucket Pipelines |
-| **DevSecOps & Security** | SAST, dependency/secret/container scanning, IaC security gates (OPA, Sentinel), IAM/SCP/NACL enforcement, GuardDuty, Security Hub, Inspector, CloudTrail, IAM Access Analyzer, CrowdStrike, Qualys, Tanium |
+| **CI/CD & DevOps Tooling** | Azure DevOps (Pipelines, Boards, Repos, Artifacts), Jenkins, GitHub Actions, Harness, GitLab CI, Bitbucket Pipelines |
+| **DevSecOps & Security** | SAST, dependency/secret/container scanning, IaC security gates (OPA, Sentinel), IAM/SCP/NACL enforcement, GuardDuty, Security Hub, Inspector, CloudTrail, IAM Access Analyzer, CrowdStrike, Qualys, Tanium, Microsoft Entra ID (Conditional Access, Privileged Identity Management, App Registrations, Identity Governance) |
 | **Observability** | CloudWatch, Prometheus, Grafana, ELK/OpenSearch, Fluentd/Fluent Bit, Kafka/MSK monitoring, ServiceNow incident automation |
 | **FinOps & Cost Optimization** | Rightsizing, Savings Plans, Spot instances, lifecycle automation, cost governance/reporting |
-| **Storage & Data Protection** | SAN/NAS (Hitachi, EMC VMAX/VSP, NetApp), backup/DR (Avamar, SRDF, TrueCopy), FSx Lustre |
+| **Storage & Data Protection** | SAN/NAS (Hitachi, EMC VMAX/VSP, NetApp), backup/DR (Avamar, SRDF, TrueCopy, Azure Backup, Azure Site Recovery, AWS Backup), FSx Lustre |
 | **Big Data & Analytics** | Hadoop, Apache Spark, AWS EMR, ETL pipeline development |
-| **MLOps & AI/ML Platforms** | AWS SageMaker, Azure Machine Learning, GCP Vertex AI, Amazon Bedrock, model CI/CD, model registries, automated retraining/monitoring |
+| **MLOps & AI/ML Platforms** | AWS SageMaker (Pipelines, Model Registry, endpoints), Azure Machine Learning (pipelines, model registry), Amazon Bedrock, model CI/CD, automated retraining/monitoring |
 | **Programming & Scripting** | Python (PySpark, pandas), Bash |
 
 ---
@@ -35,13 +35,16 @@ Senior Cloud Infrastructure Engineer and DevOps/DevSecOps specialist with 10+ ye
 ### Cloud and DevOps Engineering
 **Tech Consulting** | May 2026 – Present
 
-- Built and operated multi-cloud compute, storage, and serverless platforms across Azure (Virtual Machines, VM Scale Sets, Azure Batch, Storage Accounts, Azure Functions, App Services), AWS (EC2, S3, Lambda, EBS), and GCP (Compute Engine, Cloud Storage, Cloud Functions, Persistent Disk) for client workloads.
-- Deployed and managed containerized platforms on Azure Kubernetes Service (AKS), Amazon EKS, and Google Kubernetes Engine (GKE), using Terraform, ARM templates, and Pulumi for consistent infrastructure-as-code across all three providers.
-- Built and maintained CI/CD pipelines in Azure DevOps, AWS CodePipeline, Google Cloud Build, and GitHub Actions for automated build/test/deploy, and automated configuration management with Ansible.
-- Implemented cloud security controls across all three platforms — Azure RBAC/NSGs/Key Vault/Defender for Cloud, AWS IAM/Security Groups/KMS/GuardDuty, and GCP IAM/VPC Service Controls/Cloud KMS/Security Command Center — for continuous posture monitoring and encryption at rest/in transit.
-- Configured hybrid and multi-cloud network connectivity (VNet/Hub-and-Spoke, AWS VPC/Transit Gateway, GCP VPC/Shared VPC, VPN/ExpressRoute/Cloud Interconnect) and set up Azure Front Door, AWS CloudFront, and Google Cloud CDN for low-latency application delivery.
-- Monitored performance, availability, and cost using Azure Monitor + Cost Management, AWS CloudWatch + Cost Explorer, and GCP Cloud Monitoring + Billing reports; implemented auto-scaling and caching to optimize workload efficiency and spend across all three clouds.
-- Built MLOps pipelines for model training, versioning, and deployment across cloud-native ML platforms — AWS SageMaker, Azure Machine Learning, and GCP Vertex AI — integrating CI/CD, model registries, and automated retraining/monitoring workflows for production ML services.
+- Led AWS and Azure platform engineering for client engagements — building reusable landing zone patterns, self-service infrastructure modules, and golden-path Terraform/ARM templates that client engineering teams adopted directly instead of provisioning environments by hand.
+- Built and operated cloud compute, storage, and serverless platforms across Azure (Virtual Machines, VM Scale Sets, Azure Batch, Storage Accounts, Azure Functions, App Services, Container Apps) and AWS (EC2, S3, Lambda, EBS, Fargate, ECS) for client workloads.
+- Deployed and managed containerized platforms on Azure Kubernetes Service (AKS) and Amazon EKS — node pool/Cluster Autoscaler and Karpenter-based scaling, Helm-packaged workloads, and multi-tenant namespace isolation — using Terraform, ARM/Bicep templates, and Pulumi for consistent infrastructure-as-code across both providers.
+- Built and maintained CI/CD pipelines in Azure DevOps (YAML pipelines, environment approvals), AWS CodePipeline/CodeBuild, and GitHub Actions for automated build/test/deploy, and automated configuration management with Ansible.
+- Implemented cloud security controls across both platforms — Azure RBAC/NSGs/Key Vault/Defender for Cloud/Azure Policy, and AWS IAM/SCPs/Security Groups/KMS/GuardDuty/Security Hub — for continuous posture monitoring and encryption at rest/in transit.
+- Administered Microsoft Entra ID identity and access management for client tenants — Conditional Access policies (MFA and device-registration enforcement), Privileged Identity Management for just-in-time role elevation, and App Registrations/Enterprise Applications governance.
+- Designed backup, disaster recovery, and resilience strategies using Azure Backup and Azure Site Recovery (cross-region failover, RTO/RPO-driven recovery tiers) alongside AWS Backup and cross-region replication, validated through regular recovery drills rather than assuming failover would work untested.
+- Configured hybrid and multi-cloud network connectivity (Azure VNet/Hub-and-Spoke/ExpressRoute, AWS VPC/Transit Gateway/Direct Connect, site-to-site VPN) and set up Azure Front Door and AWS CloudFront for low-latency application delivery.
+- Monitored performance, availability, and cost using Azure Monitor + Cost Management and AWS CloudWatch + Cost Explorer; implemented auto-scaling and caching to optimize workload efficiency and spend across both clouds.
+- Built MLOps pipelines for model training, versioning, and deployment across cloud-native ML platforms — AWS SageMaker and Azure Machine Learning — integrating CI/CD, model registries, and automated retraining/monitoring workflows for production ML services.
 
 ### AVP, Public Cloud Service — Cloud Engineering & DevOps
 **Citibank** | Irving, Texas | Feb 2023 – Apr 2026
@@ -121,17 +124,14 @@ Senior Cloud Infrastructure Engineer and DevOps/DevSecOps specialist with 10+ ye
 
 ## Certifications
 
-- AWS Certified Solutions Architect – Professional
-- AWS Certified Security – Specialty
-- HashiCorp Certified: Terraform Associate
-- Certified Kubernetes Administrator (CKA)
-- Kubernetes and Cloud Native Associate (KCNA)
-- AWS Certified Solutions Architect – Associate
-- AWS Certified SysOps Administrator – Associate
-- AWS Certified Developer – Associate
-- AWS Certified Cloud Practitioner
-- FinOps Certified Practitioner
-- Microsoft Certified: Azure Fundamentals
+| | |
+|---|---|
+| AWS Certified Solutions Architect – Professional | AWS Certified Solutions Architect – Associate |
+| AWS Certified Security – Specialty | AWS Certified SysOps Administrator – Associate |
+| HashiCorp Certified: Terraform Associate | AWS Certified Developer – Associate |
+| Certified Kubernetes Administrator (CKA) | AWS Certified Cloud Practitioner |
+| Kubernetes and Cloud Native Associate (KCNA) | FinOps Certified Practitioner |
+| Microsoft Certified: Azure Fundamentals | |
 
 ---
 
