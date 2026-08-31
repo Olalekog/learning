@@ -605,4 +605,90 @@ operating was never specified — "reviewed their designs" invites the
 immediate question "designs of what?" and that isn't yet answerable
 either.
 
+### "Where do you stand on the team — individual contributor, senior member, or team lead?"
+
+> "It's been a progression rather than one fixed position — I started
+> as an individual contributor, grew into the senior/go-to technical
+> role on my teams, and moved into a team lead position from there,
+> which is the capacity I led the five-person, multi-cloud team in.
+> I'd frame it as: I've done the IC work myself long enough to still be
+> credible reviewing someone else's design, not just managing from a
+> distance."
+
+### "How do you manage tasks?"
+
+> "I prioritize based on what's actually blocking someone else's work
+> first, then what's time-sensitive, then everything else — a task
+> blocking a teammate outranks a task that's just due soon but isn't
+> stopping anyone. I break larger work into checkpoints I can validate
+> early rather than working heads-down and finding a problem at the
+> end, and I keep a running view of what's in flight so nothing falls
+> through silently."
+
+### "How do you manage other team members assigned to the project?"
+
+> "For the team of five, delegation started with matching work to each
+> person's strength or growth area, not just clearing my own plate — I
+> assigned based on who was best positioned to do it well or who would
+> grow from doing it, and I made sure the person owned the outcome, not
+> just the task, so they were accountable for the result rather than
+> just executing steps I'd handed them. I set the technical direction
+> and reviewed designs before they shipped, but the implementation
+> decisions within that direction were theirs to make."
+
+**Known gap**: same as above — without a concrete example of what was
+actually delegated and what the outcome was, this stays a description
+of a process rather than a demonstrated one.
+
+### "How do you lead a project?"
+
+> "I start by making sure the actual goal and constraints are clear to
+> everyone before assigning any work — a lot of project friction comes
+> from people building against slightly different understandings of
+> the goal, not from bad execution. From there, I set milestones people
+> can check their own progress against, stay closely involved early
+> when direction is most ambiguous, and pull back as the plan solidifies
+> so people aren't waiting on me for every decision."
+
+### "How do you achieve clarity with diverse backgrounds to reach a common goal?"
+
+> "I translate the goal into terms that matter to each specific group,
+> rather than expecting everyone to work from the same technical
+> framing. A shared goal stated abstractly means something different to
+> an engineer, a compliance stakeholder, and a business sponsor —
+> clarity comes from making sure each of them can see specifically what
+> it means for their part, not from repeating the same sentence louder
+> to everyone."
+
+### "How do you use your leadership skills to motivate your colleagues?"
+
+> "I lead by being consistently useful under pressure — showing up for
+> the hard moments, not just the easy wins — and by giving specific,
+> public credit for what people actually did, since vague praise
+> doesn't motivate the way naming a real contribution does. I also try
+> to protect people's focus time from unnecessary interruptions where I
+> can, since sustained motivation comes more from being able to do
+> meaningful work uninterrupted than from any pep talk."
+
+### "Why are you looking for a new opportunity?"
+
+> "I'm looking for a role where the scope matches the depth of work
+> I've already been doing — somewhere platform engineering, DevSecOps,
+> and identity/security work is the core of the mandate, not something
+> layered onto a narrower role."
+
+### "What rate are you looking for in your next position?"
+
+> "I'd want to understand the full scope of the role and the total
+> compensation structure before landing on a specific number.
+> Directionally, I'm targeting a range consistent with senior/lead-level
+> infrastructure and DevOps engineering roles for the relevant market,
+> and I'm flexible on the mix of base, bonus, and equity depending on
+> the rest of the package."
+
+**Known gap**: no actual target number or range was given — this is a
+placeholder framing, not a real figure. Fill in an actual range before
+using this in a live conversation, since "flexible" without any number
+attached can read as evasive rather than genuinely open.
+
 [⬆ Back to top](#top)
