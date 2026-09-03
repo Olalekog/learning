@@ -53,6 +53,24 @@ flexibility and scale,"* running performance-optimized builds of
 Spark, Trino, Flink, and Hive, with open table format support
 (Iceberg, Hudi, Delta).
 
+### Current Engine Versions (EMR Release 7.13.0, April 2026)
+
+| Component | Version |
+|---|---|
+| **Apache Spark** | 3.5.6-amzn-2 |
+| Hadoop | 3.4.2-amzn-0 |
+| Hive | 3.1.3-amzn-22 |
+| Python | 3.9, **3.11** (3.11 is now the default for PySpark/Spark workloads as of 7.13.0; 3.9 remains default elsewhere) |
+| Scala | 2.12.18 |
+| Java | Amazon Corretto 17 (default, JDK 17) |
+
+The `-amzn-N` suffix means AWS has patched/backported fixes onto that
+open-source version — not a fork, AWS-applied patches on top of
+community Spark 3.5.6. Each EMR release label (`emr-7.13.0`,
+`emr-6.15.0`, etc.) pins one specific combination of these versions —
+picking a release is effectively picking a Spark version, not a
+separate decision.
+
 **How they relate**: Hadoop is the original distributed storage
 (HDFS) + resource management (YARN) + processing (MapReduce) stack;
 Spark is a faster, more general processing engine that can run *on
