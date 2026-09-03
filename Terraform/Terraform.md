@@ -1305,15 +1305,60 @@ terraformer import aws --resources=s3 --regions=us-east-1
 
 ## Detecting Drift
 
+**Drift** = someone or something changed a resource outside of
+Terraform (console click-ops, another tool, an auto-scaling event) —
+the real infrastructure no longer matches what's recorded in
+`terraform.tfstate`. Undetected drift is dangerous specifically because
+the *next* `plan`/`apply` will try to silently "fix" the resource back
+to the old configured value, even when the out-of-band change was
+intentional.
+
 ```bash
-terraform plan -refresh-only        # show what changed in real infra vs state, without changing config
-terraform apply -refresh-only        # accept the drift into state (does not change real resources)
+terraform plan -refresh-only        # show what changed in real infra vs state, without touching config or resources
 ```
 
-Drift = someone/something changed a resource outside of Terraform (console
-click-ops, another tool, auto-scaling). `-refresh-only` surfaces it safely
-before a normal `plan`/`apply` would try to "fix" it back to the configured
-value.
+`-refresh-only` surfaces drift safely, as a read-only comparison,
+before a normal `plan`/`apply` would try to reconcile it.
+
+### Accept the Drift or Revert It — Two Different Commands
+
+| Situation | Command | Effect |
+|---|---|---|
+| The out-of-band change was legitimate and should become the new baseline | `terraform apply -refresh-only` | Updates *state* to match reality — does not touch the real resource |
+| The out-of-band change was accidental/unauthorized and should be undone | `terraform apply` (normal) | Pushes the *configured* value back onto the real resource — reverts the drift |
+
+Picking the wrong one either permanently accepts an unauthorized change
+into your source of truth, or reverts a legitimate emergency fix
+someone made by hand — know which case you're in before running either.
+
+### At Scale: Don't Wait to Discover Drift Manually
+
+Run `plan -refresh-only` on a schedule (a cron job in CI) and alert on
+any nonzero diff, rather than waiting for someone to notice unexpected
+changes during a routine `plan`. Terraform Cloud/Enterprise's paid
+tiers offer this as a built-in "health assessment" feature.
+
+### Caveat
+
+Not every attribute is refreshable — some provider attributes are
+write-only or only meaningfully known at creation time — so
+refresh-based drift detection is not a 100% guarantee of catching every
+out-of-band change.
+
+### Preventing Recurrence, Not Just Cleaning Up Once
+
+A one-time `apply -refresh-only`/`apply` fixes the drift you already
+found; it doesn't stop the next one. Durable fixes:
+
+- **Restrict console/CLI write access** to Terraform-managed resources
+  via SCPs/IAM, so the out-of-band change path is closed, not just
+  monitored.
+- **Tagging conventions** (e.g., `ManagedBy = terraform`) that make an
+  out-of-band change on a Terraform-owned resource obvious at a glance
+  in the console, not just in a `plan` diff.
+- **A scheduled drift-detection job** (the CI cron job above) that
+  alerts proactively, instead of relying on someone stumbling onto the
+  diff manually.
 
 [⬆ Back to top](#top)
 
