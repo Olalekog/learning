@@ -97,6 +97,11 @@ Terraform plan/apply gated through Jenkins/GitHub Actions/Azure DevOps pipelines
 
 ## 6. Big Data / Hadoop
 
+For the full technical deep-dive behind this section (definitions,
+architecture, scaling, monitoring, performance tuning,
+troubleshooting), see
+[AWS/EMR-Hadoop-Spark.md](../../AWS/EMR-Hadoop-Spark.md).
+
 **"Tell me about your experience with Hadoop and Spark on AWS."**
 Used Hadoop and Apache Spark on AWS EMR for big data and ETL workloads — *this is real experience confirmed for the main resume, not currently listed on this specific resume variant; worth adding there for consistency before an interview probes it.*
 
