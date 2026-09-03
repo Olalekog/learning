@@ -415,7 +415,11 @@ resource "aws_s3_bucket" "data" {
 
 `terraform.tfstate` is a JSON file mapping your configuration's resources to
 real-world object IDs. It is how Terraform knows what it manages, detects
-drift, and computes diffs on the next `plan`.
+drift, and computes diffs on the next `plan`. See
+[§16 Detecting Drift](#16-import-and-drift-detection) for the full
+detect/accept-or-revert/prevent-recurrence workflow — this section covers
+the state file itself (anatomy, locking, versioning, recovery), not the
+drift-handling process.
 
 **Never edit the state file by hand.** Use `terraform state` subcommands.
 
@@ -1311,7 +1315,8 @@ the real infrastructure no longer matches what's recorded in
 `terraform.tfstate`. Undetected drift is dangerous specifically because
 the *next* `plan`/`apply` will try to silently "fix" the resource back
 to the old configured value, even when the out-of-band change was
-intentional.
+intentional. (For the state file itself — anatomy, locking, versioning,
+recovery from a bad state — see [§7 State Management](#7-state-management).)
 
 ```bash
 terraform plan -refresh-only        # show what changed in real infra vs state, without touching config or resources
