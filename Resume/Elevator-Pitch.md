@@ -77,6 +77,37 @@ Texas A&M paragraph, the AI/ML platform sentence, and the Entra
 ID/backup-DR clause are cut for time, and the closing sentence is
 trimmed to fit the new title/framing.
 
+### 1b. ~60-Second Version
+
+Keeps the full storage → Luminous Logistic/Texas A&M → Citibank
+narrative intact (unlike the 45s cut, which skips straight from the
+storage opener to Citibank), but drops the AI/ML/FinOps sentence and
+the entire "Today, as a Senior Infrastructure..." closing paragraph
+(current role, Entra ID/backup-DR, certifications). Every sentence
+below is lifted verbatim from the full version above.
+
+> "My background spans over a decade in infrastructure, starting in
+> enterprise storage — leading SAN/NAS architecture and disaster
+> recovery for MTN Nigeria's environment — before moving fully into
+> cloud in 2019. At Luminous Logistic, supporting a healthcare client, I
+> built a multi-account AWS landing zone using Organizations and Control
+> Tower, enforcing HIPAA and SOC 2 compliance through Service Control
+> Policies and centralized guardrails. That hybrid-cloud and compliance
+> foundation carried into an engagement at Texas A&M, where I led cloud
+> migration and modernization work that delivered $1.2M in
+> infrastructure savings. My most recent full-time role was AVP of
+> Public Cloud Service at Citibank, where I owned reusable Terraform
+> modules standardizing AWS deployments across environments, ran
+> multi-tenant EKS clusters, and embedded DevSecOps directly into CI/CD
+> — SAST, IaC scanning, and policy-as-code gates with OPA and Sentinel.
+> That work drove 99.99% platform availability, 40% faster deployments,
+> and a 35% cut in incident detection and recovery time."
+
+~160 words, roughly 60-65 seconds spoken. Trades the current-role/
+certification close for keeping the full early-career narrative arc —
+use when the interviewer wants career history specifically, not a
+skills summary (pitch #2 below covers certs and current-role framing).
+
 [⬆ Back to top](#olalekan-ogundare--elevator-pitches)
 
 ---
