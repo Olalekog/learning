@@ -2,9 +2,9 @@
 
 # Interview & Presence Improvement Plan
 
-Personal self-assessment: three related delivery habits to work on
-before interviews — staying physically stationary, speaking clearly/
-sharply/coherently, and articulation. Companion to
+Personal self-assessment: delivery habits to work on before interviews
+— staying physically stationary, speaking clearly/sharply/coherently,
+articulation, and avoiding word repetition. Companion to
 [Elevator-Pitch.md](Elevator-Pitch.md) in this folder.
 
 ## Table of Contents
@@ -109,6 +109,34 @@ together or trailing off, especially on longer or more technical terms.
 - **Breathe from a full breath, not a shallow one**, before starting an
   answer — a shallow breath produces a thinner, less controlled voice
   that trails off toward the end of sentences.
+
+### Avoid repeating the same word
+
+**What's happening**: falling back on the same word or phrase
+repeatedly across an answer — a filler ("basically," "actually"), or a
+go-to verb used in every sentence ("built," "did"). It happens most
+under pressure, because the brain grabs whatever word is already loaded
+rather than searching for a fresher one — and it reads as either
+nervous or as a smaller vocabulary than you actually have.
+
+**How to fix it**:
+- **Build a personal "watch list" from recordings** — transcribe a few
+  practice answers and count word frequency. The same 3-4 words will
+  show up disproportionately; once named, they're far easier to catch
+  live than when they're an invisible habit.
+- **Pre-load 2-3 synonyms for your own go-to verbs** before an
+  interview — if "built" is the overused one: "designed,"
+  "implemented," "stood up," "delivered." Not about sounding fancier,
+  just breaking the automatic default.
+- **Pause at the word-choice moment, not just at sentence starts** —
+  repetition usually happens because you're mid-sentence and grab a
+  word before pausing. A half-second pause before finishing a clause
+  gives your brain a beat to pick something other than the default.
+- **Vary sentence structure, not just vocabulary** — opening every
+  answer with "So I..." or "I basically..." is a structural repeat even
+  when the verb changes. Rotate openers (a short lead-in, a direct
+  claim, a reframed question) to break the pattern at the sentence
+  level too.
 
 [⬆ Back to top](#top)
 
