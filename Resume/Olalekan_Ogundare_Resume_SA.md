@@ -16,15 +16,15 @@ Results-driven AWS Solutions Architect with deep knowledge of AWS core services,
 
 | Category | Skills |
 |---|---|
-| **Cloud Platforms** | AWS (EC2, VPC, IAM, Lambda, RDS, EKS, S3, DynamoDB, CloudWatch, Route 53, CloudFront, ELB), Microsoft Azure Fundamentals |
+| **Cloud Platforms** | AWS (EC2, VPC, IAM, Lambda, RDS, Aurora, EKS, S3, DynamoDB, DocumentDB, ElastiCache, CloudWatch, Route 53, CloudFront, ELB), Microsoft Azure Fundamentals |
 | **Serverless & Event-Driven Architecture** | AWS Lambda, API Gateway, Step Functions, EventBridge, SNS/SQS — designing low-maintenance, event-driven compute as an alternative/complement to containerized workloads |
 | **Solutions Architecture & Data** | AWS data ingestion pipelines (Kinesis, Lambda, EventBridge, Glue), Amazon OpenSearch, Amazon Bedrock (embeddings/RAG), Amazon SageMaker, S3 Vectors, high-performance storage (FSx for Lustre, EFS) |
-| **Infrastructure as Code** | Terraform (preferred), Terragrunt, OpenTofu, AWS CloudFormation |
+| **Infrastructure as Code** | Terraform (preferred; remote state via S3 + DynamoDB locking, environment promotion patterns), Terraform Enterprise/Cloud (workspace design, policy-as-code, VCS-driven workflows), Terragrunt, OpenTofu, AWS CloudFormation |
 | **Containers & Orchestration** | Docker, Docker Swarm, Kubernetes (Amazon EKS), Helm, containerized deployment architecture |
 | **Monitoring & Observability** | CloudWatch, Prometheus, Grafana, Splunk, SNS, EventBridge |
-| **Networking & Security** | VPC design, Security Groups, NACLs, IAM, KMS, CloudFront, Transit Gateway, PrivateLink, Load Balancers, VPN |
+| **Networking & Security** | VPC design (multi-account, multi-region), Security Groups, NACLs, IAM, KMS, Secrets Manager, CloudFront, Transit Gateway, PrivateLink, Load Balancers, VPN |
 | **Governance & FinOps** | AWS Organizations, Control Tower / Landing Zone / Account Factory, Service Control Policies, FinOps cost optimization |
-| **CI/CD & Automation** | GitHub Actions, Bitbucket, Jenkins, ArgoCD, Ansible, Python, Bash |
+| **CI/CD & Automation** | GitHub Actions, Bitbucket, Jenkins, XLR (Digital.ai/XebiaLabs Release), AWS CodePipeline, ArgoCD, Ansible, Python, Bash |
 | **Other** | Linux, Git, Agile, JIRA, Incident Management (on-call support), ServiceNow |
 
 ---
@@ -36,8 +36,12 @@ Results-driven AWS Solutions Architect with deep knowledge of AWS core services,
 
 - Built and operated multi-cloud compute, storage, and serverless platforms across Azure (Virtual Machines, VM Scale Sets, Azure Batch, Storage Accounts, Azure Functions, App Services), AWS (EC2, S3, Lambda, EBS), and GCP (Compute Engine, Cloud Storage, Cloud Functions, Persistent Disk) for client workloads.
 - Deployed and managed containerized platforms on Azure Kubernetes Service (AKS), Amazon EKS, and Google Kubernetes Engine (GKE), using Terraform, ARM templates, and Pulumi for consistent infrastructure-as-code across all three providers.
-- Built and maintained CI/CD pipelines in Azure DevOps, AWS CodePipeline, Google Cloud Build, and GitHub Actions for automated build/test/deploy, and automated configuration management with Ansible.
-- Implemented cloud security controls across all three platforms — Azure RBAC/NSGs/Key Vault/Defender for Cloud, AWS IAM/Security Groups/KMS/GuardDuty, and GCP IAM/VPC Service Controls/Cloud KMS/Security Command Center — for continuous posture monitoring and encryption at rest/in transit.
+- Administered Terraform Enterprise/Cloud for client organizations — workspace design and team/project structuring, policy-as-code enforcement via Sentinel, and VCS-driven workflows (PR-triggered plans, mandatory approval gates before apply).
+- Managed Terraform remote state via S3 backend with DynamoDB state locking, and used workspace- and branch-based environment promotion patterns (dev → staging → production) to control infrastructure rollout across client accounts.
+- Integrated Bitbucket Pipelines to automate Terraform plan/apply for client infrastructure, with required-reviewer quality gates and manual approval steps before any apply reached a shared environment.
+- Built and maintained CI/CD pipelines in Azure DevOps, AWS CodePipeline, Google Cloud Build, GitHub Actions, and XLR (Digital.ai/XebiaLabs Release) for automated build/test/deploy and orchestrated multi-environment release pipelines, with automated configuration management via Ansible.
+- Designed and provisioned AWS database services via reusable Terraform modules for client workloads — Aurora (PostgreSQL/MySQL-compatible) and RDS for relational workloads, DynamoDB for high-throughput key-value access patterns, DocumentDB for MongoDB-compatible document workloads, and ElastiCache for low-latency caching in front of primary datastores.
+- Implemented cloud security controls across all three platforms — Azure RBAC/NSGs/Key Vault/Defender for Cloud, AWS IAM/Security Groups/KMS/GuardDuty, and GCP IAM/VPC Service Controls/Cloud KMS/Security Command Center — with AWS Secrets Manager and Azure Key Vault for centralized secrets management, for continuous posture monitoring and encryption at rest/in transit.
 - Configured hybrid and multi-cloud network connectivity (VNet/Hub-and-Spoke, AWS VPC/Transit Gateway, GCP VPC/Shared VPC, VPN/ExpressRoute/Cloud Interconnect) and set up Azure Front Door, AWS CloudFront, and Google Cloud CDN for low-latency application delivery.
 - Monitored performance, availability, and cost using Azure Monitor + Cost Management, AWS CloudWatch + Cost Explorer, and GCP Cloud Monitoring + Billing reports; implemented auto-scaling and caching to optimize workload efficiency and spend across all three clouds.
 
@@ -45,8 +49,8 @@ Results-driven AWS Solutions Architect with deep knowledge of AWS core services,
 **Citibank** | Irving, Texas | Feb 2023 – Mar 2026
 
 **Infrastructure & Architecture**
-- Architected and secured AWS infrastructure (EC2, EBS, S3, EFS, FSx, VPC, CloudFront, Route 53, Security Groups/NACLs, DynamoDB, RDS, KMS, IAM, ELB, CloudWatch, SNS) supporting highly available, multi-AZ workloads.
-- Designed and deployed highly available AWS infrastructure using EC2, VPC, and Auto Scaling across multi-AZ environments; supported migration of on-prem workloads to AWS using lift-and-shift and replatform strategies.
+- Architected and secured AWS infrastructure (EC2, EBS, S3, EFS, FSx, VPC, CloudFront, Route 53, Security Groups/NACLs, DynamoDB, RDS, KMS, IAM, ELB, CloudWatch, SNS) supporting highly available, multi-AZ and multi-region workloads.
+- Designed and deployed highly available AWS infrastructure using EC2, VPC, and Auto Scaling across multi-AZ and multi-region environments, with Route 53 failover routing and cross-region replication for regional resilience; supported migration of on-prem workloads to AWS using lift-and-shift and replatform strategies.
 - Built and maintained a library of reusable, secure, and compliant Terraform modules, blueprints, and golden machine images, standardizing infrastructure provisioning for application developers across environments and accounts.
 - Designed secure networking architectures using Transit Gateway, VPN, and private subnets.
 
