@@ -16,12 +16,13 @@ in this repo.
 2. [Architecture & Key Concepts](#2-architecture--key-concepts)
 3. [Features & Characteristics](#3-features--characteristics)
 4. [Big Data & ETL Workload Patterns](#4-big-data--etl-workload-patterns)
-5. [Scaling](#5-scaling)
-6. [Monitoring](#6-monitoring)
-7. [Performance Tuning](#7-performance-tuning)
-8. [Troubleshooting](#8-troubleshooting)
-9. [Support](#9-support)
-10. [Interview Questions](#10-interview-questions)
+5. [S3 Bucket Access Permissions](#5-s3-bucket-access-permissions)
+6. [Scaling](#6-scaling)
+7. [Monitoring](#7-monitoring)
+8. [Performance Tuning](#8-performance-tuning)
+9. [Troubleshooting](#9-troubleshooting)
+10. [Support](#10-support)
+11. [Interview Questions](#11-interview-questions)
 
 ---
 
@@ -198,7 +199,104 @@ storage cost and I/O time.
 
 ---
 
-## 5. Scaling
+## 5. S3 Bucket Access Permissions
+
+EMR clusters don't get S3 access by magic — every read/write through
+EMRFS is authorized the same way any AWS API call is: through IAM.
+Three separate permission layers matter, and a gap in any one of them
+produces an `AccessDenied` error that looks identical from the Spark
+job's point of view.
+
+### The Three Layers
+
+| Layer | What It Controls | Where It's Configured |
+|---|---|---|
+| **EC2 Instance Profile (EMR role)** | The IAM role actually attached to every node in the cluster — this is the identity Spark/Hadoop processes use to call S3, whether or not a human is involved. | Specified at cluster creation (`EMR_EC2_DefaultRole` or a custom role) |
+| **IAM policy on that role** | Which specific S3 actions (`s3:GetObject`, `s3:PutObject`, `s3:ListBucket`, etc.) and which bucket/prefix ARNs are allowed. | An IAM policy attached to the instance profile role |
+| **S3 bucket policy (if cross-account or extra restriction)** | An additional, resource-side check — even a fully-permitted IAM principal can still be denied if the bucket policy doesn't also allow it. | Set directly on the S3 bucket |
+
+**A request only succeeds if all applicable layers agree** — the
+IAM policy on the role and the bucket policy (if one exists) are
+evaluated together, and an explicit `Deny` in *either* wins regardless
+of what the other allows.
+
+### Minimal IAM Policy Shape for EMR-to-S3 Access
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "arn:aws:s3:::my-data-lake-bucket/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::my-data-lake-bucket"
+    }
+  ]
+}
+```
+
+Two details that trip people up: **`s3:ListBucket` is a
+bucket-level permission** (its `Resource` is the bucket ARN itself,
+no trailing `/*`), while `GetObject`/`PutObject`/`DeleteObject` are
+**object-level permissions** (`Resource` needs the trailing `/*`) —
+mixing these up is one of the most common causes of a job that can
+list a bucket's contents but fails to actually read the objects in it,
+or vice versa.
+
+### Cross-Account S3 Access
+
+When the EMR cluster's account is different from the S3 bucket's
+owning account, IAM alone isn't enough — the **bucket policy** in the
+owning account must also explicitly grant the EMR cluster's role
+(or account) access, since a resource in another account doesn't
+implicitly trust your IAM policies. This is the same
+"both sides must agree" model as cross-account IAM role assumption
+generally, just expressed as a bucket policy instead of a role trust
+policy.
+
+### Least-Privilege Scoping
+
+- **Scope by prefix, not just bucket** — if a cluster only ever needs
+  `s3://data-lake/raw/` and `s3://data-lake/curated/`, scope the
+  policy's `Resource` to those prefixes specifically rather than the
+  whole bucket, so a misconfigured job can't accidentally read or
+  overwrite unrelated data in the same bucket.
+- **Separate read-only and read-write roles** where the workload
+  allows it — a job that only reads raw data and writes to a distinct
+  curated-output prefix doesn't need delete permission on the raw
+  zone at all.
+- **KMS permissions are separate from S3 permissions** — if the bucket
+  uses SSE-KMS encryption, the role also needs `kms:Decrypt` (and
+  `kms:GenerateDataKey` for writes) on the specific key, independent
+  of the S3 permissions above; an otherwise-correct S3 policy still
+  fails with `AccessDenied` if the KMS key policy doesn't also permit
+  that role.
+
+### Interview Keyword
+If asked "why is my EMR job getting `AccessDenied` on S3," walk
+through the layers in order: **is the instance profile role correct
+for this cluster → does that role's IAM policy actually cover this
+bucket/prefix and this specific action → is there a bucket policy
+(especially cross-account) that also needs to allow it → if the
+bucket uses SSE-KMS, does the role have `kms:Decrypt`/
+`kms:GenerateDataKey` on that specific key**. Assuming it's always
+the IAM policy on the role, when it's actually a missing KMS
+permission or an unset bucket policy, is a very common wrong turn.
+
+[⬆ Back to top](#top)
+
+---
+
+## 6. Scaling
 
 | Scaling Lever | What It Does | When to Use |
 |---|---|---|
@@ -218,7 +316,7 @@ light stage and starve a heavy one.
 
 ---
 
-## 6. Monitoring
+## 7. Monitoring
 
 | Tool | What It Shows | When to Use |
 |---|---|---|
@@ -239,7 +337,7 @@ wastes time mid-incident.
 
 ---
 
-## 7. Performance Tuning
+## 8. Performance Tuning
 
 | Area | What to Tune | How to Check | How to Improve |
 |---|---|---|---|
@@ -256,7 +354,7 @@ wastes time mid-incident.
 
 ---
 
-## 8. Troubleshooting
+## 9. Troubleshooting
 
 | Symptom | Likely Cause | Fix |
 |---|---|---|
@@ -273,7 +371,7 @@ wastes time mid-incident.
 
 ---
 
-## 9. Support
+## 10. Support
 
 - **AWS Support plans** — EMR issues (cluster provisioning failures,
   service-level bugs) are covered under standard AWS Support tiers
@@ -296,7 +394,7 @@ wastes time mid-incident.
 
 ---
 
-## 10. Interview Questions
+## 11. Interview Questions
 
 **"What's the difference between Hadoop and Spark, and why do people still use both terms together?"**
 Hadoop is the original distributed storage (HDFS) + resource management (YARN) + processing (MapReduce) stack; Spark is a faster, more general in-memory processing engine that typically runs *on top of* YARN, replacing MapReduce as the processing model while still relying on Hadoop's cluster resource management. Most "Hadoop clusters" today are really running Spark as the primary engine.
