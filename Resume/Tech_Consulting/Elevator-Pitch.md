@@ -62,6 +62,33 @@ from the full version above, nothing reworded.
 
 ~110 words, roughly 45 seconds spoken.
 
+### 1b. ~60-Second Version
+
+Adds back the Liberty Mutual/TJX paragraph (dropped in the 45s cut)
+after the opening claim, keeps the short Truist ownership line, and
+trims the closing to just the quantified result — drops the "Faster
+and safer" flourish sentence and the detailed Truist paragraph's
+middle (EKS/AKS, unified security posture, compliant-by-construction
+detail). Every sentence below is lifted verbatim from the full version
+above.
+
+> "I'm a multi-cloud DevOps and security leader with 14 years in IT,
+> including 12 building AWS and Azure as a single operating model
+> rather than two separate clouds. That's the thread through my whole
+> career: making the secure path the fastest path. At Liberty Mutual
+> and TJX, I helped design the enterprise Azure Landing Zone patterns
+> that turned governed, secure deployment into the default for
+> application teams instead of an afterthought. At TJX, those
+> foundations carried business-critical retail workloads through peak
+> holiday traffic, the highest-stakes window in retail, with zero
+> disruption. Today at Truist, I own the reusable AWS–Azure platform
+> patterns that engineering teams across the bank build on. The
+> result: by standardizing CI/CD on Azure DevOps and GitHub Actions, we
+> reduced release cycle time by roughly 40% while strengthening
+> governance and operational resilience at the same time."
+
+~140 words, roughly 58-60 seconds spoken.
+
 Full architecture designs (network diagrams built from real Azure/AWS
 icons, plus interview questions) exist for every role in this pitch:
 [Truist-Bank-Architecture-Design.md](Truist-Bank-Architecture-Design.md),
