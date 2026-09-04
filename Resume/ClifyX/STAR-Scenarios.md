@@ -37,12 +37,21 @@ performance for the workloads depending on it.
 Savings Plans, Spot usage, and — specifically for storage — automated
 FSx lifecycle policies that moved data through cost tiers based on
 actual access patterns rather than leaving everything in the most
-expensive tier indefinitely.
+expensive tier indefinitely. This included orphaned-resource
+cleanup as a standing practice rather than a one-time sweep: identifying
+FSx for Lustre file systems no longer attached to an active job or
+cluster and decommissioning them (an idle Lustre file system still
+bills for provisioned throughput/capacity whether or not anything is
+reading from it), and auditing S3 buckets for ones with no recent
+access activity — via S3 access logs/CloudTrail data events and
+last-modified timestamps — before deleting them, rather than assuming
+an unused-looking bucket was actually safe to remove without checking.
 
 **Result**: Delivered sustained 20-25% infrastructure cost savings
 while maintaining platform resilience — cost optimization that didn't
-come at the expense of reliability, because the lifecycle policies
-were driven by real usage data, not blanket cuts.
+come at the expense of reliability, because both the lifecycle
+policies and the orphaned-resource cleanup were driven by real usage
+data, not blanket cuts or guesswork about what was "probably" unused.
 
 [⬆ Back to top](#top)
 

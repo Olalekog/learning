@@ -126,6 +126,12 @@ Lifecycle policies moving cold data to cheaper tiers automatically, rightsizing 
 **"How do you forecast storage capacity needs?"**
 Track growth trends via Cost Explorer/CloudWatch usage metrics over time rather than provisioning for a guessed peak — capacity planning is explicitly called out in the resume's SAN/NAS-era work ("performed capacity planning") and carries forward as the same discipline applied to cloud storage growth curves.
 
+**"How do you identify and clean up orphaned storage resources — for example, an unused FSx for Lustre file system or an S3 bucket nobody's using anymore?"**
+Treat it as a standing practice, not a one-time sweep. For FSx for Lustre specifically: an idle file system still bills for provisioned throughput and capacity whether or not a job is actually reading from it, so the check is whether it's still attached to an active cluster/job, not just whether it "looks" unused. For S3: audit actual access activity — S3 access logs or CloudTrail data events, plus last-modified/last-accessed timestamps — before deleting a bucket, rather than assuming an empty-looking or oddly-named bucket is safe to remove without checking; a bucket with zero recent writes can still be actively read by something downstream. Tag ownership at creation time so orphaned-resource identification doesn't depend on institutional memory of who created what.
+
+**"What's the risk of deleting an S3 bucket without verifying it's actually unused first?"**
+Data loss is the obvious one, but the subtler risk is breaking a downstream consumer that reads from the bucket infrequently enough that its access wouldn't show up in a short lookback window — which is exactly why the verification step (access logs/CloudTrail over a meaningful time range, not just "no recent writes") matters more than the deletion itself.
+
 [⬆ Back to top](#top)
 
 ---
