@@ -82,6 +82,7 @@ in this folder.
    10. ["What rate are you looking for in your next position?"](#what-rate-are-you-looking-for-in-your-next-position)
    11. ["Think about the strongest engineering team you've been part of or led — what made it effective, and how did you personally contribute?"](#strongest-engineering-team)
    12. ["Walk us through a recent instance where you adopted a new technology to solve a real problem"](#adopting-argocd)
+   13. ["How do you manage and mentor junior members of your team?"](#mentoring-junior-team-members)
 
 ---
 
@@ -910,5 +911,38 @@ are still generic placeholders, not real figures — fill those in with
 actual details before using this in a live interview, or be ready to
 say plainly that it's illustrative rather than tied to a specific past
 role if asked directly.
+
+### "How do you manage and mentor junior members of your team?"
+
+> "As the lead for a five-person team, I treat mentoring as something I
+> build into how work gets structured, not a separate activity on the
+> side. My philosophy is ownership plus a safety net: I give junior
+> engineers real ownership of work that actually matters, early, because
+> growth comes from making a real decision, not from watching me make
+> one — but I stay closely involved reviewing their designs before
+> anything ships, so someone accountable is standing behind that
+> decision. I'd rather someone make a recoverable mistake on something
+> they own than never be trusted with anything that counts.
+>
+> What I focus on as their lead is the reasoning, not just the
+> output — coaching the thinking behind a decision so it transfers to
+> the next one, and being explicit about what's a strong opinion versus
+> a genuine non-negotiable, so they know how to weigh my feedback rather
+> than just comply with it. And I stay genuinely invested in where each
+> person is headed, not just their current sprint — that's what turns
+> technical mentoring into real investment instead of oversight. It's
+> the same philosophy that shaped how I ran that team overall: people
+> given real ownership and real investment grow into leads themselves,
+> not just people who execute well."
+
+~185 words, roughly 60-65 seconds spoken.
+
+**Known gap**: same team-of-five grounding as the rest of Part 3, but
+still no specific example of mentoring one particular junior engineer
+— what they were struggling with, what actually helped, how they grew
+as a result. This answer describes a mentoring *approach* credibly, but
+doesn't yet prove it with one real, named-in-your-head story. If you
+have one, it would meaningfully strengthen this over the
+approach-only version currently here.
 
 [⬆ Back to top](#top)
