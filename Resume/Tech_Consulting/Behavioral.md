@@ -49,6 +49,7 @@ in this folder.
    24. [How do you commit to a positive team environment?](#how-do-you-commit-to-a-positive-team-environment)
    25. [Partnering with non-engineering stakeholders to deliver an outcome](#partnering-with-non-engineering-stakeholders-to-deliver-an-outcome)
    26. [A technical project delivered start to finish](#a-technical-project-delivered-start-to-finish)
+   27. [The hardest end-to-end project you've worked on](#the-hardest-end-to-end-project-youve-worked-on)
 2. [Conflict Resolution — A Case Study Per Role](#conflict-case-studies)
    1. [Truist Bank — Dual EKS/AKS vs. Standardizing on One Platform](#truist-bank--dual-eksaks-vs-standardizing-on-one-platform)
    2. [Regeneron — How Much Access Should the Conversational AI Have?](#regeneron--how-much-access-should-the-conversational-ai-have)
@@ -429,6 +430,60 @@ drew you in, rather than a generic "great culture and mission" answer.)*
 > controls."
 
 ~175 words, roughly 65-70 seconds spoken. Organizational-challenge detail: [Partnering with non-engineering stakeholders](#partnering-with-non-engineering-stakeholders-to-deliver-an-outcome) above.
+
+### The hardest end-to-end project you've worked on
+
+> "The Regeneron AWS-Azure research platform, hands down — full
+> write-up in [Regeneron-Architecture-Design.md](Regeneron-Architecture-Design.md).
+> What made it the hardest wasn't any single piece, it was that the
+> technical and organizational difficulty compounded each other. On the
+> technical side: two clouds, shared identity and private networking
+> so regulated data never crossed a public path, an ML pipeline split
+> across SageMaker and Databricks, and a conversational AI layer that
+> had to be architecturally provable as having zero path to raw data —
+> not just policy-restricted, actually incapable of reaching it. Any
+> one of those alone is a real project. On the organizational side,
+> compliance and product each had legitimate, opposed positions on how
+> much access the AI layer should have, and neither would move on
+> trust alone. I couldn't solve the hard part by being a better
+> engineer in isolation — I had to design a third architecture neither
+> side had proposed, then prove it to each side in terms they could
+> personally verify. That combination, genuinely hard systems design
+> plus genuinely hard stakeholder alignment, on a platform where a
+> mistake risked real compliance failure, is what makes it the hardest
+> one I've done."
+
+~180 words, roughly 70-75 seconds spoken — runs slightly over the 60s
+target given the question invites contrasting technical and
+organizational difficulty; cut the SageMaker/Databricks sentence first
+if a strict 60s cap is needed live. Fuller detail on each half: [A technical project delivered start to finish](#a-technical-project-delivered-start-to-finish) above and [Regeneron — How Much Access Should the Conversational AI Have?](#regeneron--how-much-access-should-the-conversational-ai-have) below.
+
+**Alternate answer — Truist Bank.** Use this version if the interviewer
+has already heard the Regeneron story earlier in the conversation, or
+if the role is closer to platform/governance work than to
+compliance-heavy data architecture — "hardest" here is about scale and
+adoption across a whole organization rather than proving a single
+system's isolation.
+
+> "A close second, and arguably harder in a different way, was building
+> the multi-cloud landing zone pattern at Truist Bank. Regeneron was
+> hard because of what one system had to prove; Truist was hard because
+> of scale — every team across the bank had solved AWS-Azure networking,
+> identity, security, and CI/CD its own way, and I had to design one
+> reusable pattern good enough that teams would actually adopt it
+> voluntarily, not just a document that sat unused. That meant getting
+> companion EKS and AKS clusters right for very different workload
+> needs, unifying AWS Organizations, Security Hub, and GuardDuty with
+> Azure Sentinel, Defender for Cloud, and Azure Policy into one risk
+> view, and doing all of it under banking regulators' audit
+> requirements, where a shortcut that sped up releases but weakened the
+> audit trail wasn't a viable option. The hard part wasn't designing the
+> pattern once — it was designing something rigorous enough to pass
+> audit and simple enough that other teams chose to pull it into their
+> own projects. It worked: adopted bank-wide, and release cycle time
+> dropped about 40%."
+
+~175 words, roughly 65-70 seconds spoken. Full write-up: [Truist-Bank-Architecture-Design.md](Truist-Bank-Architecture-Design.md) and [STAR-Scenarios.md § Truist Bank](STAR-Scenarios.md#truist-bank).
 
 [⬆ Back to top](#top)
 
