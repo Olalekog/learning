@@ -45,6 +45,8 @@ in this folder.
    22. [Best and worst team-building exercise](#best-and-worst-team-building-exercise)
    23. [How do you build rapport with your team?](#how-do-you-build-rapport-with-your-team)
    24. [How do you commit to a positive team environment?](#how-do-you-commit-to-a-positive-team-environment)
+   25. [Partnering with non-engineering stakeholders to deliver an outcome](#partnering-with-non-engineering-stakeholders-to-deliver-an-outcome)
+   26. [A technical project delivered start to finish](#a-technical-project-delivered-start-to-finish)
 2. [Conflict Resolution — A Case Study Per Role](#conflict-case-studies)
    1. [Truist Bank — Dual EKS/AKS vs. Standardizing on One Platform](#truist-bank--dual-eksaks-vs-standardizing-on-one-platform)
    2. [Regeneron — How Much Access Should the Conversational AI Have?](#regeneron--how-much-access-should-the-conversational-ai-have)
@@ -78,6 +80,8 @@ in this folder.
    8. ["How do you use your leadership skills to motivate your colleagues?"](#how-do-you-use-your-leadership-skills-to-motivate-your-colleagues)
    9. ["Why are you looking for a new opportunity?"](#why-are-you-looking-for-a-new-opportunity)
    10. ["What rate are you looking for in your next position?"](#what-rate-are-you-looking-for-in-your-next-position)
+   11. ["Think about the strongest engineering team you've been part of or led — what made it effective, and how did you personally contribute?"](#strongest-engineering-team)
+   12. ["Walk us through a recent instance where you adopted a new technology to solve a real problem"](#adopting-argocd)
 
 ---
 
@@ -329,6 +333,89 @@ Azure Policy mistake above is exactly the kind of thing that gets
 discussed as "here's the gap in our rollout process," not "here's who
 made the error." A team that trusts incidents get discussed that way is
 a team that actually surfaces problems early instead of hiding them.
+
+### Partnering with non-engineering stakeholders to deliver an outcome
+
+The same Regeneron conversational-AI project as the diverse-backgrounds
+answer above, but here's the objective/disagreement/alignment shape of
+it specifically — the fuller version is in
+[Conflict Resolution § Regeneron](#regeneron--how-much-access-should-the-conversational-ai-have)
+below.
+
+**Objective**: Give researchers a conversational interface (Azure
+OpenAI) to explore results faster, without compromising the GxP
+compliance the entire research platform depended on.
+
+**Where we disagreed**: Compliance — a non-engineering stakeholder
+group fluent in GxP but not in cloud architecture — wanted to block any
+LLM access to research data entirely, the safest position on paper.
+Product wanted broad conversational access to actually accelerate
+research. Both were legitimate positions from where each stakeholder
+sat; neither, taken fully, was workable.
+
+**How we aligned**: Didn't try to argue either side out of their
+position — designed a third architecture instead (Azure OpenAI
+querying only a de-identified, curated index, never raw data directly),
+and translated it into terms each group could actually evaluate on
+their own terms: a concrete data-flow diagram proving no network or
+credential path to raw records for compliance, not just a verbal
+assurance; a working scoped pilot with one research team for product,
+so the capability's value was demonstrated, not just promised. Alignment
+came from giving each stakeholder something they could personally
+verify, not from a meeting where engineering asserted it was fine.
+
+[⬆ Back to top](#top)
+
+---
+
+### A technical project delivered start to finish
+
+The Regeneron AWS-Azure research platform architecture — full technical
+write-up (diagram, data pipeline, GxP controls mapped to design
+decisions) in
+[Regeneron-Architecture-Design.md](Regeneron-Architecture-Design.md).
+
+**My role**: Cloud Data & DevOps Architect — I owned the end-to-end
+design of how AWS and Azure would work together for this platform, not
+just one piece of it. That meant the identity/networking foundation,
+the ML pipeline split between SageMaker and Databricks, and the
+conversational AI layer were all one coherent architecture I was
+accountable for, not separate handoffs between teams.
+
+**Start to finish**: Started from the actual constraint — clinical and
+genomic data needed to move between clouds without breaking GxP
+controls — and designed backward from there: shared identity and
+private networking so data never touched a public path, a curated
+feature-store handoff so raw data never left its cloud of origin,
+SageMaker for the production ML lifecycle paired with Databricks for
+large-scale data prep (each tool matched to the pipeline stage it's
+actually built for), and finally the Azure OpenAI conversational layer
+on top, built as a RAG pattern querying only a de-identified index —
+never raw data directly. Company-wide Landing Zones and Azure Policy,
+plus equivalent AWS Organizations guardrails, meant every new research
+project built on this platform started from the same secure baseline
+rather than needing this design repeated by hand.
+
+**Biggest challenges**:
+- **Technical**: guaranteeing — provably, not just by policy — that the
+  conversational AI layer had no path to raw regulated data. Solved
+  architecturally (RAG against a curated index, no direct network or
+  credential path to the raw stores) rather than by access-control
+  policy alone, since a policy can be misconfigured but an architecture
+  with no path at all can't leak through a misconfiguration in the same
+  way.
+- **Organizational**: aligning compliance and product on how much
+  conversational access was acceptable — compliance wanted to block LLM
+  access entirely, product wanted broad access; resolved by designing a
+  third option and proving it concretely rather than negotiating
+  between the two original positions. Full story in
+  [Partnering with non-engineering stakeholders](#partnering-with-non-engineering-stakeholders-to-deliver-an-outcome)
+  above.
+
+**Result**: Secure, compliant cross-cloud data movement that never
+broke GxP controls, and — separately — shortened downtime during
+several high-impact incidents once the platform's recovery objectives
+and automated failure recovery were in place.
 
 [⬆ Back to top](#top)
 
@@ -744,5 +831,84 @@ of a process rather than a demonstrated one.
 placeholder framing, not a real figure. Fill in an actual range before
 using this in a live conversation, since "flexible" without any number
 attached can read as evasive rather than genuinely open.
+
+### "Think about the strongest engineering team you've been part of or led — what made it effective, and how did you personally contribute to those conditions?"
+
+> "The team of five I led across multiple cloud providers is the one
+> that comes to mind. What made it effective was that people weren't
+> just assigned tasks — they were assigned to the part of the work that
+> matched their actual strength or the direction they wanted to grow
+> in, and they owned the outcome of that piece, not just a checklist of
+> steps. That combination — real ownership plus a say in what you're
+> working toward — is what made people invested rather than just
+> compliant.
+>
+> My personal contribution to creating those conditions was twofold.
+> First, I stayed technically credible enough to actually review their
+> designs, not just sign off on them — I'd done the IC work myself
+> recently enough that my feedback meant something, rather than being a
+> title exercising authority. Second, I treated the people side as
+> equally real as the technical side — I had input into hiring
+> decisions for the team and was genuinely involved in each person's
+> career development, not just their day-to-day output. A team is
+> stronger when people believe their growth is actually being invested
+> in, not just their current sprint."
+
+**Known gap**: this still doesn't include a specific moment or concrete
+example demonstrating the team's effectiveness (a project they shipped
+under pressure, a hard call the team got right together, a specific
+piece of feedback that changed how someone worked) — the answer
+currently describes the *conditions* well but doesn't yet prove them
+with a real story. If you have one, share it and this becomes a much
+stronger answer than the current conditions-only version.
+
+### "Walk us through a recent instance where you adopted a new technology to solve a real problem. How did you evaluate options, upskill quickly, and de-risk the choice?" {#adopting-argocd}
+
+> "A concrete example is adopting Argo CD to replace push-based
+> deployment out of our CI/CD pipelines. The real problem: our pipeline
+> runners were holding long-lived cluster credentials and running
+> `kubectl apply` directly as the last step — a broad blast radius if
+> the CI system was ever compromised, and no real visibility into drift
+> if someone manually edited a cluster resource outside the pipeline
+> entirely.
+>
+> I evaluated two real options: keep the existing push-based model and
+> just tighten credential scoping, or move to a pull-based GitOps model
+> where an in-cluster controller reconciles the cluster to match Git
+> instead of the pipeline pushing to it. Within that second option, I
+> compared Argo CD against Flux — both are CNCF GitOps controllers doing
+> the same core job. I chose Argo CD specifically for the visual sync
+> UI showing drift and sync status per application, and its app-of-apps
+> pattern for managing many services from one place — Flux is more
+> composable and CLI-first, which is a real strength, but I wanted the
+> UI-driven visibility for a team that wasn't going to live in the CLI
+> to check sync state.
+>
+> To upskill quickly, I stood up Argo CD against a non-production
+> cluster first and worked through its own documentation hands-on —
+> configuring the reconciliation loop and the app-of-apps pattern for
+> real, not just reading about it — before touching anything that
+> mattered. The CI pipelines themselves barely changed: the build/test/
+> package steps stayed exactly the same, the only actual change was the
+> last step no longer pushing directly to the cluster, it just wrote
+> the new manifest/image tag to Git.
+>
+> To de-risk the actual rollout, I piloted it on one lower-stakes
+> application first, and ran it in manual-sync mode initially rather
+> than full auto-sync — so I could watch it show me the diff and
+> approve each sync by hand until I trusted the reconciliation behavior,
+> before ever turning on auto-sync for anything that mattered."
+
+**Known gap**: this is grounded in real, verifiable facts about how
+Argo CD actually works and why it's chosen over Flux — but it is
+**not part of Gabriel O's documented resume**, which describes CI/CD
+using Azure DevOps, GitHub Actions, and AWS CodePipeline with no GitOps
+controller named anywhere. Specifics like which company/environment
+this happened at, the actual timeline, and a measurable outcome (fewer
+credential-related incidents, faster mean-time-to-detect drift, etc.)
+are still generic placeholders, not real figures — fill those in with
+actual details before using this in a live interview, or be ready to
+say plainly that it's illustrative rather than tied to a specific past
+role if asked directly.
 
 [⬆ Back to top](#top)

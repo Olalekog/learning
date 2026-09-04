@@ -19,6 +19,8 @@ in this folder.
 6. [Liberty Mutual — No Company-Wide Cloud Security Standard](#liberty-mutual)
 7. [Alteryx — Manual, Error-Prone Internal Administration](#alteryx)
 8. [Cross-Cutting — Unifying AWS and Azure Security Posture](#unified-security-posture)
+9. [Cross-Cutting — Recovering a Corrupted or Deleted Terraform State File](#terraform-state-recovery)
+10. [Cross-Cutting — Resolving Terraform State Drift](#terraform-state-drift)
 
 ---
 
@@ -272,5 +274,105 @@ pattern underlying Truist Bank's ~40% faster release cycle time
 (security wasn't a bottleneck because posture was already consistent)
 and Regeneron's ability to move GxP-regulated data across clouds
 without breaking compliance controls.
+
+[⬆ Back to top](#top)
+
+---
+
+## Cross-Cutting — Recovering a Corrupted or Deleted Terraform State File {#terraform-state-recovery}
+
+Not tied to one role — this is a standing operational discipline
+across every Terraform-managed environment described in this resume,
+from the reusable landing zone patterns at Truist Bank to the
+account-provisioning automation at Rivian and Regeneron.
+
+**Situation**: A `terraform.tfstate` file backing a production
+environment either got corrupted (a bad concurrent write, a manual
+`state push` gone wrong) or was deleted outright — and with it, the
+authoritative record of what Terraform actually manages and each
+resource's current attributes.
+
+**Task**: Restore Terraform's ability to safely manage the environment
+again, without either losing track of real infrastructure or,
+worse, having a subsequent `apply` "fix" real resources back to a
+stale or wrong state.
+
+**Action**: The response differs depending on how much is actually
+lost:
+- **If a backup/prior version exists** (S3 backend with versioning
+  enabled, or Terraform Cloud/Enterprise's automatic state versioning):
+  identify the last known-good version, download and inspect it
+  *before* restoring — never restore blind — then push it back as the
+  current state (`terraform state push`, which acquires the lock so no
+  concurrent apply can interfere), and immediately run `terraform plan`
+  to confirm the result is either a clean no-diff or a diff that's
+  fully understood and intended.
+- **If state is gone entirely, with no backup**: re-create an empty
+  state in the correct backend, then re-establish tracking for each
+  real resource via `terraform import` (or an `import` block with
+  `-generate-config-out` to scaffold the matching HCL), running
+  `terraform plan` after each import batch to resolve any diff before
+  moving to the next — importing in dependency order (network before
+  compute before application) so cross-resource references resolve
+  correctly as the state is rebuilt.
+- **Either way**, the state file itself needs to be treated as
+  sensitive during recovery — every resource attribute in it,
+  including secrets, is stored in plaintext, so a downloaded recovery
+  candidate gets handled and stored with the same care as the original.
+
+**Result**: Terraform's management of the environment restored without
+data loss or a wrong resource getting silently reverted — and, just as
+importantly, this is exactly the kind of incident that turns into a
+standing safeguard afterward: state bucket versioning verified (and
+periodically test-restored, not just enabled and forgotten), a
+`terraform state pull` backup taken automatically before any risky
+bulk state operation, and locking confirmed to actually block a
+concurrent apply before relying on it in production.
+
+[⬆ Back to top](#top)
+
+---
+
+## Cross-Cutting — Resolving Terraform State Drift {#terraform-state-drift}
+
+A different failure mode from state corruption/loss above — here the
+state file itself is intact, but no longer matches reality, because
+something changed the real infrastructure outside of Terraform.
+
+**Situation**: A routine `terraform plan` on a production environment
+came back showing changes nobody on the team had made — a resource's
+configuration in state no longer matched what was actually running.
+Someone (or something — a console click-op, another automation tool,
+an auto-scaling event) had modified a real resource directly, without
+going through Terraform.
+
+**Task**: Figure out the full scope of what had actually changed
+without letting a normal `plan`/`apply` silently "fix" the resource
+back to the old configured value — since whether that out-of-band
+change was a legitimate emergency fix or an unauthorized
+misconfiguration wasn't yet known.
+
+**Action**: Ran `terraform plan -refresh-only` first — a read-only
+comparison that surfaces exactly what drifted between state and real
+infrastructure without touching either. Reviewed the *entire* scope of
+the diff before touching anything, rather than reacting to the first
+line noticed. From there, made the accept-or-revert call per resource:
+for changes that turned out to be a legitimate, already-approved
+emergency fix, ran `terraform apply -refresh-only` to update state to
+match reality without touching the real resource; for changes that
+were accidental or unauthorized, ran a normal `terraform apply` to
+push the configured value back onto the real resource and revert the
+drift.
+
+**Result**: Closed the immediate drift without either silently
+reverting a legitimate fix or leaving an unauthorized change baked
+into the source of truth. Closed the gap so it wouldn't recur, not
+just cleaned it up once: restricted console/CLI write access to
+Terraform-managed resources via SCPs/IAM so the out-of-band change path
+itself was closed, added tagging conventions (`ManagedBy = terraform`)
+that make an out-of-band change obvious at a glance, and set up a
+scheduled `plan -refresh-only` job in CI that alerts on any nonzero
+diff — so the next instance of drift gets caught proactively instead of
+by someone noticing an unexpected `plan` diff during routine work.
 
 [⬆ Back to top](#top)
