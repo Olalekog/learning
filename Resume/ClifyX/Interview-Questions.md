@@ -5,7 +5,10 @@
 Grounded in the actual resume in this folder plus the confirmed-real
 Hadoop/Spark/EMR background from the main resume (see the note in
 [Elevator-Pitch.md](Elevator-Pitch.md)). Organized by the job
-description's mandatory skills and responsibilities.
+description's mandatory skills and responsibilities. For behavioral
+questions specifically, see
+[STAR-Scenarios.md](STAR-Scenarios.md) — Situation/Task/Action/Result
+answers mapped to the same JD responsibilities.
 
 ## Table of Contents
 

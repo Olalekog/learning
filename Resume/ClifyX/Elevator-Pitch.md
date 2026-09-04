@@ -8,7 +8,9 @@ operational documentation). Built from
 [Olalekan G. Ogundare — Storage Specialist (S3).docx](Olalekan%20G.%20Ogundare%20_%20Storage%20Specialist%20\(S3\).docx)
 in this folder, plus the Hadoop/Spark/EMR background confirmed real in
 the main resume (not listed on this particular resume variant, but the
-same actual experience).
+same actual experience). See also
+[Interview-Questions.md](Interview-Questions.md) and
+[STAR-Scenarios.md](STAR-Scenarios.md) in this folder.
 
 ---
 
