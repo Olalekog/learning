@@ -97,6 +97,8 @@ Amazon S3 and Amazon EMR are commonly combined to build a scalable **data lake a
 - **Amazon EMR** supplies temporary or persistent compute using Spark, Hadoop, Hive, Trino and related frameworks.
 - Storage and compute scale independently, improving flexibility and cost control.
 
+[⬆ Back to top](#top)
+
 ## Reference architecture
 
 ```mermaid
@@ -114,6 +116,8 @@ flowchart TD
     K["CloudWatch and CloudTrail"] -.-> E
 ```
 
+[⬆ Back to top](#top)
+
 ## Architecture components
 
 | Component | Responsibility |
@@ -129,6 +133,8 @@ flowchart TD
 | **CloudTrail** | Records AWS API and data-access activity |
 | **Athena/Redshift** | Queries and analyzes processed data |
 | **SageMaker AI** | Uses curated data for machine-learning workloads |
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -155,6 +161,8 @@ s3://company-data-lake/quarantine/
 
 Separate buckets provide stronger isolation, while prefixes reduce the number of resources to manage.
 
+[⬆ Back to top](#top)
+
 ## Raw zone
 
 Stores data in its original form.
@@ -176,6 +184,8 @@ Characteristics:
 - Usually compressed
 - Schema applied when processed
 
+[⬆ Back to top](#top)
+
 ## Cleaned zone
 
 Contains validated and standardized data:
@@ -186,6 +196,8 @@ Contains validated and standardized data:
 - Sensitive fields masked
 - Data converted to Parquet or ORC
 - Records partitioned for efficient processing
+
+[⬆ Back to top](#top)
 
 ## Curated zone
 
@@ -198,9 +210,13 @@ Contains business-ready datasets:
 - Machine-learning features
 - Department-specific datasets
 
+[⬆ Back to top](#top)
+
 ## Quarantine zone
 
 Contains records that failed validation so they can be investigated or reprocessed.
+
+[⬆ Back to top](#top)
 
 ## Log bucket
 
@@ -213,6 +229,8 @@ Stores:
 - Step execution logs
 
 The log bucket should have a different retention policy from business data.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -236,6 +254,8 @@ flowchart TD
 
 The primary node manages the cluster; core nodes process and store HDFS data; task nodes provide processing capacity without contributing HDFS storage.
 
+[⬆ Back to top](#top)
+
 ## Recommended purchasing model
 
 - Use **On-Demand Instances** for primary nodes.
@@ -245,6 +265,8 @@ The primary node manages the cluster; core nodes process and store HDFS data; ta
 - Enable EMR Managed Scaling.
 - Use Graviton instances where the workload supports ARM.
 - Set maximum capacity to prevent unexpected scaling costs.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -270,6 +292,8 @@ clean_data.write.mode("overwrite").parquet(
 
 Historically, EMR used **EMRFS** for S3 access. Starting with Amazon EMR 7.10, S3A is the default S3 connector for supported S3 URI schemes.
 
+[⬆ Back to top](#top)
+
 ## S3 versus HDFS
 
 | Amazon S3 | HDFS |
@@ -289,9 +313,13 @@ The recommended pattern is:
 
 AWS describes S3 as the common location for input and output, while HDFS is useful for temporary processing and random-I/O workloads.
 
+[⬆ Back to top](#top)
+
 ---
 
 # End-to-end processing flow
+
+[⬆ Back to top](#top)
 
 ## Step 1: Data ingestion
 
@@ -314,6 +342,8 @@ Possible ingestion services include:
 - Amazon MSK
 - Direct S3 uploads
 
+[⬆ Back to top](#top)
+
 ## Step 2: Raw storage
 
 Incoming data is stored in the S3 raw zone without changing its original format.
@@ -332,6 +362,8 @@ An S3 event can trigger:
 - An EMR workflow
 - Amazon MWAA
 
+[⬆ Back to top](#top)
+
 ## Step 3: Data cataloging
 
 An AWS Glue crawler scans the new data and creates or updates tables in the Glue Data Catalog.
@@ -347,6 +379,8 @@ The catalog records:
 
 Glue Data Catalog can serve as an external Hive metastore shared by EMR, Athena and Redshift Spectrum.
 
+[⬆ Back to top](#top)
+
 ## Step 4: EMR processing
 
 An EMR Spark job:
@@ -361,6 +395,8 @@ An EMR Spark job:
 8. Converts the data into Parquet.
 9. Writes the results to cleaned and curated S3 zones.
 
+[⬆ Back to top](#top)
+
 ## Step 5: Analytics and consumption
 
 Processed data can be consumed by:
@@ -373,13 +409,19 @@ Processed data can be consumed by:
 - SageMaker AI
 - Downstream applications
 
+[⬆ Back to top](#top)
+
 ## Step 6: Cluster termination
 
 For batch workloads, the EMR cluster is terminated after the job succeeds. The data remains safely stored in S3.
 
+[⬆ Back to top](#top)
+
 ---
 
 # Example use case: E-commerce sales analytics
+
+[⬆ Back to top](#top)
 
 ## Business requirement
 
@@ -400,6 +442,8 @@ The business wants daily reports showing:
 - Most-viewed products
 - Failed payments
 - Customer buying patterns
+
+[⬆ Back to top](#top)
 
 ## Solution flow
 
@@ -428,6 +472,8 @@ flowchart LR
 11. A BI dashboard displays sales trends.
 12. The EMR cluster terminates after successful processing.
 
+[⬆ Back to top](#top)
+
 ## Example output organization
 
 ```text
@@ -440,6 +486,8 @@ s3://company-data-curated/sales/
 ```
 
 Partitioning allows queries to scan only the required dates instead of the entire dataset.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -455,6 +503,8 @@ flowchart TD
     G["VPC Endpoint"] --> D
 ```
 
+[⬆ Back to top](#top)
+
 ## 1. Private networking
 
 Deploy EMR nodes in private subnets with:
@@ -465,6 +515,8 @@ Deploy EMR nodes in private subnets with:
 - Interface endpoints for required AWS services
 - NAT Gateway only when external access is necessary
 - Systems Manager for administrative access instead of public SSH
+
+[⬆ Back to top](#top)
 
 ## 2. IAM roles
 
@@ -487,6 +539,8 @@ Example access separation:
 | **Auditor role** | Read logs and configurations |
 | **Administrator role** | Manage infrastructure without unrestricted data access |
 
+[⬆ Back to top](#top)
+
 ## 3. Encryption
 
 Use:
@@ -499,6 +553,8 @@ Use:
 
 EMR supports S3 encryption through its S3 file-system integration and can use customer-managed KMS keys.
 
+[⬆ Back to top](#top)
+
 ## 4. Data governance
 
 Use Lake Formation for:
@@ -509,6 +565,8 @@ Use Lake Formation for:
 - Row-level filtering
 - Data-location permissions
 - Cross-account data sharing
+
+[⬆ Back to top](#top)
 
 ## 5. S3 protection
 
@@ -521,6 +579,8 @@ Enable:
 - Object Lock for immutable regulated data
 - Restricted bucket policies
 - CloudTrail data events for sensitive buckets
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -537,6 +597,8 @@ Recommended controls include:
 - Configure Spot capacity rebalancing.
 - Make processing jobs idempotent and restartable.
 - Maintain infrastructure and job definitions in version control.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -556,6 +618,8 @@ Recommended controls include:
 
 Columnar formats such as Parquet can reduce storage, data scanned and query execution time compared with formats such as CSV and JSON.
 
+[⬆ Back to top](#top)
+
 ---
 
 # Cost optimization
@@ -571,6 +635,8 @@ Columnar formats such as Parquet can reduce storage, data scanned and query exec
 - Configure maximum cluster capacity.
 - Use EMR Serverless for intermittent workloads that do not require cluster control.
 
+[⬆ Back to top](#top)
+
 ## EMR deployment selection
 
 | Requirement | Recommended option |
@@ -581,6 +647,8 @@ Columnar formats such as Parquet can reduce storage, data scanned and query exec
 | Persistent interactive analytics | Long-running EMR cluster |
 | Daily batch ETL | Transient EMR cluster |
 | Low-cost fault-tolerant processing | EMR task nodes using Spot |
+
+[⬆ Back to top](#top)
 
 ## Main architectural benefit
 
@@ -612,6 +680,8 @@ It is most valuable when EMR jobs repeatedly access large datasets, require shar
 
 FSx for Lustre can link to an S3 bucket and present S3 objects as files to applications mounting the file system.
 
+[⬆ Back to top](#top)
+
 ## Recommended architecture
 
 ```mermaid
@@ -636,6 +706,8 @@ flowchart TD
     J["CloudWatch and CloudTrail"] -.-> D
 ```
 
+[⬆ Back to top](#top)
+
 ## Component responsibilities
 
 | Component | Responsibility |
@@ -651,9 +723,13 @@ flowchart TD
 | **IAM and KMS** | Control access and encryption |
 | **CloudWatch and CloudTrail** | Provide monitoring, alerting and audit records |
 
+[⬆ Back to top](#top)
+
 ---
 
 # Deployment options
+
+[⬆ Back to top](#top)
 
 ## Option 1: EMR on EC2 with FSx for Lustre
 
@@ -679,6 +755,8 @@ Every node must mount the same FSx file system at the same path.
 - Applications expecting POSIX file paths
 - Workloads requiring direct control over EC2 and Lustre configuration
 
+[⬆ Back to top](#top)
+
 ## Option 2: EMR on EKS with FSx for Lustre
 
 FSx for Lustre is exposed to Spark driver and executor pods using:
@@ -698,6 +776,8 @@ AWS documents mounting FSx for Lustre on both EMR on EKS Spark driver and execut
 - Containerized analytics
 - Dynamic storage provisioning
 - Teams already operating EKS
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -740,9 +820,13 @@ FSx for Lustre
 
 FSx for Lustre should not automatically replace Spark's local shuffle storage. Local NVMe or EBS generally remains preferable for ordinary Spark shuffle, while Lustre is used for shared input, output, checkpoints and applications requiring parallel filesystem access.
 
+[⬆ Back to top](#top)
+
 ---
 
 # S3 and FSx for Lustre integration
+
+[⬆ Back to top](#top)
 
 ## Data Repository Association
 
@@ -770,6 +854,8 @@ Applications on EMR see S3 objects as normal files:
 
 FSx for Lustre is natively integrated with S3, allowing mounted applications to access linked S3 datasets and export processed results back to S3.
 
+[⬆ Back to top](#top)
+
 ## Import process
 
 When the DRA is created:
@@ -781,6 +867,8 @@ When the DRA is created:
 5. New or modified S3 objects can be automatically or manually imported.
 
 FSx can automatically import new, changed or deleted S3 objects depending on the configured import policy.
+
+[⬆ Back to top](#top)
 
 ## Export process
 
@@ -794,6 +882,8 @@ After EMR processes the data:
 An export data repository task creates new S3 objects and replaces corresponding objects for modified files.
 
 Because export is asynchronous, the workflow must confirm successful export before deleting the file system or starting dependent jobs.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -826,6 +916,8 @@ sequenceDiagram
 8. Athena, Redshift, SageMaker AI or another EMR job consumes the results.
 9. Temporary EMR and FSx resources can be deleted after results are safely stored in S3.
 
+[⬆ Back to top](#top)
+
 ---
 
 # Network design
@@ -841,6 +933,8 @@ flowchart TD
     C --> G["Interface Endpoints<br/>KMS, Logs, STS"]
 ```
 
+[⬆ Back to top](#top)
+
 ## Recommended network controls
 
 - Deploy EMR and FSx for Lustre in the same VPC.
@@ -855,9 +949,13 @@ flowchart TD
 
 FSx for Lustre uses VPC security groups to control communication between Lustre clients and the file system.
 
+[⬆ Back to top](#top)
+
 ---
 
 # Security design
+
+[⬆ Back to top](#top)
 
 ## IAM roles
 
@@ -883,6 +981,8 @@ EMR processing role:
   Write → s3://company-emr-logs/*
 ```
 
+[⬆ Back to top](#top)
+
 ## Encryption
 
 Use:
@@ -896,6 +996,8 @@ Use:
 
 The relevant principals must have both IAM and KMS-key-policy permissions.
 
+[⬆ Back to top](#top)
+
 ## S3 protection
 
 Enable:
@@ -908,9 +1010,13 @@ Enable:
 - CloudTrail data events
 - Object Lock for immutable datasets or audit logs
 
+[⬆ Back to top](#top)
+
 ---
 
 # Use case: Genomic sequencing analysis
+
+[⬆ Back to top](#top)
 
 ## Business requirement
 
@@ -925,6 +1031,8 @@ Requirements include:
 - Temporary scaling to hundreds of compute workers
 - Encryption and restricted access to sensitive datasets
 
+[⬆ Back to top](#top)
+
 ## Why S3 alone may not be ideal
 
 S3 is highly durable and scalable, but it is object storage. Some genomic tools expect:
@@ -938,6 +1046,8 @@ S3 is highly durable and scalable, but it is object storage. Some genomic tools 
 
 FSx for Lustre provides the required shared POSIX filesystem and parallel I/O behavior, while S3 remains the system of record.
 
+[⬆ Back to top](#top)
+
 ## Genomics architecture
 
 ```mermaid
@@ -950,6 +1060,8 @@ flowchart TD
     C -->|"Export"| F["S3 Results"]
     F --> G["Athena / Research Platform"]
 ```
+
+[⬆ Back to top](#top)
 
 ## Processing steps
 
@@ -966,6 +1078,8 @@ flowchart TD
 11. Athena, EMR or machine-learning services analyze the curated output.
 12. After validating the S3 export, the temporary cluster and scratch file system can be removed.
 
+[⬆ Back to top](#top)
+
 ---
 
 # Other suitable use cases
@@ -981,6 +1095,8 @@ flowchart TD
 - Image-processing pipelines
 - Fraud-detection model preparation
 
+[⬆ Back to top](#top)
+
 ---
 
 # FSx deployment choices
@@ -992,6 +1108,8 @@ flowchart TD
 | **Intelligent-Tiering** | Elastic capacity and cost optimization for variable datasets | Dynamic AI, analytics and HPC workloads |
 
 Use a temporary design when S3 holds the authoritative data and all Lustre contents can be re-created. Choose a persistent option when the working dataset must remain continuously available.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -1009,6 +1127,8 @@ Use a temporary design when S3 holds the authoritative data and all Lustre conte
 - Verify that the EMR operating-system kernel supports the selected Lustre client version.
 
 AWS recommends verifying compatibility between the Lustre version and client Linux kernel.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -1042,6 +1162,8 @@ Important FSx alarms include:
 - File-system state changes
 - KMS or S3 access failures
 
+[⬆ Back to top](#top)
+
 ---
 
 # When to use this architecture
@@ -1064,6 +1186,8 @@ Use EMR directly with S3 when:
 - Data is read once and written once.
 - Cost is more important than filesystem latency.
 - Shared POSIX semantics are unnecessary.
+
+[⬆ Back to top](#top)
 
 ## Key architectural principle
 
