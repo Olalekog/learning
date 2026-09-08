@@ -53,6 +53,8 @@ IAM helps answer four access-control questions:
 
 IAM provides centralized, fine-grained access control across AWS services.
 
+[⬆ Back to top](#top)
+
 ## Core IAM components
 
 | Component | Purpose |
@@ -64,6 +66,8 @@ IAM provides centralized, fine-grained access control across AWS services.
 | **Credentials** | Passwords, access keys, certificates or temporary security tokens |
 | **Identity provider** | External authentication system connected through federation |
 | **Permissions boundary** | Defines the maximum permissions a user or role may receive |
+
+[⬆ Back to top](#top)
 
 ## 1. Authentication
 
@@ -83,6 +87,8 @@ IAM supports:
 
 AWS recommends federated access and temporary credentials for human users instead of creating long-term IAM users wherever possible.
 
+[⬆ Back to top](#top)
+
 ## 2. Authorization
 
 Authorization determines whether an authenticated principal can perform a requested action.
@@ -97,6 +103,8 @@ For example, IAM can determine whether a developer can:
 - Decrypt data using a KMS key
 
 Authorization is controlled primarily through policies.
+
+[⬆ Back to top](#top)
 
 ## 3. Fine-grained permissions
 
@@ -122,6 +130,8 @@ For example, a policy could allow developers to start EC2 instances only when:
 - The request originates from a corporate IP address.
 - The user authenticated with MFA.
 
+[⬆ Back to top](#top)
+
 ## 4. IAM users
 
 An IAM user represents an identity within one AWS account.
@@ -136,6 +146,8 @@ An IAM user can have:
 - Group membership
 
 IAM users may be appropriate for limited use cases requiring long-term credentials. For regular workforce access, AWS recommends federation through IAM Identity Center.
+
+[⬆ Back to top](#top)
 
 ## 5. IAM groups
 
@@ -158,6 +170,8 @@ Important characteristics:
 - A user can belong to multiple groups.
 - Groups simplify permission administration.
 - Groups cannot directly authenticate or make AWS requests.
+
+[⬆ Back to top](#top)
 
 ## 6. IAM roles
 
@@ -185,6 +199,8 @@ AWS identifies roles as the preferred mechanism for workload access and temporar
 | **Trust policy** | Defines who or what may assume the role |
 | **Permissions policy** | Defines what the assumed role may do |
 
+[⬆ Back to top](#top)
+
 ## 7. Temporary credentials
 
 Temporary credentials contain:
@@ -209,6 +225,8 @@ Examples of STS operations include:
 - `AssumeRoleWithWebIdentity`
 - `AssumeRoleWithSAML`
 - `GetSessionToken`
+
+[⬆ Back to top](#top)
 
 ## 8. IAM policies
 
@@ -246,6 +264,8 @@ This policy allows reading objects from one S3 bucket:
   ]
 }
 ```
+
+[⬆ Back to top](#top)
 
 ## 9. Types of policies
 
@@ -293,6 +313,8 @@ Organizations RCPs centrally define maximum available permissions for resources 
 
 Some AWS services use ACLs to grant access to resources, although ACLs are not JSON IAM policies.
 
+[⬆ Back to top](#top)
+
 ## 10. Managed and inline policies
 
 | Policy type | Description |
@@ -302,6 +324,8 @@ Some AWS services use ACLs to grant access to resources, although ACLs are not J
 | **Inline policy** | Embedded directly into one user, group or role |
 
 Customer-managed policies usually provide better control and reuse than inline policies.
+
+[⬆ Back to top](#top)
 
 ## 11. IAM policy evaluation
 
@@ -325,6 +349,8 @@ flowchart TD
 
 When identity-based and resource-based policies are evaluated together, permissions can be combined, but an explicit deny still overrides an allow. Permissions boundaries, SCPs, RCPs and session policies can further restrict the effective permission.
 
+[⬆ Back to top](#top)
+
 ## 12. Role-based access control
 
 **RBAC** grants permissions based on job function or role.
@@ -337,6 +363,8 @@ Examples:
 - Auditors receive read-only access.
 
 RBAC is relatively simple but may require many roles as an organization grows.
+
+[⬆ Back to top](#top)
 
 ## 13. Attribute-based access control
 
@@ -357,6 +385,8 @@ Benefits include:
 - Reduced manual permission updates
 - Easier management of rapidly changing environments
 
+[⬆ Back to top](#top)
+
 ## 14. Multi-factor authentication
 
 IAM supports MFA to add another verification factor beyond a password.
@@ -370,6 +400,8 @@ MFA can protect:
 - Privileged administrative tasks
 
 Policies can use conditions such as `aws:MultiFactorAuthPresent` to require MFA before sensitive operations.
+
+[⬆ Back to top](#top)
 
 ## 15. Identity federation
 
@@ -387,6 +419,8 @@ Supported approaches include:
 
 Federated users typically assume IAM roles and receive temporary credentials.
 
+[⬆ Back to top](#top)
+
 ## 16. Cross-account access
 
 IAM roles allow a principal in one AWS account to access resources in another.
@@ -397,6 +431,8 @@ For successful cross-account access:
 - The source principal needs permission to call `sts:AssumeRole`.
 - The assumed role needs permissions for the destination resources.
 - Applicable SCPs, resource policies and other guardrails must allow the request.
+
+[⬆ Back to top](#top)
 
 ## 17. IAM Access Analyzer
 
@@ -414,6 +450,8 @@ It can:
 
 AWS recommends Access Analyzer for policy validation and reviewing public or cross-account access.
 
+[⬆ Back to top](#top)
+
 ## 18. IAM Policy Simulator
 
 The policy simulator tests whether policies allow or deny selected actions.
@@ -428,6 +466,8 @@ It can help troubleshoot:
 
 A successful simulation does not always guarantee actual access because live requests may also be affected by resource policies, SCPs, KMS key policies or service-specific authorization rules.
 
+[⬆ Back to top](#top)
+
 ## 19. Auditing and monitoring
 
 IAM integrates with:
@@ -439,6 +479,8 @@ IAM integrates with:
 - **EventBridge:** Responds to IAM-related events.
 - **IAM credential reports:** Reports account-level credential status.
 - **Access Advisor:** Shows service access and last-accessed information.
+
+[⬆ Back to top](#top)
 
 ## 20. IAM service characteristics
 
@@ -456,6 +498,8 @@ IAM integrates with:
 | **Scalable** | Supports RBAC, ABAC, groups and organizational guardrails |
 | **Auditable** | Integrates with CloudTrail and Access Analyzer |
 | **Eventually consistent** | IAM updates may take time to propagate across AWS systems |
+
+[⬆ Back to top](#top)
 
 ## IAM security best practices
 
@@ -476,6 +520,8 @@ IAM integrates with:
 - Use separate roles for administration, deployment and read-only access.
 
 AWS specifically recommends federation for human users, roles for workloads, MFA, least privilege, regular permission reviews and permissions guardrails.
+
+[⬆ Back to top](#top)
 
 ## IAM versus IAM Identity Center
 

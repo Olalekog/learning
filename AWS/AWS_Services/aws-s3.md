@@ -62,6 +62,8 @@ S3 is commonly used for:
 
 Amazon S3 provides high scalability, durability, availability, security, and performance.
 
+[⬆ Back to top](#top)
+
 ---
 
 ## 1. Object storage architecture
@@ -85,6 +87,8 @@ s3://company-data/production/reports/report.csv
 ```
 
 Although prefixes such as `production/reports/` look like folders, S3 uses a flat object-key structure rather than a traditional directory hierarchy.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -114,6 +118,8 @@ An S3 object:
 - Can be copied between buckets.
 - Can belong to a specific storage class.
 
+[⬆ Back to top](#top)
+
 ---
 
 ## 3. High durability
@@ -126,6 +132,8 @@ Amazon S3 Standard is designed for:
 Most regional S3 storage classes redundantly store objects across multiple devices in at least three Availability Zones.
 
 Durability means the likelihood that your stored objects will remain intact. Availability measures how frequently the objects can be accessed.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -144,6 +152,8 @@ Characteristics include:
 
 S3 performance scales by prefix and supports parallel requests for high-throughput applications.
 
+[⬆ Back to top](#top)
+
 ---
 
 ## 5. Strong consistency
@@ -161,6 +171,8 @@ After a successful:
 subsequent read and list requests immediately reflect the completed operation.
 
 Updates to an individual object key are atomic. A reader receives either the old object or the new object—never a partial object.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -181,6 +193,8 @@ S3 provides storage classes for different access, availability and cost requirem
 
 S3 Express One Zone uses **directory buckets** and is intended for latency-sensitive workloads requiring very high request rates.
 
+[⬆ Back to top](#top)
+
 ---
 
 ## 7. S3 Intelligent-Tiering
@@ -196,6 +210,8 @@ Benefits include:
 - Optional archive tiers for rarely accessed data
 
 A small monitoring and automation charge applies per eligible object.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -223,6 +239,8 @@ After 7 yrs → Delete
 
 Lifecycle rules help reduce costs and enforce data-retention policies.
 
+[⬆ Back to top](#top)
+
 ---
 
 ## 9. S3 Versioning
@@ -246,6 +264,8 @@ When versioning is enabled:
 - Every retained version incurs storage charges.
 
 Versioning cannot return to an unversioned state after it has been enabled, but it can be suspended.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -273,6 +293,8 @@ Use cases include:
 - Replication between AWS accounts
 
 Replication can copy object metadata and tags and can use a different storage class at the destination.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -313,6 +335,8 @@ S3 supports HTTPS/TLS. A bucket policy can deny requests that do not use secure 
 }
 ```
 
+[⬆ Back to top](#top)
+
 ---
 
 ## 12. Access control
@@ -347,6 +371,8 @@ Policies can restrict access based on:
 
 AWS generally recommends IAM and bucket policies instead of ACLs for access management.
 
+[⬆ Back to top](#top)
+
 ---
 
 ## 13. S3 Block Public Access
@@ -369,6 +395,8 @@ Its four principal settings can:
 
 AWS recommends enabling all four settings when public access is not explicitly required.
 
+[⬆ Back to top](#top)
+
 ---
 
 ## 14. S3 Object Ownership
@@ -383,6 +411,8 @@ The recommended **Bucket owner enforced** setting:
 - Uses policies for access control.
 
 This is particularly useful when different AWS accounts upload objects to the same bucket.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -416,6 +446,8 @@ Object Lock is commonly used for:
 - Ransomware protection
 - Backup immutability
 
+[⬆ Back to top](#top)
+
 ---
 
 ## 16. S3 Access Points
@@ -432,6 +464,8 @@ Each access point can have:
 
 Instead of maintaining one extremely large bucket policy, an organization can create separate access points for developers, analytics systems and backup applications.
 
+[⬆ Back to top](#top)
+
 ---
 
 ## 17. Multi-Region Access Points
@@ -447,6 +481,8 @@ Characteristics include:
 - Failover controls
 - Improved global access performance
 - Support for multi-Region disaster recovery
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -479,6 +515,8 @@ flowchart LR
 ```
 
 Applications should generally handle duplicate or out-of-order event delivery safely.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -513,6 +551,8 @@ Benefits include:
 
 Transfer Acceleration uses AWS edge locations and the AWS global network to accelerate long-distance uploads and downloads.
 
+[⬆ Back to top](#top)
+
 ---
 
 ## 20. Static website hosting
@@ -528,6 +568,8 @@ A general-purpose S3 bucket can host static content such as:
 S3 static website endpoints do not directly provide HTTPS. A common secure architecture places **Amazon CloudFront** in front of a private S3 bucket and uses Origin Access Control.
 
 S3 does not execute server-side application code such as PHP, Java or Node.js.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -568,6 +610,8 @@ Produces scheduled reports listing objects and properties such as:
 - Version ID
 - Object Lock status
 
+[⬆ Back to top](#top)
+
 ---
 
 ## 22. S3 Batch Operations
@@ -585,6 +629,8 @@ Examples include:
 
 It uses an S3 Inventory report or another CSV manifest to identify target objects.
 
+[⬆ Back to top](#top)
+
 ---
 
 ## 23. Pre-signed URLs
@@ -599,6 +645,8 @@ It can authorize:
 - Specific HTTP operations
 
 The URL operates using the permissions of the principal that generated it and expires after the configured period.
+
+[⬆ Back to top](#top)
 
 ---
 
@@ -629,6 +677,8 @@ Cost-optimization techniques include:
 - Compressing appropriate data
 - Avoiding unnecessary cross-Region transfers
 
+[⬆ Back to top](#top)
+
 ---
 
 ## Key characteristics summary
@@ -649,6 +699,8 @@ Cost-optimization techniques include:
 | **Auditable** | Integrates with CloudTrail, Config and S3 Inventory |
 | **API accessible** | Accessible through REST, SDKs, CLI and console |
 | **Not traditional file storage** | Uses buckets, keys and objects instead of mounted block storage |
+
+[⬆ Back to top](#top)
 
 ## Common use cases
 

@@ -54,6 +54,8 @@ Common workloads include:
 - Real-time and batch data processing
 - Petabyte-scale data-lake analytics
 
+[⬆ Back to top](#top)
+
 ## 1. Multiple deployment options
 
 Amazon EMR offers three primary deployment models:
@@ -65,6 +67,8 @@ Amazon EMR offers three primary deployment models:
 | **EMR Serverless** | Runs Spark and Hive workloads without managing servers or clusters | Variable, intermittent, or unpredictable workloads |
 
 EMR on EKS separates analytics applications from the underlying infrastructure and can run isolated jobs using EC2 or AWS Fargate resources.
+
+[⬆ Back to top](#top)
 
 ## 2. Support for open-source frameworks
 
@@ -83,6 +87,8 @@ Amazon EMR supports popular distributed-processing and analytics applications, i
 - Jupyter-based notebooks
 
 AWS provides performance-optimized runtimes for technologies such as Spark, Hive, Trino, and Flink.
+
+[⬆ Back to top](#top)
 
 ## 3. Managed cluster provisioning
 
@@ -105,6 +111,8 @@ Clusters can be created through:
 - Terraform
 - EMR API
 
+[⬆ Back to top](#top)
+
 ## 4. Distributed cluster architecture
 
 A traditional EMR on EC2 cluster can contain three node types:
@@ -116,6 +124,8 @@ A traditional EMR on EC2 cluster can contain three node types:
 | **Task node** | Provides additional processing capacity but does not store HDFS data |
 
 Task nodes are good candidates for EC2 Spot Instances because losing one does not remove data stored in HDFS.
+
+[⬆ Back to top](#top)
 
 ## 5. Elastic and scalable
 
@@ -129,6 +139,8 @@ Scaling options include:
 - **EMR Serverless scaling:** Automatically allocates and releases workers based on job requirements.
 
 Managed Scaling can improve cluster utilization while reducing unnecessary compute costs.
+
+[⬆ Back to top](#top)
 
 ## 6. Instance groups and instance fleets
 
@@ -150,6 +162,8 @@ EMR provides two ways to configure cluster capacity:
 
 Instance fleets support a flexible resource-provisioning strategy for each cluster node type.
 
+[⬆ Back to top](#top)
+
 ## 7. Cost optimization
 
 Amazon EMR supports several cost-saving approaches:
@@ -169,6 +183,8 @@ EMR pricing is generally based on:
 Total cost = EMR charge + EC2 or serverless compute + storage + data transfer
 ```
 
+[⬆ Back to top](#top)
+
 ## 8. Amazon S3 integration
 
 EMR integrates with Amazon S3 through **EMRFS**, allowing applications to treat S3 as a file system.
@@ -183,6 +199,8 @@ Important characteristics include:
 - Short-lived clusters can be created only when jobs need to run.
 
 A cluster can use both Amazon S3 through EMRFS and local HDFS storage.
+
+[⬆ Back to top](#top)
 
 ## 9. Flexible storage options
 
@@ -204,6 +222,8 @@ Important distinction:
 
 Therefore, S3 is usually preferred for durable data-lake storage.
 
+[⬆ Back to top](#top)
+
 ## 10. AWS Glue Data Catalog integration
 
 EMR can use AWS Glue Data Catalog as a centralized metastore for Spark, Hive, and other compatible services.
@@ -215,6 +235,8 @@ Benefits include:
 - Shared metadata across multiple EMR clusters
 - Integration with Athena and other AWS analytics services
 - Decoupling metadata from temporary clusters
+
+[⬆ Back to top](#top)
 
 ## 11. Security
 
@@ -244,6 +266,8 @@ An EMR on EC2 implementation normally uses:
 - **Autoscaling role:** Permits automatic scaling activities when required.
 - **Runtime role:** Provides job-specific permissions, especially for EMR on EKS.
 
+[⬆ Back to top](#top)
+
 ## 12. High availability and fault tolerance
 
 EMR provides resilience through:
@@ -258,6 +282,8 @@ EMR provides resilience through:
 - A mixture of On-Demand and Spot capacity
 
 High availability should be combined with durable S3 storage so that a failed or terminated cluster does not cause permanent data loss.
+
+[⬆ Back to top](#top)
 
 ## 13. Monitoring and logging
 
@@ -284,6 +310,8 @@ Administrators can monitor:
 - Scaling activity
 - Application and bootstrap logs
 
+[⬆ Back to top](#top)
+
 ## 14. EMR Studio and notebooks
 
 EMR Studio provides an integrated development environment for data engineers and data scientists.
@@ -302,6 +330,8 @@ It supports:
 - Collaborative analytics
 - Querying cataloged data
 
+[⬆ Back to top](#top)
+
 ## 15. Customization
 
 EMR clusters can be customized using:
@@ -316,6 +346,8 @@ EMR clusters can be customized using:
 - Reconfiguration of running instance fleets
 
 Bootstrap actions execute scripts during cluster creation to install software or apply custom configurations.
+
+[⬆ Back to top](#top)
 
 ## 16. Integration with AWS services
 
@@ -333,6 +365,8 @@ Amazon EMR integrates with:
 - Amazon MWAA for Airflow orchestration
 - EventBridge, SNS and Lambda for event-driven operations
 - SageMaker for machine-learning workflows
+
+[⬆ Back to top](#top)
 
 ## 17. Transient and long-running clusters
 
@@ -354,6 +388,8 @@ This is cost-effective for scheduled batch processing.
 - Reduces repeated startup time.
 - Requires continuous monitoring, patching and cost management.
 
+[⬆ Back to top](#top)
+
 ## Key characteristics summary
 
 | Characteristic | Description |
@@ -369,6 +405,8 @@ This is cost-effective for scheduled batch processing.
 | **Storage-independent** | Uses S3 to separate durable storage from temporary compute |
 | **Automation-friendly** | Supports APIs, CLI, SDKs, CloudFormation and Terraform |
 
+[⬆ Back to top](#top)
+
 ## Typical use cases
 
 - Processing large application and infrastructure logs
@@ -381,6 +419,8 @@ This is cost-effective for scheduled batch processing.
 - Running large-scale SQL queries
 - Processing IoT data
 - Migrating Hadoop workloads to AWS
+
+[⬆ Back to top](#top)
 
 ## Simple data-processing flow
 
