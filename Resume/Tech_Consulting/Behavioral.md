@@ -50,6 +50,7 @@ in this folder.
    25. [Partnering with non-engineering stakeholders to deliver an outcome](#partnering-with-non-engineering-stakeholders-to-deliver-an-outcome)
    26. [A technical project delivered start to finish](#a-technical-project-delivered-start-to-finish)
    27. [The hardest end-to-end project you've worked on](#the-hardest-end-to-end-project-youve-worked-on)
+   28. [A production issue you've managed and resolved](#a-production-issue-youve-managed-and-resolved)
 2. [Conflict Resolution — A Case Study Per Role](#conflict-case-studies)
    1. [Truist Bank — Dual EKS/AKS vs. Standardizing on One Platform](#truist-bank--dual-eksaks-vs-standardizing-on-one-platform)
    2. [Regeneron — How Much Access Should the Conversational AI Have?](#regeneron--how-much-access-should-the-conversational-ai-have)
@@ -484,6 +485,91 @@ system's isolation.
 > dropped about 40%."
 
 ~175 words, roughly 65-70 seconds spoken. Full write-up: [Truist-Bank-Architecture-Design.md](Truist-Bank-Architecture-Design.md) and [STAR-Scenarios.md § Truist Bank](STAR-Scenarios.md#truist-bank).
+
+### A production issue you've managed and resolved
+
+> "At Southern Company, our OT analytics environment hit several major
+> data-pipeline and connectivity outages between AWS and Azure —
+> operations that depended on that data flow lost visibility every time
+> it happened. I led incident response, coordinating the on-call team to
+> restore service each time, which came first, before any root-cause
+> work. Once service was back, I went after why it kept happening: built
+> organization-wide AWS security policies with automated remediation so
+> misconfigurations got caught and fixed without anyone needing to
+> intervene manually, rewrote the alerts and runbooks around the
+> specific failure modes that had actually caused the outages, and
+> automated the recovery steps for those failure modes directly. I also
+> put every infrastructure and data-pipeline change through Azure DevOps
+> so unreviewed changes — a common source of the drift causing these
+> outages — stopped happening. Recovery time on subsequent incidents
+> dropped measurably, and automated remediation started catching
+> problems before they became outages at all."
+
+~165 words, roughly 65 seconds spoken. Full write-up: [STAR-Scenarios.md § Southern Company](STAR-Scenarios.md#southern-company).
+
+**Alternate answer — Regeneron.** Use this version if the interviewer
+is more interested in compliance-heavy or regulated environments, or if
+Southern Company has already come up elsewhere in the conversation.
+
+> "At Regeneron, our research platform moved clinical and genomic data
+> between AWS and Azure, and that cross-cloud path was involved in
+> several high-impact incidents — exactly the kind of situation where
+> GxP compliance made 'just restore it and move on' not good enough; any
+> recovery had to be provable as not having compromised data integrity
+> along the way. Going in, I'd already defined clear recovery objectives
+> for that environment rather than leaving recovery time undefined, and
+> built automated failure recovery instead of relying on someone paging
+> in and running manual steps under pressure. When those incidents hit,
+> that preparation is what shortened downtime — recovery was already a
+> tested, automated path, not something being improvised live during an
+> outage in a regulated environment where improvising carries real risk."
+
+~150 words, roughly 60 seconds spoken. Full write-up: [STAR-Scenarios.md § Regeneron](STAR-Scenarios.md#regeneron).
+
+**Alternate answer — Truist Bank.** Weaker grounding than the two
+above — use only if neither Southern Company nor Regeneron fits the
+conversation, and be ready for a specific-incident follow-up question.
+
+> "At Truist Bank, I built organization-wide AWS security automation —
+> Organizations and SCPs, Security Hub, GuardDuty — wired to automatic
+> checks and fixes, so a misconfiguration got remediated as soon as it
+> was detected rather than sitting open until someone noticed it in a
+> dashboard. That's the production-issue-prevention side of the job as
+> much as the resolution side: most of what that automation caught never
+> became a customer-facing incident precisely because it was fixed
+> within the automated loop before it escalated."
+
+~85 words, roughly 35 seconds spoken.
+
+**Known gap**: this describes the automated-remediation *system*, which
+is real and resume-documented, but not one specific incident with a
+before/after — the honest framing above is "prevention," not "I
+personally resolved incident X." If asked to go deeper ("walk me
+through one specific thing it caught"), that's a real gap right now —
+either supply an actual example or say plainly that the system's
+day-to-day catches weren't individually tracked at that level of
+detail.
+
+**Alternate answer — Liberty Mutual.** Weakest grounding of the four —
+use only as a last resort, and expect it not to survive a specific
+follow-up.
+
+> "At Liberty Mutual, part of establishing the company's first Azure
+> Landing Zone was building in reliability from the start rather than
+> bolting it on later — improved monitoring and documented recovery
+> steps for the claims and policy applications running on that
+> platform, so when something did go wrong, the response wasn't
+> improvised. It's less a single incident story and more that recovery
+> was designed in as a first-class requirement of the platform, not an
+> afterthought."
+
+~75 words, roughly 30 seconds spoken.
+
+**Known gap**: same limitation as Truist Bank above, more pronounced —
+the resume documents "improved monitoring and documented recovery
+steps" as a deliverable, not a specific incident that was actually
+recovered from using them. Don't offer this one live without being
+ready to admit that directly if pressed.
 
 [⬆ Back to top](#top)
 
