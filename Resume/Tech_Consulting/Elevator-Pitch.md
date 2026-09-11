@@ -15,8 +15,7 @@ career coverage.
 
 > "I'm a multi-cloud DevOps and security leader with 14 years in IT,
 > including 12 building AWS and Azure as a single operating model
-> rather than two separate clouds. That's the thread through my whole
-> career: making the secure path the fastest path.
+> rather than two separate clouds. 
 >
 > At Liberty Mutual and TJX, I helped design the enterprise Azure
 > Landing Zone patterns that turned governed, secure deployment into
@@ -26,10 +25,9 @@ career coverage.
 > with zero disruption.
 >
 > Today at Truist, I own the reusable AWS–Azure platform patterns that
-> engineering teams across the bank build on. I run EKS and AKS at
-> scale, and I've consolidated cloud security across both providers,
-> from org-level guardrails and policy to threat detection and SIEM,
-> into a single risk view that leadership can actually act on. Those
+> engineering teams across the bank build on,
+>  and I've consolidated cloud security across both providers,
+>  into a single risk view that leadership can actually act on. Those
 > controls aren't documents on a shelf; they're embedded directly in
 > the delivery pipelines, so every release is compliant by
 > construction.
@@ -37,7 +35,7 @@ career coverage.
 > The result: by standardizing CI/CD on Azure DevOps and GitHub
 > Actions, we reduced release cycle time by roughly 40% while
 > strengthening governance and operational resilience at the same
-> time. Faster and safer - that's the outcome I'm known for delivering,
+> time.
 > and it's what I'd bring here."
 
 ~220 words, roughly 85-90 seconds spoken.
