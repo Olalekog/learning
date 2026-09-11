@@ -395,47 +395,86 @@ drew you in, rather than a generic "great culture and mission" answer.)*
 
 ### Partnering with non-engineering stakeholders to deliver an outcome
 
-> "The Regeneron conversational-AI project is the clearest example. The
-> objective: give researchers a conversational interface to explore
-> results faster, without compromising the GxP compliance the entire
-> platform depended on. Where we disagreed: compliance — fluent in GxP
-> but not cloud architecture — wanted to block any LLM access to
-> research data entirely, the safest position on paper. Product wanted
-> broad conversational access to actually accelerate research. Neither,
-> taken fully, was workable. How we aligned: I designed a third
-> architecture instead of arguing either side out of their position —
-> Azure OpenAI querying only a de-identified index, never raw data
-> directly — and translated it into terms each group could personally
-> verify: a concrete data-flow diagram for compliance, a working scoped
-> pilot for product. Alignment came from giving each side something
-> they could check themselves, not from engineering asserting it was
-> fine."
+> "A good example was when I partnered with security, finance,
+> application owners, and business stakeholders on a cloud
+> infrastructure modernization project. The objective was to move
+> workloads to a more standardized AWS environment while improving
+> security, reliability, and cost control without disrupting business
+> operations.
+>
+> The main disagreement was around speed versus risk. Some stakeholders
+> wanted to migrate quickly to meet business timelines, while the
+> engineering and security teams were concerned about access controls,
+> encryption, monitoring, disaster recovery, and the operational risk
+> of moving critical workloads too quickly. Finance also wanted us to
+> demonstrate that the proposed architecture would not create
+> unnecessary cloud costs.
+>
+> I helped align the groups by translating the technical risks into
+> business impact rather than discussing only infrastructure details.
+> We categorized workloads by criticality, agreed on security and
+> availability requirements, established measurable migration and
+> rollback criteria, and used a phased approach — starting with
+> lower-risk workloads before moving critical applications. I also
+> incorporated Infrastructure-as-Code, automated security checks,
+> monitoring, and cost controls into the deployment process.
+>
+> That approach gave the stakeholders visibility and confidence while
+> allowing engineering to maintain the necessary controls. We
+> ultimately delivered the migration incrementally, reduced deployment
+> risk, and established a repeatable cloud pattern that could be used
+> for additional workloads."
 
-~145 words, roughly 60 seconds spoken. Fuller version: [Conflict Resolution § Regeneron](#regeneron--how-much-access-should-the-conversational-ai-have) below.
+~205 words, roughly 80-85 seconds spoken — runs over the 60s target
+since it answers all three parts of the question (objective,
+disagreement, and alignment) in full; if a strict 60s cap is needed
+live, cut the Finance-cost sentence from the second paragraph and the
+Infrastructure-as-Code sentence from the third.
 
 ### A technical project delivered start to finish
 
-> "The Regeneron AWS-Azure research platform is the project — full
-> write-up in [Regeneron-Architecture-Design.md](Regeneron-Architecture-Design.md).
-> My role was Cloud Data and DevOps Architect: I owned the end-to-end
-> design of how AWS and Azure worked together for the whole platform,
-> not just one piece — identity and networking, the ML pipeline split
-> between SageMaker and Databricks, and the conversational AI layer
-> were all one architecture I was accountable for. I designed backward
-> from the real constraint: clinical and genomic data had to move
-> between clouds without ever breaking GxP controls. That meant shared
-> identity and private networking so data never touched a public path,
-> and a curated feature-store handoff so raw data never left its cloud
-> of origin. The biggest challenges were one technical, one
-> organizational. Technically: proving — architecturally, not just by
-> policy — that the conversational layer had no path to raw data at
-> all. Organizationally: aligning compliance and product on how much
-> access was acceptable, which I resolved by designing a third option
-> instead of negotiating between their two positions. The result was
-> secure, compliant cross-cloud data movement that never broke GxP
-> controls."
+> "One recent project I delivered end-to-end was a three-tier
+> application platform on AWS. I was responsible for the cloud
+> architecture, Infrastructure-as-Code, CI/CD automation, security
+> controls, containerization, and deployment strategy. I designed the
+> environment using Terraform with reusable modules for the VPC,
+> subnets, compute, database, IAM, and container registry, while using
+> Docker for the application and GitHub Actions with OIDC for secure
+> deployments to AWS.
+>
+> I owned the project from architecture and infrastructure design
+> through implementation, testing, security scanning, and deployment
+> across development, UAT, and production environments. I also
+> incorporated tools such as Checkov, Trivy, and SonarQube into the
+> pipeline so infrastructure, container images, and application code
+> could be validated before deployment. We used pull requests and
+> approval gates to control promotion between environments rather than
+> allowing engineers to deploy directly to production.
+>
+> One of the biggest challenges was getting the security and IAM model
+> right. During implementation, we encountered permission issues
+> involving IAM roles, KMS, ECR, and EC2 operations. Rather than
+> broadening permissions to get the pipeline working, I traced the
+> failed API calls, updated the policies with the specific permissions
+> required, and maintained least-privilege access. We also encountered
+> Terraform state and environment-isolation challenges, so I
+> standardized remote state and separated environment configurations to
+> prevent changes in one environment from affecting another.
+>
+> The project ultimately gave us a repeatable deployment pattern where
+> infrastructure and application changes could move from development
+> through UAT into production using the same automated process. For me,
+> the biggest takeaway was that delivering a cloud platform successfully
+> isn't just about getting the infrastructure running—it's about making
+> deployment secure, repeatable, observable, and easy for the next
+> engineer to operate."
 
-~175 words, roughly 65-70 seconds spoken. Organizational-challenge detail: [Partnering with non-engineering stakeholders](#partnering-with-non-engineering-stakeholders-to-deliver-an-outcome) above.
+~270 words, roughly 105-110 seconds spoken — well over the 60s target
+since it answers all three parts of the question (the project, your
+role, and the biggest challenges) in full; if a strict 60s cap is
+needed live, cut the third paragraph's opening two sentences (the
+specific IAM/KMS/ECR permission trace) and lead straight into the
+Terraform state/environment-isolation point.
 
 ### The hardest end-to-end project you've worked on
 
@@ -462,7 +501,7 @@ drew you in, rather than a generic "great culture and mission" answer.)*
 ~180 words, roughly 70-75 seconds spoken — runs slightly over the 60s
 target given the question invites contrasting technical and
 organizational difficulty; cut the SageMaker/Databricks sentence first
-if a strict 60s cap is needed live. Fuller detail on each half: [A technical project delivered start to finish](#a-technical-project-delivered-start-to-finish) above and [Regeneron — How Much Access Should the Conversational AI Have?](#regeneron--how-much-access-should-the-conversational-ai-have) below.
+if a strict 60s cap is needed live. Organizational-challenge detail: [Regeneron — How Much Access Should the Conversational AI Have?](#regeneron--how-much-access-should-the-conversational-ai-have) below.
 
 **Alternate answer — Truist Bank.** Use this version if the interviewer
 has already heard the Regeneron story earlier in the conversation, or
