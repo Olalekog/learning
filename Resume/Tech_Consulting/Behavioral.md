@@ -51,6 +51,7 @@ in this folder.
    26. [A technical project delivered start to finish](#a-technical-project-delivered-start-to-finish)
    27. [The hardest end-to-end project you've worked on](#the-hardest-end-to-end-project-youve-worked-on)
    28. [A production issue you've managed and resolved](#a-production-issue-youve-managed-and-resolved)
+   29. [Your role as a DevOps engineer in a cross-functional team](#your-role-as-a-devops-engineer-in-a-cross-functional-team)
 2. [Conflict Resolution — A Case Study Per Role](#conflict-case-studies)
    1. [Truist Bank — Dual EKS/AKS vs. Standardizing on One Platform](#truist-bank--dual-eksaks-vs-standardizing-on-one-platform)
    2. [Regeneron — How Much Access Should the Conversational AI Have?](#regeneron--how-much-access-should-the-conversational-ai-have)
@@ -574,6 +575,29 @@ the resume documents "improved monitoring and documented recovery
 steps" as a deliverable, not a specific incident that was actually
 recovered from using them. Don't offer this one live without being
 ready to admit that directly if pressed.
+
+[⬆ Back to top](#top)
+
+---
+
+### Your role as a DevOps engineer in a cross-functional team
+
+> "On a cross-functional team, I see my role as the person who turns
+> other groups' requirements into something the platform can actually
+> guarantee, rather than just handing infrastructure to whoever asks
+> for it. At Regeneron that meant sitting between research scientists
+> who wanted a conversational AI tool and a compliance team that had to
+> protect GxP-regulated data — neither side spoke the other's language,
+> and my job was translating in both directions until the architecture
+> satisfied both. At Southern Company it meant being the shared point
+> of ownership between OT and IT during an outage, so two teams
+> weren't independently guessing at the same failure. Across both, the
+> pattern's the same: DevOps isn't a separate lane next to development,
+> security, and the business — it's the connective layer that makes
+> sure the fast path and the safe path are the same path, so no
+> function has to trade off against another to get their part done."
+
+~150 words, roughly 60 seconds spoken. Related: [Collaborating with colleagues from diverse backgrounds](#collaborating-with-colleagues-from-diverse-backgrounds-toward-a-common-goal) and [Partnering with non-engineering stakeholders](#partnering-with-non-engineering-stakeholders-to-deliver-an-outcome) above.
 
 [⬆ Back to top](#top)
 
