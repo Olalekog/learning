@@ -132,16 +132,29 @@ below.
 
 ### Managing time to complete a task
 
-> "During the run-up to TJ Maxx's release-freeze window, I had to land
-> several validated fixes through the pipeline before the freeze
-> started, while also finishing the year's alert and runbook updates
-> from the prior peak event. I worked backward from the freeze date and
-> treated it as a hard deadline rather than a target, and I explicitly
-> deprioritized lower-urgency backlog items so both the fixes and the
-> runbook updates landed before the freeze, with a short buffer left in
-> case a fix needed a second pass."
+> "When I'm given a task with a deadline, I first make sure I clearly
+> understand the requirements, priorities, dependencies, and expected
+> outcome. I then break the work into smaller milestones, estimate the
+> effort for each one, and prioritize the items that have the highest
+> risk or could block other teams.
+>
+> For example, when working on an infrastructure deployment, I
+> separated the work into architecture design, Terraform development,
+> CI/CD integration, security validation, testing, and deployment. I
+> addressed high-risk areas such as IAM permissions and networking
+> early rather than waiting until the end of the project.
+>
+> I also communicate progress regularly with the team and raise
+> blockers as soon as I identify them. If priorities change or an
+> unexpected technical issue affects the timeline, I reassess the plan,
+> communicate the impact, and focus on the work required to meet the
+> most important business objective.
+>
+> This approach helps me manage my time effectively, avoid last-minute
+> surprises, and deliver work on schedule without sacrificing security,
+> reliability, or quality."
 
-~90 words, roughly 40 seconds spoken.
+~165 words, roughly 65 seconds spoken.
 
 ### Introducing yourself with stakeholders (manager and direct)
 
@@ -198,16 +211,38 @@ below.
 
 ### A task you weren't trained on
 
-> "Walking into Regeneron's GxP-regulated environment, I had deep
-> AWS/Azure experience but no formal background in pharma compliance
-> frameworks. I treated it like any unfamiliar system: read the actual
-> GxP documentation instead of assuming I understood it from adjacent
-> compliance work, and partnered closely with the compliance team early
-> rather than guessing at requirements and hoping a later audit
-> wouldn't catch a gap. That partnership approach became the template
-> for how I approached every subsequent regulated environment."
+> "I was once assigned a task involving a technology I had limited
+> hands-on experience with — implementing GitOps deployment using Argo
+> CD with Amazon EKS. Although I already had experience with AWS,
+> Kubernetes, CI/CD, and Terraform, Argo CD itself was relatively new
+> to me.
+>
+> I started by understanding the expected outcome and breaking the
+> task into smaller components. I reviewed the official documentation,
+> studied our existing Kubernetes deployment process, and built a proof
+> of concept in a development environment. I configured Argo CD to
+> connect to GitHub and EKS, deployed a test application, and validated
+> synchronization, configuration changes, rollback, and failure
+> scenarios.
+>
+> One challenge was making sure I could introduce the technology
+> without creating unnecessary risk. Instead of experimenting directly
+> in production, I tested everything in development, documented what I
+> learned, used pull requests for configuration changes, and validated
+> the deployment process before moving forward.
+>
+> I was able to complete the task successfully and, more importantly,
+> turn something I initially wasn't trained on into a repeatable
+> process the team could use. That experience reinforced my approach to
+> unfamiliar technology: understand the problem first, learn what is
+> necessary, validate through a small proof of concept, and then
+> introduce it gradually with appropriate controls."
 
-~90 words, roughly 40 seconds spoken.
+~200 words, roughly 80 seconds spoken — runs over the 60s target since
+it walks through the full approach (learning method, POC, risk
+controls, outcome); if a strict 60s cap is needed live, cut the second
+paragraph's list of what was validated down to "synchronization and
+rollback" and drop the third paragraph's pull-request detail.
 
 ### A career goal and the steps taken
 
@@ -225,31 +260,89 @@ below.
 
 ### A difficult decision
 
-> "Deciding how to unify AWS and Azure security posture at Truist Bank
-> had a real fork in the road: adopt a third-party CNAPP like Wiz or
-> Prisma Cloud as a single pane of glass, or connect AWS into the
-> Azure-native tools already in place — Defender for Cloud, Sentinel.
-> The CNAPP option was genuinely more elegant for a fully cloud-agnostic
-> view, but it meant standing up and governing an entirely new vendor
-> relationship. I chose the native-connector path because it reused
-> tooling and skills already in place and avoided a net-new vendor
-> dependency — the harder, less flashy decision, but the more
-> evidence-based one."
+> "One difficult decision I had to make was whether to proceed with an
+> infrastructure deployment that had a business deadline when our
+> security validation identified IAM permissions that were broader than
+> necessary. Technically, we could have continued with the deployment,
+> but I was concerned that accepting excessive permissions just to meet
+> the timeline would introduce unnecessary production risk.
+>
+> I decided to hold the affected portion of the deployment and work
+> with the application and security teams to identify exactly which
+> AWS API actions were required. I reviewed the failed operations,
+> refined the IAM policies using least-privilege principles, and tested
+> the changes in the lower environment before allowing the deployment
+> to proceed.
+>
+> The difficult part was balancing delivery speed against security and
+> explaining why a short delay was preferable to introducing a
+> long-term vulnerability. I communicated the risk in terms of business
+> impact, provided a clear remediation plan and timeline, and kept the
+> stakeholders updated.
+>
+> We ultimately completed the deployment with the appropriate
+> permissions and without compromising the security standard. It
+> reinforced an important principle for me: deadlines matter, but when
+> a decision could materially affect production security or
+> reliability, I make the risk visible, provide alternatives, and
+> choose the option that protects the organization while minimizing the
+> impact on delivery."
 
-~110 words, roughly 45 seconds spoken. Full write-up: [STAR-Scenarios.md § Cross-Cutting](STAR-Scenarios.md#unified-security-posture).
+~215 words, roughly 85-90 seconds spoken — runs over the 60s target
+since it walks through the full decision (the conflict, the action,
+the hard part, and the outcome); if a strict 60s cap is needed live,
+cut the third paragraph and go straight from the IAM remediation into
+the outcome.
+
+**Key interview line**: "I don't treat speed and security as opposing
+goals; when there is a conflict, I quantify the risk, communicate the
+trade-off, and find the safest path that still moves delivery
+forward."
 
 ### Your process for solving problems
 
-> "Detect, stabilize, root-cause, then close the gap with something
-> durable — not just a fix. Concretely: an alert or report surfaces the
-> problem; I stabilize first, restoring service or containing the
-> issue, before I fully understand why it happened; then I dig into
-> root cause instead of stopping at the symptom. The step people skip
-> is the one I don't — I close the gap with a runbook update or
-> automation, not just a retrospective document, so the same failure
-> mode doesn't require a human to catch it manually next time."
+> "My problem-solving process starts with understanding the problem
+> clearly before making changes. I first determine what is failing,
+> when it started, what changed recently, who or what is affected, and
+> the business impact. This helps me separate the symptoms from the
+> actual problem.
+>
+> Next, I gather evidence from logs, metrics, alerts, deployment
+> history, and system configurations. In a DevOps environment, that
+> might mean reviewing CloudWatch or Prometheus metrics, Kubernetes
+> events and logs, CI/CD pipeline failures, Terraform changes, IAM
+> policies, or network connectivity.
+>
+> I then develop possible root-cause hypotheses and test them
+> systematically, starting with the most likely causes while avoiding
+> unnecessary production changes. For example, if an application
+> running on EKS suddenly becomes unavailable, I would trace the
+> request from the load balancer through Kubernetes services and pods
+> and then check application dependencies such as the database,
+> networking, IAM permissions, and external services.
+>
+> Once I identify the root cause, I implement the lowest-risk solution,
+> validate that the service has recovered, and continue monitoring to
+> make sure the issue does not return. If the change has significant
+> production risk, I use change controls, testing, approvals, and a
+> rollback plan.
+>
+> Finally, I document the root cause and solution and look for ways to
+> prevent recurrence through automation, monitoring, better alerts,
+> runbooks, or architectural improvements. My goal isn't simply to fix
+> an incident; it's to leave the system more reliable than it was
+> before the problem occurred."
 
-~100 words, roughly 45 seconds spoken.
+~240 words, roughly 95-100 seconds spoken — runs well over the 60s
+target since it walks through the full five-stage process with a
+worked EKS example; if a strict 60s cap is needed live, drop the EKS
+example from the third paragraph and compress the last two paragraphs
+into one sentence ("fix at the lowest risk, validate, then prevent
+recurrence").
+
+**Concise version to lead with**: "Understand → Gather evidence →
+Isolate → Form a hypothesis → Test → Fix → Validate → Prevent
+recurrence."
 
 ### Why are you looking for a new role?
 
