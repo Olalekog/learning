@@ -13,8 +13,8 @@ open-ended "tell me about yourself" or "walk me through your resume"
 opener where a tight, high-signal narrative lands better than full
 career coverage.
 
-> "I'm a multi-cloud DevOps and security leader with 14 years in IT,
-> including 12 building AWS and Azure as a single operating model
+> "I'm a multi-cloud DevOps and security leader with 15 years in IT,
+> out of which 12 years was dedicated to building AWS and Azure infrastructure as a single operating model
 > rather than two separate clouds. 
 >
 > At Liberty Mutual and TJX, I helped design the enterprise Azure
