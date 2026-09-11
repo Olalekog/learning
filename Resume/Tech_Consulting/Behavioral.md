@@ -621,22 +621,40 @@ ready to admit that directly if pressed.
 
 ### Your role as a DevOps engineer in a cross-functional team
 
-> "On a cross-functional team, I see my role as the person who turns
-> other groups' requirements into something the platform can actually
-> guarantee, rather than just handing infrastructure to whoever asks
-> for it. At Regeneron that meant sitting between research scientists
-> who wanted a conversational AI tool and a compliance team that had to
-> protect GxP-regulated data — neither side spoke the other's language,
-> and my job was translating in both directions until the architecture
-> satisfied both. At Southern Company it meant being the shared point
-> of ownership between OT and IT during an outage, so two teams
-> weren't independently guessing at the same failure. Across both, the
-> pattern's the same: DevOps isn't a separate lane next to development,
-> security, and the business — it's the connective layer that makes
-> sure the fast path and the safe path are the same path, so no
-> function has to trade off against another to get their part done."
+> "My role as a DevOps Engineer in a cross-functional team is to make
+> sure applications can move from development to production securely,
+> reliably, and efficiently. I work closely with developers to
+> understand application requirements, with security teams to
+> implement security and compliance controls, with QA teams to
+> automate testing, and with operations teams to ensure the application
+> is observable, scalable, and supportable in production.
+>
+> From the engineering side, I build and maintain cloud infrastructure
+> using Terraform, automate CI/CD pipelines, manage containerized
+> workloads with Docker and Kubernetes, and implement monitoring and
+> alerting using tools such as CloudWatch, Prometheus, and Grafana. I
+> also integrate security scanning and approval gates into the
+> deployment process so issues can be identified before they reach
+> production.
+>
+> During incidents or deployment problems, I help bring the different
+> teams together to troubleshoot across the entire stack — from the
+> application and pipeline to Kubernetes, networking, IAM, and cloud
+> infrastructure. I also focus on removing repetitive manual processes
+> through automation and documenting solutions so the whole team can
+> operate more effectively.
+>
+> Ultimately, I see DevOps as more than managing tools or pipelines. My
+> responsibility is to improve collaboration and create a reliable
+> delivery process that allows the entire cross-functional team to
+> deliver business value faster without compromising security or
+> stability."
 
-~150 words, roughly 60 seconds spoken. Related: [Collaborating with colleagues from diverse backgrounds](#collaborating-with-colleagues-from-diverse-backgrounds-toward-a-common-goal) and [Partnering with non-engineering stakeholders](#partnering-with-non-engineering-stakeholders-to-deliver-an-outcome) above.
+~210 words, roughly 80-85 seconds spoken — runs over the 60s target
+since it covers the full scope of the role across teams, tooling, and
+incident response; if a strict 60s cap is needed live, cut the second
+paragraph's tooling list down to "Terraform, CI/CD, and Kubernetes" and
+drop the monitoring-tool names.
 
 [⬆ Back to top](#top)
 
