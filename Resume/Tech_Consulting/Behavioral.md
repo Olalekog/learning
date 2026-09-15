@@ -441,16 +441,24 @@ drew you in, rather than a generic "great culture and mission" answer.)*
 
 ### The last time you took a professional risk
 
-> "Recommending the more complex, fully-compliant cross-cloud
-> architecture at Regeneron — shared identity, private networking,
-> GxP-validated baselines end to end — instead of a simpler
-> single-cloud shortcut that would have shipped faster but left a
-> compliance gap someone would eventually have had to unwind. It was a
-> risk because it meant a longer, harder sell to stakeholders wanting
-> speed, but shipping something that later failed an audit would have
-> cost far more than the extra weeks upfront."
+> "One professional risk I took was recommending that we move from a
+> more manual deployment process to Infrastructure-as-Code and
+> automated CI/CD using Terraform and GitHub Actions. It was a risk
+> because the existing process was familiar to the team, and I was
+> taking ownership of introducing a new approach.
+>
+> To reduce the risk, I built a proof of concept in development,
+> implemented OIDC authentication, separated DEV, UAT, and production
+> environments, and added pull-request reviews and production approval
+> gates. We also tested rollback procedures before production.
+>
+> The result was a more secure, repeatable, and auditable deployment
+> process with less manual effort. It reinforced my approach to
+> professional risk: challenge existing processes when there's clear
+> value, but validate the solution, limit the blast radius, and always
+> have a rollback plan."
 
-~85 words, roughly 35 seconds spoken.
+~130 words, roughly 55 seconds spoken.
 
 ### Best and worst team-building exercise
 
