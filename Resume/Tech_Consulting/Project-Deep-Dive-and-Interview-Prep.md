@@ -460,6 +460,49 @@ provided standardized platform controls.
 deployment paths instead of designing the underlying infrastructure
 independently for each service.
 
+### Rivian — Is the AWS/Azure Pattern Across Your Career a Coincidence?
+
+**Primary answer**: No, it wasn't really a coincidence. At Rivian, we
+weren't using multiple clouds just for the sake of being multi-cloud.
+Different workloads and organizational requirements made AWS or Azure
+a better fit, while my responsibility was to make the overall
+environment consistent from a DevOps, security, and operational
+perspective.
+
+For example, we supported workloads around vehicle telemetry, OTA
+update services, and factory systems. We used both EKS and AKS for
+containerized workloads, and AWS SageMaker supported
+predictive-maintenance and quality use cases using vehicle and factory
+data.
+
+My role was to establish reusable patterns across both platforms —
+networking, identity, security, Kubernetes, CI/CD, and observability —
+so teams didn't have completely different operating models depending
+on the cloud.
+
+So the common AWS/Azure stack throughout my career reflects the
+enterprise environments I've supported and my specialization in
+building consistent multi-cloud platforms.
+
+**Follow-up — why not just use one cloud?**: The goal wasn't
+multi-cloud itself; the goal was to support the workload and
+organizational requirements while giving engineering teams a
+consistent security and operating model regardless of the underlying
+provider.
+
+**Key points to remember**:
+
+- Multi-cloud was intentional and workload-driven, not a technology
+  trend.
+- Rivian workloads included vehicle telemetry, OTA update services,
+  and factory systems.
+- EKS and AKS supported containerized workloads across AWS and Azure.
+- AWS SageMaker supported predictive-maintenance and quality use
+  cases.
+- Your contribution was standardizing networking, identity, security,
+  Kubernetes, CI/CD, observability, and operational patterns across
+  both clouds.
+
 ### Best Follow-Up — Why Not Just Use One Cloud?
 
 We didn't use multi-cloud simply for the sake of using two providers.
