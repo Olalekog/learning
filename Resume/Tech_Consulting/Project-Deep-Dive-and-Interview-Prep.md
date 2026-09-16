@@ -23,7 +23,8 @@ Bank), see
 8. [Multi-Cloud STAR Answers — Why AWS + Azure?](#multi-cloud-star-answers--why-aws--azure)
 9. [Release Cycle & CI/CD STAR Answers](#release-cycle--cicd-star-answers)
 10. [Outage & Incident Response STAR Answers](#outage--incident-response-star-answers)
-11. [Most Important Concepts to Know First](#most-important-concepts-to-know-first)
+11. [AI/ML Pipeline STAR Answers](#aiml-pipeline-star-answers)
+12. [Most Important Concepts to Know First](#most-important-concepts-to-know-first)
 
 ---
 
@@ -742,6 +743,179 @@ outage example because the resume explicitly identifies major
 data-pipeline and connectivity outages and your contribution to
 coordinating on-call teams, restoring services, improving alerts and
 runbooks, and automating recovery steps.
+
+[⬆ Back to top](#top)
+
+---
+
+## AI/ML Pipeline STAR Answers
+
+STAR-formatted, ~60-second answers on AI/ML pipeline work, one per
+role, each with the underlying data → deployment pipeline flow spelled
+out, plus a technical deep-dive and the "your role vs. the data
+scientist" follow-up.
+
+### Regeneron — End-to-End Research AI/ML Pipeline
+
+**Situation**: At Regeneron, research teams needed a secure and
+repeatable way to process large clinical and genomic datasets and
+deploy machine-learning models while maintaining strict access and
+GxP controls.
+
+**Task**: My responsibility was to help build an end-to-end ML
+pipeline covering data preparation, model training, deployment, and
+monitoring across Azure and AWS.
+
+**Action**: We used Azure Databricks for large-scale data preparation
+and feature engineering. The prepared data then fed the
+machine-learning workflow in AWS SageMaker, where models were trained,
+deployed, and monitored. I also worked on the surrounding cloud
+architecture, including private networking, identity, CI/CD, and
+governance. Azure OpenAI was integrated into internal tools so
+scientists could interact with results conversationally under
+controlled access.
+
+**Result**: We established a repeatable, governed ML lifecycle that
+allowed research teams to move from raw data through model deployment
+and monitoring while maintaining security and compliance requirements.
+
+**Pipeline flow**: Clinical/Genomic Data → Azure Databricks → Data
+Preparation → Feature Engineering → SageMaker Training → Model
+Deployment → Monitoring → Azure OpenAI/Internal Research Interface.
+
+### Truist — Cost and Capacity Forecasting + AI Operations
+
+**Situation**: At Truist, cloud environments generated large amounts
+of operational and utilization data, and engineering teams needed
+better insight into cost and future capacity requirements.
+
+**Task**: I worked on an AI/ML pipeline that could use cloud data for
+cost and capacity forecasting and make the resulting operational
+information easier for engineers to consume.
+
+**Action**: We collected cloud operational and utilization data,
+prepared it for analysis, and fed it into forecasting workflows. The
+resulting predictions and recommendations were exposed through
+operational workflows. We also integrated Azure OpenAI so engineers
+could interact with logs and recommendations using natural-language
+queries rather than manually searching through large volumes of
+operational information.
+
+**Result**: The solution provided teams with a more accessible way to
+analyze operational data and use forecasting information for cloud
+cost and capacity decisions while integrating AI into existing
+operations workflows.
+
+**Pipeline flow**: Cloud Metrics/Usage Data → Data Preparation →
+Forecasting Model → Cost/Capacity Prediction → Operational
+Recommendations → Azure OpenAI → Engineer.
+
+### Rivian — Predictive Maintenance and Quality
+
+**Situation**: At Rivian, vehicle telemetry and factory systems
+generated data that could be used to identify patterns associated with
+equipment or vehicle issues.
+
+**Task**: The objective was to support machine-learning workloads that
+could turn that operational data into predictive-maintenance and
+quality insights.
+
+**Action**: We used AWS SageMaker to train, deploy, and monitor
+machine-learning models using vehicle and factory data. From the
+DevOps and platform side, I worked on the cloud and Kubernetes
+environment supporting these workloads, including EKS and AKS,
+scaling, security hardening, and observability using CloudWatch, Azure
+Monitor, Prometheus, and Grafana. The important part was treating the
+model like a production workload, including deployment, monitoring,
+security, and operational reliability.
+
+**Result**: The platform supported ML models that provided
+predictive-maintenance and quality insights while operating within
+standardized cloud and reliability patterns.
+
+**Pipeline flow**: Vehicle/Factory Data → Data Preparation →
+SageMaker Training → Model → Deployment → Monitoring → Predictive
+Maintenance/Quality Insights.
+
+### TJ Maxx — Inventory and Demand Signals
+
+**Situation**: At TJ Maxx, retail operations generated inventory and
+demand data that could be analyzed to provide better signals around
+product demand, particularly during peak shopping periods.
+
+**Task**: I participated in building cloud-based AI/ML pipelines that
+could process those signals and support internal applications.
+
+**Action**: We used cloud data services to build pipelines around
+inventory and demand information. The workflow prepared the
+underlying data for machine-learning use cases and made the resulting
+signals available to internal systems. We also experimented with
+Azure cognitive services to enhance internal tools. From my cloud and
+DevOps perspective, the focus was supporting the infrastructure,
+deployment, security, and operational processes required to make
+these workloads reliable.
+
+**Result**: The work established cloud-based ML capabilities around
+inventory and demand signals and provided experience integrating AI
+capabilities into internal retail workflows.
+
+**Pipeline flow**: Inventory/Demand Data → Data Preparation → ML
+Pipeline → Demand Signals → Internal Tools / Cognitive Services.
+
+### Technical Deep-Dive — Walk Me Through the Pipeline
+
+**Answer**: The pipeline had four main stages: data preparation,
+training, deployment, and monitoring. We used Azure Databricks for
+large-scale data preparation and feature engineering on research data.
+Once the data was prepared, it moved into the AWS SageMaker workflow
+for model training. After training, the model was deployed so
+applications and research workflows could consume its output, and
+monitoring was included so we could observe the model in production.
+
+**My contribution**: My DevOps responsibility extended beyond the
+model itself. I worked on the supporting private networking, identity,
+CI/CD, security controls, and governance so the pipeline was
+repeatable and controlled. We also integrated Azure OpenAI into
+internal tools so researchers could interact with results
+conversationally while operating under strict access controls.
+
+### Follow-Up — What Was Your Role Versus the Data Scientist?
+
+**Answer**: My responsibility was primarily the MLOps and cloud
+platform side rather than claiming ownership of the data-science work.
+The data scientists focused more on areas such as feature selection,
+experimentation, model logic, and evaluating model quality. My
+responsibility was making sure they had a secure and repeatable
+platform to take that model from development into production.
+
+**Technical ownership**: That included cloud infrastructure, CI/CD,
+identity and access, private networking, deployment, monitoring,
+security, and operational reliability. I also worked on integrating
+the different services, for example connecting the data preparation
+workflow in Databricks with the SageMaker ML lifecycle.
+
+**Closing**: I describe my role as building and operating the
+production platform around the machine-learning lifecycle rather than
+claiming that I personally developed every ML algorithm.
+
+**Stories to memorize**:
+
+- Regeneron: Databricks → feature engineering → SageMaker →
+  train/deploy/monitor → Azure OpenAI.
+- Truist: Cloud operational data → forecasting → cost/capacity
+  recommendations → Azure OpenAI operational interface.
+- Rivian: Vehicle/factory data → SageMaker → predictive maintenance
+  and quality insights.
+- TJ Maxx: Inventory/demand data → ML pipeline → demand signals →
+  internal tools/cognitive services.
+
+**Interview note**: Regeneron is the strongest primary AI/ML story
+because the resume explicitly supports an end-to-end pipeline
+involving Azure Databricks for data preparation and feature
+engineering, AWS SageMaker for training, deployment, and monitoring,
+and Azure OpenAI for controlled conversational interfaces. Do not
+invent model algorithms, dataset sizes, accuracy percentages, or
+business metrics that are not documented.
 
 [⬆ Back to top](#top)
 
