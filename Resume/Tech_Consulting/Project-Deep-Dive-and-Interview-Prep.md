@@ -24,7 +24,8 @@ Bank), see
 9. [Release Cycle & CI/CD STAR Answers](#release-cycle--cicd-star-answers)
 10. [Outage & Incident Response STAR Answers](#outage--incident-response-star-answers)
 11. [AI/ML Pipeline STAR Answers](#aiml-pipeline-star-answers)
-12. [Most Important Concepts to Know First](#most-important-concepts-to-know-first)
+12. [AWS Security at Scale STAR Answers](#aws-security-at-scale-star-answers)
+13. [Most Important Concepts to Know First](#most-important-concepts-to-know-first)
 
 ---
 
@@ -916,6 +917,181 @@ engineering, AWS SageMaker for training, deployment, and monitoring,
 and Azure OpenAI for controlled conversational interfaces. Do not
 invent model algorithms, dataset sizes, accuracy percentages, or
 business metrics that are not documented.
+
+[⬆ Back to top](#top)
+
+---
+
+## AWS Security at Scale STAR Answers
+
+STAR-formatted, ~60-second answers on AWS security-at-scale work, one
+per role, plus follow-ups on automated remediation, SCPs, and EKS
+security, and an accuracy note on what not to overclaim.
+
+### Truist Bank — AWS Organizations, SCPs and Automated Security
+
+**Situation**: At Truist, we had multiple AWS workloads and teams, so
+manually enforcing security account by account would create
+inconsistent controls and increase operational risk.
+
+**Task**: My responsibility was to help implement AWS security
+controls that could be applied consistently across the organization
+rather than configuring each account individually.
+
+**Action**: I used AWS Organizations and Service Control Policies to
+establish organization-level guardrails. We combined those with
+Security Hub and GuardDuty for centralized security posture and
+threat detection. I also worked on automated security checks and
+remediation so common violations could be detected and corrected
+without waiting for manual intervention. The overall approach was to
+establish the security requirement centrally and apply it consistently
+across AWS environments.
+
+**Result**: We improved the organization's security posture while
+reducing manual security administration and giving security teams
+more consistent visibility across AWS accounts.
+
+**Architecture**: AWS Organizations → OUs/Accounts → SCP Guardrails →
+Workloads | Accounts → Security Hub | AWS Activity → GuardDuty →
+Findings → Automated Check/Remediation.
+
+### Southern Company — Automated AWS Security Remediation
+
+**Situation**: At Southern Company, we had AWS environments supporting
+scalable data-processing workloads. As the number of resources and
+accounts increased, manually checking every resource for security
+compliance was not sustainable.
+
+**Task**: I needed to help establish security controls that could
+automatically identify and address noncompliant resources.
+
+**Action**: We implemented organization-wide AWS security policies
+together with Security Hub and automated remediation. Instead of
+relying entirely on engineers to manually inspect new resources,
+security checks were incorporated into the cloud environment so new
+accounts and resources could be evaluated against established
+controls. When supported violations were identified, automated
+remediation could correct them or drive the appropriate response.
+
+**Result**: New AWS accounts and resources could be continuously
+checked against security standards, reducing manual effort and
+providing a more consistent security baseline as the environment
+expanded.
+
+### Regeneron — Regulated AWS Security for Research
+
+**Situation**: At Regeneron, clinical and genomic workloads operated
+across AWS and Azure, and the environment needed to maintain strict
+security and GxP controls.
+
+**Task**: My responsibility was to help create a secure baseline so
+every new research project did not have to recreate its governance
+controls manually.
+
+**Action**: On AWS, we used AWS Organizations guardrails to establish
+consistent controls for new research environments. On Azure,
+equivalent standards were implemented through Landing Zones and Azure
+Policy. We also used AWS Security Hub alongside Azure security tools
+to provide security and compliance teams with consistent risk
+visibility across both clouds. The key was standardization: new
+projects started from an established secure baseline rather than
+engineers building security controls individually.
+
+**Result**: Research workloads could be deployed more consistently
+while security and compliance teams maintained governance across the
+multi-cloud environment.
+
+### Rivian — Security Built into the Platform
+
+**Situation**: At Rivian, multiple product teams were deploying
+workloads for vehicle telemetry, OTA services, and factory systems.
+Allowing every team to independently design networking, identity, and
+security would have created inconsistent environments.
+
+**Task**: I helped establish reusable cloud patterns so new services
+could inherit established security and reliability standards.
+
+**Action**: We standardized AWS Organizations and Azure Landing Zone
+patterns so new services started with consistent networking, identity,
+and security baselines. I also worked on EKS and AKS security
+hardening, controlled upgrades, and observability. Rather than adding
+security after deployment, the goal was to make those controls part of
+the platform teams consumed.
+
+**Result**: Product teams could launch environments using reusable
+patterns that already incorporated security and reliability standards
+instead of implementing those controls independently for every
+service.
+
+### Follow-Up — What Do You Mean by Automated Remediation?
+
+**Answer**: By automated remediation, I mean moving from simply
+detecting a security violation to automatically initiating the
+appropriate corrective action. A security or configuration service
+identifies a resource that violates an established control. That
+finding can generate an event that triggers an automation workflow to
+correct the configuration or notify the appropriate team when human
+approval is required.
+
+**Control model**: I separate preventive controls from detective and
+corrective controls. SCPs can prevent prohibited actions at the
+organization level, while services such as Security Hub and GuardDuty
+provide centralized findings, and automation handles appropriate
+remediation workflows.
+
+**Safety**: I do not automatically remediate every finding. High-risk
+changes can require approval, while safe and repeatable corrections
+can be automated.
+
+### Follow-Up — Give Me an Example of How You Use an SCP
+
+**Answer**: I use SCPs as preventive guardrails at the AWS
+Organizations level. Rather than granting permissions, an SCP defines
+the maximum permissions an account can exercise. For sensitive
+security controls, the objective can be preventing member accounts
+from disabling required organization-level security capabilities or
+performing actions that violate the established cloud baseline.
+
+**Implementation**: I attach the policy at the appropriate
+organizational-unit level so every account underneath inherits the
+restriction, while preserving authorized administrative or automation
+paths where required.
+
+**Risk control**: I test guardrails in a lower-risk OU before wider
+deployment because an incorrectly designed SCP can affect every
+account underneath it. This provides centralized preventive security
+while controlling the blast radius of policy changes.
+
+### Follow-Up — How Did You Secure EKS?
+
+**Answer**: For EKS, I look at security in layers rather than treating
+the cluster as a single control. At the AWS layer, I focus on IAM and
+least-privilege access. At the Kubernetes layer, I control
+authorization and workload permissions and make sure applications do
+not receive unnecessary AWS permissions.
+
+**Defense in depth**: I also focus on network exposure, secrets
+management, container and image security, cluster upgrades and
+patching, logging, and continuous monitoring. In my recent work, I was
+directly involved with EKS scaling, upgrades, security hardening, and
+monitoring.
+
+**Closing**: The objective is defense in depth: protect the AWS
+account, cluster, workload, network, credentials, and software supply
+chain rather than relying on one security product.
+
+**Primary story to memorize**: Truist: AWS Organizations/SCPs →
+preventive controls → Security Hub/GuardDuty → centralized detection →
+automated checks/remediation → continuous improvement. Use Southern
+Company as the second example when asked whether you implemented
+security at scale elsewhere.
+
+**Interview accuracy note**: Do not claim specific Lambda,
+EventBridge, SSM, Config, or remediation workflows unless they reflect
+the actual implementation. The resume supports organization-level
+guardrails, Security Hub, GuardDuty, security hardening, automated
+checks/fixes, and automated remediation, but not every underlying
+implementation detail.
 
 [⬆ Back to top](#top)
 
