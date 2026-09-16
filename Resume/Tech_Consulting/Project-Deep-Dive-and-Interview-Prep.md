@@ -20,7 +20,8 @@ Bank), see
 5. [Scaling](#scaling)
 6. [High Availability](#high-availability)
 7. [Interview Questions](#interview-questions)
-8. [Most Important Concepts to Know First](#most-important-concepts-to-know-first)
+8. [Multi-Cloud STAR Answers — Why AWS + Azure?](#multi-cloud-star-answers--why-aws--azure)
+9. [Most Important Concepts to Know First](#most-important-concepts-to-know-first)
 
 ---
 
@@ -361,6 +362,115 @@ RTO is how long a system can be down before it's unacceptable; RPO is how much d
 
 **10. How do you decide what belongs on AWS versus Azure for a given workload, rather than just picking one cloud?**
 Answer shape: data residency/compliance constraints, existing team expertise, specific managed-service fit (e.g., SageMaker vs. Databricks), and cost — the Southern Company OT-analytics-on-Azure-with-AWS-for-select-workloads split is a concrete example of this being a deliberate per-workload decision, not an arbitrary one.
+
+[⬆ Back to top](#top)
+
+---
+
+## Multi-Cloud STAR Answers — Why AWS + Azure?
+
+STAR-formatted answers for the "why did you use both clouds instead of
+just one?" follow-up, one per role, each grounded in a specific
+workload reason rather than a general multi-cloud philosophy.
+
+### Truist Bank — Governance + Workload Choice
+
+**Situation**: At Truist, we had workloads across both AWS and Azure,
+so the challenge was providing consistent security, identity,
+networking, and deployment standards without forcing every workload
+onto one cloud.
+
+**Task**: My responsibility was to help establish reusable
+multi-cloud patterns while allowing teams to select the appropriate
+platform.
+
+**Action**: We used AWS heavily for EKS-based Kubernetes workloads and
+implemented AWS Organizations, SCPs, Security Hub, and GuardDuty for
+governance. On Azure, we supported AKS and used Azure Policy, Defender
+for Cloud, Sentinel, and Azure DevOps. I helped align the controls so
+both environments followed consistent security and CI/CD standards.
+
+**Result**: This gave application teams platform flexibility while
+maintaining centralized governance, and our CI/CD improvements reduced
+release cycle time by approximately 40%.
+
+### Regeneron — Research Data + Machine Learning
+
+**Situation**: At Regeneron, the research environment needed to
+support clinical and genomic workloads across AWS and Azure while
+maintaining strict security and GxP controls.
+
+**Task**: I helped design a multi-cloud architecture that provided
+secure connectivity, shared identity, consistent CI/CD, and an AI/ML
+workflow across both platforms.
+
+**Action**: Azure Databricks was used for large-scale data preparation
+and feature engineering, while AWS SageMaker was used to train,
+deploy, and monitor machine-learning models. We established private
+networking, consistent identity controls, Azure Landing Zones and
+Policy, and corresponding AWS Organizations guardrails.
+
+**Result**: The architecture allowed research data and ML workflows to
+operate securely across both clouds while giving security and
+compliance teams consistent governance and visibility.
+
+### Southern Company — OT Analytics + AWS Workloads
+
+**Situation**: At Southern Company, there was a requirement to run
+OT-related analytics on Azure while maintaining selected workloads on
+AWS.
+
+**Task**: My responsibility was to help create a standardized
+architecture so those environments could coexist securely without
+teams building different networking, identity, security, and
+deployment approaches.
+
+**Action**: We established reusable multi-cloud patterns. On AWS, I
+worked with EKS for scalable data processing, CloudWatch and
+Prometheus for monitoring, and organization-level security controls.
+On Azure, we used Azure DevOps for controlled releases and Azure
+Policy, Sentinel, and Defender for Cloud for governance and security.
+
+**Result**: The organization could support workloads on both clouds
+using consistent operational and security standards while making the
+patterns reusable by other teams.
+
+### Rivian — Vehicle, Factory + Kubernetes Platform
+
+**Situation**: At Rivian, we supported vehicle telemetry, OTA update
+services, and factory systems that required scalable and reliable
+cloud platforms.
+
+**Task**: I helped establish reusable AWS and Azure patterns so
+product teams could deploy workloads with security, networking,
+observability, and reliability already built into the platform.
+
+**Action**: We used both EKS and AKS for Kubernetes workloads. I
+worked on scaling, upgrades, security hardening, and observability
+using CloudWatch, Azure Monitor, Prometheus, and Grafana. AWS
+SageMaker supported machine-learning use cases around predictive
+maintenance and quality insights, while Azure and AWS governance
+provided standardized platform controls.
+
+**Result**: Product teams had reusable cloud patterns and controlled
+deployment paths instead of designing the underlying infrastructure
+independently for each service.
+
+### Best Follow-Up — Why Not Just Use One Cloud?
+
+We didn't use multi-cloud simply for the sake of using two providers.
+There was a specific workload or organizational requirement. For
+example, at Regeneron, Azure Databricks handled large-scale data
+preparation and feature engineering while AWS SageMaker handled model
+training, deployment, and monitoring. My responsibility was to make
+those platforms operate as one governed architecture through
+consistent identity, private networking, security, and CI/CD.
+
+**Interview tip**: Lead with the business or workload reason for using
+both clouds. Then explain what AWS handled, what Azure handled, what
+you personally contributed, and the result. The Regeneron example is
+especially strong because it provides a clear workload-specific reason
+for each cloud.
 
 [⬆ Back to top](#top)
 
