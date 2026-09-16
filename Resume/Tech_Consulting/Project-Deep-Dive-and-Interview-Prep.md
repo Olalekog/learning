@@ -22,7 +22,8 @@ Bank), see
 7. [Interview Questions](#interview-questions)
 8. [Multi-Cloud STAR Answers — Why AWS + Azure?](#multi-cloud-star-answers--why-aws--azure)
 9. [Release Cycle & CI/CD STAR Answers](#release-cycle--cicd-star-answers)
-10. [Most Important Concepts to Know First](#most-important-concepts-to-know-first)
+10. [Outage & Incident Response STAR Answers](#outage--incident-response-star-answers)
+11. [Most Important Concepts to Know First](#most-important-concepts-to-know-first)
 
 ---
 
@@ -596,6 +597,151 @@ the 40% figure for Regeneron, Southern Company, or Rivian unless you
 have separate measured data for those projects. For unsupported
 details such as exact hours before and after, use the real figures if
 you know them rather than estimating.
+
+[⬆ Back to top](#top)
+
+---
+
+## Outage & Incident Response STAR Answers
+
+STAR-formatted, ~60-second answers on outage and incident response,
+one per role, plus the "what exactly did you do" follow-up and the one
+story to lead with if only one is asked for.
+
+### Truist Bank — Major Production Outage
+
+**Situation**: At Truist, we experienced a major production outage
+affecting service availability. Because the environment included
+Kubernetes and multiple cloud components, we needed to quickly
+determine whether the problem was at the application, platform,
+networking, or infrastructure layer.
+
+**Task**: As the Senior Multi-Cloud DevOps and Security Engineer, my
+responsibility was to help coordinate the technical response, restore
+service quickly, and reduce the chance of recurrence.
+
+**Action**: I joined the incident bridge, reviewed monitoring and
+platform signals, worked with application and infrastructure teams to
+isolate the failure domain, and helped coordinate recovery. After
+restoration, I contributed to the root-cause review and improved
+alerts, runbooks, and automation around the failure scenario.
+
+**Result**: We restored service and improved our incident-response
+process, which contributed to reducing mean time to restore and
+improving reliability goals over time.
+
+### Regeneron — Critical Research Pipeline Failure
+
+**Situation**: At Regeneron, we supported critical research pipelines
+involving AWS and Azure. During high-impact incidents, pipeline
+availability was important because failures could interrupt research
+processing and downstream workflows.
+
+**Task**: My responsibility was to help restore the affected pipeline
+while protecting the security and integrity of the research
+environment.
+
+**Action**: I worked through the recovery process using monitoring and
+operational information to identify the affected component and
+collaborated with the appropriate teams on restoration. We also had
+defined recovery objectives and documented runbooks to make the
+response more structured. After incidents, I helped automate common
+recovery paths rather than relying entirely on manual intervention.
+
+**Result**: These improvements shortened downtime during several
+high-impact incidents and made subsequent recovery more consistent and
+repeatable.
+
+### Southern Company — Data Pipeline / Connectivity Outage
+
+**Situation**: At Southern Company, we experienced major data-pipeline
+and connectivity outages in an environment spanning AWS and Azure. The
+immediate challenge was determining whether the failure originated
+from the data pipeline, Kubernetes platform, network connectivity, or
+an underlying cloud service.
+
+**Task**: My responsibility was to participate in the incident
+response, coordinate with the on-call teams, and help restore the
+affected services.
+
+**Action**: I used monitoring from CloudWatch and Prometheus along
+with platform and connectivity information to narrow down the failure
+domain. I worked with the appropriate engineering teams during
+restoration and helped coordinate recovery activities. Afterward, we
+improved alerts, documented the recovery process in runbooks, and
+automated repeatable recovery steps.
+
+**Result**: Services were restored, and the improvements we made
+afterward reduced recovery time for subsequent incidents.
+
+### Rivian — Production Service Degradation
+
+**Situation**: At Rivian, we supported production services around
+vehicle telemetry, OTA updates, and factory systems. When a service
+degraded, availability and latency were important because those
+platforms supported operational workloads.
+
+**Task**: My responsibility was to help identify the source of the
+degradation, restore service, and minimize the impact on production
+workloads.
+
+**Action**: I participated in incident bridges and used CloudWatch,
+Azure Monitor, Prometheus, and Grafana to examine platform health and
+workload behavior. I helped determine whether the problem was
+associated with Kubernetes, infrastructure, or another service
+dependency and coordinated recovery with the appropriate teams. After
+restoration, we improved alerts, documented runbooks, and automated
+remediation where appropriate.
+
+**Result**: The changes strengthened platform reliability and reduced
+recovery time when similar operational issues occurred.
+
+### TJ Maxx — Peak Retail Incident
+
+**Situation**: At TJ Maxx, I supported retail and e-commerce systems
+where reliability was especially important during peak shopping
+periods. We experienced major incidents during peak retail events
+where service degradation could directly affect digital operations.
+
+**Task**: My responsibility was to participate in the incident
+response and help restore services as quickly and safely as possible.
+
+**Action**: I worked with the application and infrastructure teams to
+identify the affected services, used the available monitoring
+information to support troubleshooting, and participated in the
+recovery process. Once service was restored, we reviewed what had
+happened and identified weaknesses in our monitoring and recovery
+procedures. I then helped improve alerts and runbooks so the response
+would be faster and more structured during the next event.
+
+**Result**: Services were restored, and the improved monitoring and
+runbooks reduced disruption during subsequent events.
+
+### Follow-Up — What Exactly Did You Do During the Outage?
+
+**Answer**: My first responsibility during an outage is to help
+establish the failure domain rather than immediately making changes. I
+review alerts, logs, metrics, recent deployments, Kubernetes health,
+networking, and cloud-service status to determine whether we're
+dealing with an application, platform, network, or infrastructure
+problem.
+
+**Action**: Once we identify the likely cause, I work with the
+responsible team to implement the lowest-risk recovery action and
+continuously validate whether service health is improving. I also
+make sure changes are communicated on the incident bridge so multiple
+engineers aren't making conflicting changes.
+
+**After recovery**: After restoration, my contribution continues with
+root-cause analysis, improving alerts and runbooks, and automating
+recovery steps where possible. My goal isn't just to restore service —
+it's to make the next incident easier to detect and recover from.
+
+**Best story to memorize**: Southern Company is the cleanest specific
+outage example because the resume explicitly identifies major
+data-pipeline and connectivity outages and your contribution to
+coordinating on-call teams, restoring services, improving alerts and
+runbooks, and automating recovery steps.
 
 [⬆ Back to top](#top)
 
