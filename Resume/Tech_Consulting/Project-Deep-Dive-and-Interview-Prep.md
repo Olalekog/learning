@@ -21,7 +21,8 @@ Bank), see
 6. [High Availability](#high-availability)
 7. [Interview Questions](#interview-questions)
 8. [Multi-Cloud STAR Answers — Why AWS + Azure?](#multi-cloud-star-answers--why-aws--azure)
-9. [Most Important Concepts to Know First](#most-important-concepts-to-know-first)
+9. [Release Cycle & CI/CD STAR Answers](#release-cycle--cicd-star-answers)
+10. [Most Important Concepts to Know First](#most-important-concepts-to-know-first)
 
 ---
 
@@ -471,6 +472,130 @@ both clouds. Then explain what AWS handled, what Azure handled, what
 you personally contributed, and the result. The Regeneron example is
 especially strong because it provides a clear workload-specific reason
 for each cloud.
+
+[⬆ Back to top](#top)
+
+---
+
+## Release Cycle & CI/CD STAR Answers
+
+STAR-formatted, ~60-second answers on release-cycle and CI/CD delivery,
+one per role, plus the follow-up on where the Truist ~40% figure
+actually comes from.
+
+### Truist Bank — ~40% Release Cycle Reduction
+
+**Situation**: At Truist, application and infrastructure releases
+required multiple deployment steps, environment coordination,
+approvals, and auditability. That created delays in moving changes
+through environments.
+
+**Task**: My responsibility was to improve the release process while
+maintaining the controls required for a banking environment.
+
+**Action**: I used Azure DevOps and GitHub Actions to automate
+application and infrastructure releases, standardized DEV, UAT, and
+production environment promotion, automated repeatable deployment
+steps, and integrated approval gates and audit trails. This reduced
+manual handoffs while keeping production changes controlled and
+traceable.
+
+**Result**: We reduced the overall release cycle time by approximately
+40% while maintaining the required audit trail and governance
+controls. The improvement came primarily from automation,
+standardization, and eliminating unnecessary manual steps — not from
+bypassing approvals.
+
+### Regeneron — Research / ML Delivery
+
+**Situation**: At Regeneron, research workloads operated across AWS
+and Azure, including Azure Databricks for data preparation and AWS
+SageMaker for model training and deployment. Maintaining consistent
+delivery while protecting clinical and genomic data was important.
+
+**Task**: I helped establish a repeatable CI/CD and governance model
+across both clouds without compromising GxP controls.
+
+**Action**: We standardized CI/CD patterns, private networking,
+identity, and security controls. Azure Landing Zones and Azure Policy
+provided standardized Azure foundations, while AWS Organizations
+guardrails provided corresponding AWS controls. We also built
+end-to-end ML pipelines covering data preparation, training,
+deployment, and monitoring.
+
+**Result**: Research teams had a more consistent and repeatable path
+for delivering data and ML workloads across AWS and Azure while
+maintaining security and compliance requirements.
+
+### Southern Company — Infrastructure / Data Pipeline Delivery
+
+**Situation**: At Southern Company, we had OT-related analytics on
+Azure and selected workloads on AWS. Supporting releases across two
+cloud environments could create inconsistent deployment and approval
+processes.
+
+**Task**: My responsibility was to help establish a standardized and
+auditable delivery approach across the environment.
+
+**Action**: We used Azure DevOps to manage releases, approvals, and
+environments for infrastructure and data pipelines. I also worked with
+reusable multi-cloud patterns for networking, identity, security, and
+CI/CD. On AWS, EKS supported scalable data processing, while automated
+security controls reduced manual governance work.
+
+**Result**: Changes became more standardized, reviewed, and auditable,
+and teams could reuse established deployment patterns instead of
+creating a new release process for each workload.
+
+### Rivian — Progressive Delivery
+
+**Situation**: At Rivian, we supported production services associated
+with vehicle telemetry, OTA updates, and factory systems. These
+workloads required frequent changes, but deployments also needed to
+minimize production risk.
+
+**Task**: I helped create a controlled delivery process that allowed
+teams to release changes while limiting the impact of a bad
+deployment.
+
+**Action**: We used Azure DevOps and GitHub Actions with defined
+environment promotion and approval paths. For production services, we
+implemented progressive-delivery approaches including blue-green and
+canary deployments. That allowed us to expose a new version gradually,
+validate its behavior, and reduce the blast radius before completing
+the rollout.
+
+**Result**: We established a more controlled and repeatable deployment
+model for production services, with clear approvals and safer
+environment promotion rather than treating every release as an
+all-at-once deployment.
+
+### Follow-Up — Where Exactly Did the 40% Come From?
+
+**Answer**: We measured the 40% improvement by comparing the release
+cycle before and after the CI/CD changes. Before the improvement,
+releases involved more manual coordination, deployment activities,
+environment transitions, and approvals.
+
+**Method**: After implementing standardized Azure DevOps and GitHub
+Actions workflows, repeatable deployment activities were automated
+while the necessary approval gates remained in place.
+
+**Clarification**: The improvement wasn't because we removed
+governance. We reduced the engineering wait time and manual work
+surrounding those controls.
+
+**Result**: We compared the time required to move releases through the
+delivery process before and after those changes, and that showed
+approximately a 40% reduction in release cycle time while still
+maintaining the auditability required in the banking environment.
+
+**Important interview note**: The approximately 40% release-cycle
+reduction is specifically documented for the Truist role. Do not reuse
+the 40% figure for Regeneron, Southern Company, or Rivian unless you
+have separate measured data for those projects. For unsupported
+details such as exact hours before and after, use the real figures if
+you know them rather than estimating.
 
 [⬆ Back to top](#top)
 
