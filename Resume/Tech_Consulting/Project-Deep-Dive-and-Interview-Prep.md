@@ -26,7 +26,8 @@ Bank), see
 11. [AI/ML Pipeline STAR Answers](#aiml-pipeline-star-answers)
 12. [AWS Security at Scale STAR Answers](#aws-security-at-scale-star-answers)
 13. [Resume-Based Interview Questions & STAR Answers](#resume-based-interview-questions--star-answers)
-14. [Most Important Concepts to Know First](#most-important-concepts-to-know-first)
+14. [PCI DSS, HIPAA & Compliance STAR Answers](#pci-dss-hipaa--compliance-star-answers)
+15. [Most Important Concepts to Know First](#most-important-concepts-to-know-first)
 
 ---
 
@@ -1425,6 +1426,226 @@ Use: Problem → your responsibility → what you personally configured or
 built → how you validated it → result. Do not invent team size,
 transaction volume, cluster size, model accuracy, latency improvement,
 or percentages.
+
+[⬆ Back to top](#top)
+
+---
+
+## PCI DSS, HIPAA & Compliance STAR Answers
+
+**Interview accuracy note**: Use the compliance framework only where it
+is supported by your actual project. The resume explicitly supports
+GxP at Regeneron and regulated financial/healthcare experience more
+broadly. For other companies, describe the technical controls that
+support compliance without claiming that you personally certified the
+environment against PCI DSS, HIPAA, NERC CIP, or another framework
+unless that was actually in scope.
+
+### 1. Regeneron — GxP / Healthcare Security
+
+**Situation**: At Regeneron, I supported clinical and genomic research
+workloads across AWS and Azure. Because we were dealing with sensitive
+research and healthcare-related information, security, traceability,
+and GxP controls were important parts of the architecture.
+
+**Task**: My responsibility from the Cloud/DevOps side was to make
+sure the infrastructure and deployment processes provided the
+technical controls needed by the security and compliance teams.
+
+**Action**: We standardized private networking, identity and
+least-privilege access, encryption, CI/CD controls, and logging. On
+AWS, we used Organizations guardrails and Security Hub, while Azure
+used Landing Zones and Azure Policy. We also maintained controlled
+deployment processes and recovery procedures.
+
+**Result**: Research teams had a repeatable cloud platform with
+consistent security and governance controls rather than implementing
+compliance requirements independently for every project.
+
+**Interview note**: If asked specifically whether this was HIPAA,
+state what was actually in scope. Do not convert clinical/genomic and
+GxP experience into a HIPAA claim unless the workload actually handled
+PHI subject to HIPAA.
+
+### 2. Truist — Regulatory Compliance in Banking
+
+**Situation**: At Truist, we operated in a highly regulated banking
+environment across AWS and Azure, where security controls and
+auditability had to be maintained while engineering teams were still
+expected to deliver quickly.
+
+**Task**: My responsibility was to build security and governance into
+the cloud platform and CI/CD process rather than treating compliance
+as a manual review at the end.
+
+**Action**: On AWS, I worked with Organizations, SCPs, Security Hub,
+and GuardDuty to establish centralized preventive and detective
+controls. We also maintained controlled CI/CD promotion through Azure
+DevOps and GitHub Actions, including approvals and audit trails.
+Access followed least-privilege principles, and security checks were
+incorporated into the platform.
+
+**Result**: We standardized security across cloud environments and
+improved delivery speed while maintaining the controls and
+auditability required in a regulated financial environment.
+
+**Key line**: My role wasn't to certify the bank against a particular
+framework; my responsibility was implementing the technical controls
+and producing the evidence that security and compliance teams
+required.
+
+### 3. TJ Maxx — PCI DSS-Related Security
+
+**Situation**: At TJ Maxx, I supported retail and e-commerce
+environments where customer information and payment-related systems
+required strong security controls, particularly during high-volume
+retail periods.
+
+**Task**: From the cloud and DevOps side, my responsibility was to
+ensure the infrastructure followed the organization's security
+standards and that sensitive environments were properly protected.
+
+**Action**: We standardized identity, networking, and deployment
+patterns and used Azure security and governance capabilities to
+continuously control and monitor the environment. I focused on
+principles that also align with PCI DSS, such as restricting access,
+network isolation, protecting sensitive data, logging and monitoring
+activity, controlled production changes, and maintaining secure
+configurations.
+
+**Result**: The environment had more consistent security controls and
+auditable deployment processes while supporting reliable retail and
+e-commerce operations.
+
+**Interview note**: The resume does not explicitly state that you
+implemented PCI DSS at TJ Maxx. If challenged, say you implemented
+cloud and DevOps controls aligned with payment-security requirements,
+while the compliance/security organization owned formal PCI assessment
+and certification.
+
+### 4. Liberty Mutual — Sensitive Insurance Data
+
+**Situation**: At Liberty Mutual, I supported claims and policy
+applications containing sensitive insurance information, so access and
+data protection were important architectural requirements.
+
+**Task**: My responsibility was to establish secure cloud patterns
+that development teams could consume without every application
+designing its own security model.
+
+**Action**: We standardized Azure identity and access controls, used
+Key Vault for secrets and sensitive configuration, and implemented
+network isolation around workloads. Deployment processes also included
+controlled releases and approvals so production changes were
+traceable.
+
+**Result**: New claims and policy applications could follow consistent
+security and networking standards while development and operations
+teams retained the access they needed to support the platforms.
+
+**Interview note**: Do not automatically describe insurance data as
+HIPAA data. Only use HIPAA when PHI and HIPAA scope are confirmed.
+
+### 5. Southern Company — Energy Security Governance
+
+**Situation**: At Southern Company, we supported OT-related analytics
+across Azure and selected AWS workloads. In an environment connected
+to operational technology, consistent security controls were
+especially important.
+
+**Task**: My responsibility was to help ensure that new cloud accounts
+and resources started from an established security baseline rather
+than relying on individual teams to configure everything manually.
+
+**Action**: On AWS, we implemented organization-wide policies,
+Security Hub, and automated remediation. On Azure, we used Sentinel,
+Defender for Cloud, and Azure Policy. We also maintained auditable
+deployment processes through Azure DevOps.
+
+**Result**: New cloud resources could be continuously evaluated
+against established security standards, with centralized visibility
+and automated remediation reducing configuration drift and manual
+security effort.
+
+**Interview note**: Do not claim NERC CIP for this role unless you
+know the workloads were actually in scope.
+
+### 6. Rivian — Connected-Vehicle Security and Governance
+
+**Situation**: At Rivian, product teams were deploying vehicle
+telemetry, OTA update services, and factory-system workloads across
+AWS and Azure. Having every team establish its own security controls
+would have created inconsistency and increased risk.
+
+**Task**: My responsibility was to help establish reusable cloud
+patterns where security was built into the platform.
+
+**Action**: We standardized AWS Organizations and Azure Landing Zone
+patterns so new environments inherited consistent networking,
+identity, and security baselines. I also worked on EKS and AKS
+security hardening, observability, controlled upgrades, and CI/CD
+approval and promotion processes.
+
+**Result**: Product teams could deploy new services using reusable
+patterns that already incorporated security and reliability
+requirements rather than rebuilding those controls for every workload.
+
+### 7. What Is PCI DSS and What Controls Would You Implement?
+
+**Answer**: PCI DSS is the Payment Card Industry Data Security
+Standard, which establishes security requirements for environments
+that store, process, or transmit payment-card information. From a
+cloud and DevOps perspective, I focus first on reducing the
+cardholder-data environment and its attack surface. Then I implement
+network segmentation, least-privilege IAM, encryption in transit and
+at rest, secure secrets management, vulnerability management, logging
+and monitoring, controlled changes, and continuous security testing.
+
+**AWS example**: In AWS, that can involve IAM, KMS, Secrets Manager,
+Security Groups, CloudTrail, Config, GuardDuty, and Security Hub,
+combined with security gates in the CI/CD pipeline.
+
+**Closing**: Engineering implements and maintains the technical
+controls, while the organization's compliance process determines and
+validates PCI DSS compliance.
+
+### 8. What Is HIPAA and How Would You Implement Technical Safeguards?
+
+**Answer**: HIPAA protects certain health information, and from a
+cloud engineering perspective my focus is protecting electronic
+protected health information throughout its lifecycle.
+
+**Action**: I would use least-privilege access and strong identity
+controls, encrypt data at rest and in transit, isolate sensitive
+workloads through private networking, centrally manage secrets and
+encryption keys, and maintain detailed audit logging and monitoring. I
+would also implement backup and recovery controls, vulnerability
+management, incident response procedures, and controlled CI/CD so
+infrastructure changes are traceable.
+
+**Closing**: Using AWS or Azure does not automatically make an
+application HIPAA compliant. The organization still has to determine
+which services and workloads are in scope and configure, operate,
+document, and govern them appropriately.
+
+### Compliance Framework Quick Reference
+
+| Framework | Primary Focus | Resume Context |
+|---|---|---|
+| PCI DSS | Payment-card data | TJ Maxx / retail — discuss aligned controls unless PCI scope is confirmed |
+| HIPAA | Protected health information | Healthcare context only when actual PHI/HIPAA scope is confirmed |
+| GxP | Pharmaceutical/life-sciences processes and data integrity | Regeneron — strongest explicit example |
+| Financial regulatory controls | Security, auditability, access and change controls | Truist |
+| CIS Benchmarks | Secure configuration baselines | General AWS/Azure/Kubernetes security work |
+| NIST | Cybersecurity and risk-control framework | General enterprise security architecture |
+| SOC 2 | Security, availability and related trust criteria | Broader regulated experience is stated in another resume version |
+| NERC CIP | Bulk electric system cybersecurity | Potential energy relevance, but do not claim Southern Company scope without confirmation |
+
+### Interview Principle to Memorize
+
+I implemented the technical controls that supported compliance; the
+compliance/security organization owned formal scope determination,
+evidence review, audit, and certification.
 
 [⬆ Back to top](#top)
 
