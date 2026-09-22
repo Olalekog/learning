@@ -1,5 +1,7 @@
 # Olalekan Ogundare — Elevated Pitch
 
+## Version 1
+
 > "I'm Olalekan Ogundare, a Senior Infrastructure, DevOps, and Platform
 > Engineer with over 10 years of experience designing, automating, and
 > securing enterprise cloud environments. I specialize in AWS and Azure,
@@ -18,3 +20,26 @@
 > help engineering teams deliver faster and more reliably."
 
 ~150 words, roughly 60 seconds spoken.
+
+## Version 2
+
+> "I'm Olalekan Ogundare, a Senior DevOps and Platform Engineer
+> specializing in AWS, Azure, and infrastructure automation.
+>
+> In my current Tech Consulting work, I build secure, self-service
+> cloud platforms using Terraform, ARM, and Bicep, with CI/CD pipelines
+> and policy checks that help developers provision infrastructure
+> consistently.
+>
+> At Citibank, I developed reusable Terraform modules, modernized
+> deployment workflows, and supported Kubernetes platforms. My work
+> contributed to deployments that were up to 65% faster, a 35%
+> improvement in incident detection and recovery time, and 20–25%
+> infrastructure cost savings.
+>
+> My strength is combining automation, security, and reliability to
+> make developers more productive. I'm looking for a senior
+> individual-contributor role where I can build dependable platforms,
+> improve delivery, and mentor engineers."
+
+~110 words, roughly 45 seconds spoken.
