@@ -1794,3 +1794,21 @@ I compare the exact template artifact and target-specific inputs first, then ins
 [Back to top](#top)
 
 ---
+
+## CI/CD Fundamentals
+
+### 312. What does CI/CD mean, and what is the difference between Continuous Integration, Continuous Delivery, and Continuous Deployment?
+
+CI/CD stands for Continuous Integration and Continuous Delivery or Deployment. It automates how code is tested and released.
+
+| Term | Definition | Typical activities |
+|---|---|---|
+| CI — Continuous Integration | Developers frequently merge code into a shared repository, with automated checks to catch problems early. | Build, unit tests, code-quality checks, security scans. |
+| CD — Continuous Delivery | Validated changes are kept ready for production, with approval before release. | Deploy to test environments, run integration tests, obtain production approval. |
+| CD — Continuous Deployment | Every change that passes the required checks is automatically released to production. | Automated production rollout and health verification. |
+
+**Example**: You push application code to GitHub. GitHub Actions tests the code, scans it, builds a Docker image, and publishes it to ECR — this is CI. The pipeline then deploys that image to EKS — this is CD. A required production approval makes it continuous delivery; automatic production release makes it continuous deployment.
+
+[Back to top](#top)
+
+---
