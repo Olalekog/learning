@@ -1,3 +1,5 @@
+<a id="top"></a>
+
 # ComTec Information Systems — AWS Administrator Interview Preparation
 
 **Prepared for:** Olalekan Gabriel Ogundare  
@@ -24,6 +26,87 @@ Answers use “I would” for scenarios. Adapt them to your actual experience, a
 | [12. Availability, recovery, and government cloud](#12-availability-recovery-and-government-cloud) | 34–36 |
 | [Reference documentation](#reference-documentation) | Official sources |
 
+<details>
+<summary>All 36 questions (click to expand)</summary>
+
+**[1. EC2 administration and patching](#1-ec2-administration-and-patching)**
+
+1. [An EC2 instance is running, but users cannot access the application. How would you troubleshoot?](#1-an-ec2-instance-is-running-but-users-cannot-access-the-application-how-would-you-troubleshoot)
+2. [Why might an EC2 instance fail to appear in Systems Manager?](#2-why-might-an-ec2-instance-fail-to-appear-in-systems-manager)
+3. [What would you do if patching caused an application failure?](#3-what-would-you-do-if-patching-caused-an-application-failure)
+
+**[2. S3 storage and security](#2-s3-storage-and-security)**
+
+4. [A user has S3 read permission but receives AccessDenied. What would you check?](#4-a-user-has-s3-read-permission-but-receives-accessdenied-what-would-you-check)
+5. [How would you protect S3 data against accidental deletion?](#5-how-would-you-protect-s3-data-against-accidental-deletion)
+6. [How would you reduce S3 costs without affecting business requirements?](#6-how-would-you-reduce-s3-costs-without-affecting-business-requirements)
+
+**[3. Terraform and CloudFormation](#3-terraform-and-cloudformation)**
+
+7. [How would you structure Terraform for multiple environments?](#7-how-would-you-structure-terraform-for-multiple-environments)
+8. [How do you secure Terraform state and prevent simultaneous changes?](#8-how-do-you-secure-terraform-state-and-prevent-simultaneous-changes)
+9. [How would you handle infrastructure drift?](#9-how-would-you-handle-infrastructure-drift)
+
+**[4. IAM and IAM Identity Center](#4-iam-and-iam-identity-center)**
+
+10. [How would you provide access to multiple AWS accounts through IAM Identity Center?](#10-how-would-you-provide-access-to-multiple-aws-accounts-through-iam-identity-center)
+11. [What is the difference between a role trust policy and a permissions policy?](#11-what-is-the-difference-between-a-role-trust-policy-and-a-permissions-policy)
+12. [How would you integrate a third-party system securely with AWS?](#12-how-would-you-integrate-a-third-party-system-securely-with-aws)
+
+**[5. Organizations, Control Tower, and Landing Zone Accelerator](#5-organizations-control-tower-and-landing-zone-accelerator)**
+
+13. [Do service control policies grant access?](#13-do-service-control-policies-grant-access)
+14. [How would you organize a multi-account AWS environment?](#14-how-would-you-organize-a-multi-account-aws-environment)
+15. [What does Landing Zone Accelerator add to Control Tower?](#15-what-does-landing-zone-accelerator-add-to-control-tower)
+
+**[6. Security monitoring and incident response](#6-security-monitoring-and-incident-response)**
+
+16. [How do Security Hub, GuardDuty, Inspector, and Config differ?](#16-how-do-security-hub-guardduty-inspector-and-config-differ)
+17. [How would you respond to a suspected compromised EC2 instance?](#17-how-would-you-respond-to-a-suspected-compromised-ec2-instance)
+18. [How would you reduce alert fatigue?](#18-how-would-you-reduce-alert-fatigue)
+
+**[7. ECS, Lambda, and API Gateway](#7-ecs-lambda-and-api-gateway)**
+
+19. [What is the difference between an ECS task role and task execution role?](#19-what-is-the-difference-between-an-ecs-task-role-and-task-execution-role)
+20. [An ECS deployment repeatedly replaces tasks. How would you troubleshoot?](#20-an-ecs-deployment-repeatedly-replaces-tasks-how-would-you-troubleshoot)
+21. [API Gateway returns errors when invoking Lambda. What would you inspect?](#21-api-gateway-returns-errors-when-invoking-lambda-what-would-you-inspect)
+
+**[8. AWS Glue and ETL](#8-aws-glue-and-etl)**
+
+22. [What is the difference between a Glue crawler, Data Catalog, and ETL job?](#22-what-is-the-difference-between-a-glue-crawler-data-catalog-and-etl-job)
+23. [A Glue job succeeds but produces duplicate records. What would you investigate?](#23-a-glue-job-succeeds-but-produces-duplicate-records-what-would-you-investigate)
+24. [How would you troubleshoot a slow Glue job?](#24-how-would-you-troubleshoot-a-slow-glue-job)
+
+**[9. EMR Serverless and Apache Iceberg](#9-emr-serverless-and-apache-iceberg)**
+
+25. [When would you choose Glue versus EMR Serverless?](#25-when-would-you-choose-glue-versus-emr-serverless)
+26. [An EMR Serverless job cannot read encrypted S3 data. What would you check?](#26-an-emr-serverless-job-cannot-read-encrypted-s3-data-what-would-you-check)
+27. [What is Apache Iceberg, and what maintenance does it require?](#27-what-is-apache-iceberg-and-what-maintenance-does-it-require)
+
+**[10. Redshift, Snowflake, and DynamoDB](#10-redshift-snowflake-and-dynamodb)**
+
+28. [How would you troubleshoot a slow Redshift query?](#28-how-would-you-troubleshoot-a-slow-redshift-query)
+29. [How would you configure Snowflake access to S3 securely?](#29-how-would-you-configure-snowflake-access-to-s3-securely)
+30. [How would you investigate DynamoDB throttling?](#30-how-would-you-investigate-dynamodb-throttling)
+
+**[11. Secrets Manager, KMS, and Bedrock](#11-secrets-manager-kms-and-bedrock)**
+
+31. [What is the difference between Secrets Manager and KMS?](#31-what-is-the-difference-between-secrets-manager-and-kms)
+32. [An application fails after secret rotation. How would you troubleshoot?](#32-an-application-fails-after-secret-rotation-how-would-you-troubleshoot)
+33. [How would you securely support a Bedrock application?](#33-how-would-you-securely-support-a-bedrock-application)
+
+**[12. Availability, recovery, and government cloud](#12-availability-recovery-and-government-cloud)**
+
+34. [How would you design a highly available AWS application?](#34-how-would-you-design-a-highly-available-aws-application)
+35. [What is the difference between RTO and RPO, and how would you validate them?](#35-what-is-the-difference-between-rto-and-rpo-and-how-would-you-validate-them)
+36. [What changes when administering AWS GovCloud compared with commercial AWS?](#36-what-changes-when-administering-aws-govcloud-compared-with-commercial-aws)
+
+</details>
+
+[⬆ Back to top](#top)
+
+---
+
 ## 1. EC2 administration and patching
 
 ### 1. An EC2 instance is running, but users cannot access the application. How would you troubleshoot?
@@ -37,6 +120,10 @@ I would check that SSM Agent is installed and running, that the instance has the
 ### 3. What would you do if patching caused an application failure?
 
 I would stop the remaining patch rollout and assess the affected capacity. For redundant applications, I would remove unhealthy instances from service and restore capacity using a known-good image. For stateful servers, I would follow the tested recovery procedure and coordinate with the application owner. After restoring service, I would investigate the patch dependency, revise testing, and resume only after validation.
+
+[⬆ Back to top](#top)
+
+---
 
 ## 2. S3 storage and security
 
@@ -52,6 +139,10 @@ I would enable versioning and define recovery and retention requirements. For st
 
 I would review storage usage, access patterns, request costs, and retention obligations. I would use lifecycle policies to transition suitable objects, expire unnecessary noncurrent versions, and remove incomplete multipart uploads. Before moving data to archival tiers, I would evaluate retrieval time, retrieval cost, and minimum storage duration. I would measure the results rather than assuming the lowest storage price produces the lowest total cost.
 
+[⬆ Back to top](#top)
+
+---
+
 ## 3. Terraform and CloudFormation
 
 ### 7. How would you structure Terraform for multiple environments?
@@ -65,6 +156,10 @@ I would store state in a restricted, encrypted S3 backend with versioning and en
 ### 9. How would you handle infrastructure drift?
 
 I would run a Terraform plan and investigate differences between the declared configuration and deployed resources. I would determine whether each change was authorized and whether it should be preserved. Approved changes should be represented in code; unauthorized changes should be corrected through a reviewed deployment. A refresh-only operation updates Terraform’s recorded state—it does not, by itself, reconcile the configuration or repair infrastructure.
+
+[⬆ Back to top](#top)
+
+---
 
 ## 4. IAM and IAM Identity Center
 
@@ -80,6 +175,10 @@ A trust policy defines who or what can assume a role. A permissions policy defin
 
 I would prefer temporary credentials and role-based access over long-lived access keys. For a vendor assuming a cross-account role, I would restrict the trusted principal and use the vendor’s external ID where appropriate to address the confused-deputy risk. I would scope permissions to the required resources, enable auditing, and document how access is revoked when the integration ends.
 
+[⬆ Back to top](#top)
+
+---
+
 ## 5. Organizations, Control Tower, and Landing Zone Accelerator
 
 ### 13. Do service control policies grant access?
@@ -93,6 +192,10 @@ I would separate workloads according to environment, ownership, and security req
 ### 15. What does Landing Zone Accelerator add to Control Tower?
 
 Control Tower helps establish and govern a multi-account landing zone. Landing Zone Accelerator provides configurable automation for additional networking, security, logging, and operational requirements. I would manage its configuration through version control, review changes, and test deployments carefully because foundation changes can affect many accounts. Together, the services support a more comprehensive cloud foundation.
+
+[⬆ Back to top](#top)
+
+---
 
 ## 6. Security monitoring and incident response
 
@@ -108,6 +211,10 @@ I would validate the finding, assess its scope, and follow the incident-response
 
 I would define severity using business impact and route alerts to clear owners. I would remove duplicates, tune thresholds and evaluation periods, and suppress expected maintenance events using controlled rules. Every page should require a meaningful action. I would review false positives and missed incidents regularly, and include diagnostic context and a runbook in each actionable alert.
 
+[⬆ Back to top](#top)
+
+---
+
 ## 7. ECS, Lambda, and API Gateway
 
 ### 19. What is the difference between an ECS task role and task execution role?
@@ -121,6 +228,10 @@ I would inspect service events, stopped-task reasons, exit codes, and applicatio
 ### 21. API Gateway returns errors when invoking Lambda. What would you inspect?
 
 I would correlate the API request with API Gateway and Lambda logs. I would check invocation permissions, integration configuration, request handling, and the expected response format. I would then review Lambda errors, duration, throttling, and downstream dependencies. If the function uses a VPC, I would examine its routes and service connectivity. I would distinguish authentication failures from backend failures before changing anything.
+
+[⬆ Back to top](#top)
+
+---
 
 ## 8. AWS Glue and ETL
 
@@ -136,6 +247,10 @@ I would examine retries, overlapping input paths, job-bookmark configuration, an
 
 I would review job metrics and Spark execution details to identify data skew, expensive shuffles, small files, or insufficient resources. I would reduce unnecessary columns and records, improve partition pruning, and optimize joins and file sizes. I would adjust worker capacity after identifying the bottleneck, then compare runtime and cost using a representative workload.
 
+[⬆ Back to top](#top)
+
+---
+
 ## 9. EMR Serverless and Apache Iceberg
 
 ### 25. When would you choose Glue versus EMR Serverless?
@@ -149,6 +264,10 @@ I would verify the job execution role, S3 object and bucket permissions, bucket 
 ### 27. What is Apache Iceberg, and what maintenance does it require?
 
 Iceberg is an open table format for analytical data, with metadata and snapshots that support reliable table updates and evolution. Operational tasks include compacting small files and managing snapshot retention. I would use supported table-maintenance procedures and avoid manually deleting S3 files, because files may still be referenced by valid snapshots or active operations.
+
+[⬆ Back to top](#top)
+
+---
 
 ## 10. Redshift, Snowflake, and DynamoDB
 
@@ -164,6 +283,10 @@ I would use a Snowflake storage integration backed by a scoped AWS IAM role. I w
 
 I would examine the throttling reason and affected table or index. Possible causes include insufficient provisioned capacity, account limits, configured on-demand limits, or hot partitions. I would review traffic distribution and partition-key design, then apply the appropriate capacity or application change. Retries should use backoff and jitter, but increasing total capacity alone may not resolve concentrated access to a hot key.
 
+[⬆ Back to top](#top)
+
+---
+
 ## 11. Secrets Manager, KMS, and Bedrock
 
 ### 31. What is the difference between Secrets Manager and KMS?
@@ -178,6 +301,10 @@ I would check whether rotation completed successfully and whether the secret mat
 
 I would scope model-invocation permissions to the application’s needs and verify model availability in the selected Region. I would work with security and application teams on input data, retrieval access, output handling, and logging. I would monitor errors, latency, usage, and cost, and evaluate guardrails against the use case. Bedrock provides managed foundation-model access, but application security still requires deliberate design.
 
+[⬆ Back to top](#top)
+
+---
+
 ## 12. Availability, recovery, and government cloud
 
 ### 34. How would you design a highly available AWS application?
@@ -191,6 +318,10 @@ RTO is the target time to restore service after disruption. RPO is the acceptabl
 ### 36. What changes when administering AWS GovCloud compared with commercial AWS?
 
 Core administration principles still apply, but GovCloud uses a separate AWS partition and isolated authentication. I would verify service availability, endpoints, ARN formats, credentials, and the customer’s operating requirements. I would avoid assuming commercial deployments can be copied unchanged. I would also distinguish AWS’s compliance capabilities from the customer’s responsibility to configure and operate its workloads correctly.
+
+[⬆ Back to top](#top)
+
+---
 
 ## Reference documentation
 
@@ -208,3 +339,5 @@ Official documentation referenced in preparing the interview answers:
 - **DynamoDB (Q30):** [Throttling resolution guide](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/troubleshooting-throttling-diagnostics.html); [Diagnosing throttling](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/throttling-diagnosing-workflow.html).
 - **Bedrock (Q33):** [Bedrock overview](https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html).
 - **GovCloud (Q36):** [Differences from standard Regions](https://docs.aws.amazon.com/govcloud-us/latest/UserGuide/govcloud-differences.html); [AWS partitions](https://docs.aws.amazon.com/whitepapers/latest/aws-fault-isolation-boundaries/partitions.html).
+
+[⬆ Back to top](#top)
