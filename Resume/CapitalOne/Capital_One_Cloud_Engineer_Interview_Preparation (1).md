@@ -182,6 +182,28 @@ For a concise technical answer, state the security goal, describe the control, e
 
 ## Cryptography fundamentals
 
+Cryptography is the use of mathematical algorithms and keys to protect information so it can remain confidential, resist undetected changes, and prove who sent or approved it.
+
+It supports four main security goals:
+
+| Goal | Meaning | Example |
+|---|---|---|
+| Confidentiality | Prevent unauthorized people from reading data | Encrypt customer records |
+| Integrity | Detect unauthorized changes | Verify a file against a trusted hash or digital signature |
+| Authentication | Verify an identity or message source | Validate a website's TLS certificate |
+| Non-repudiation | Provide evidence that a particular party signed something | A digital signature supported by secure key custody and identity verification |
+
+The main techniques are:
+
+- **Encryption**: Converts readable information — plaintext — into unreadable ciphertext. Authorized users decrypt it using the appropriate key.
+- **Hashing**: Produces a digest of data. It is not reversible encryption, and a plain hash alone does not prove who created the data.
+- **HMAC**: Uses a shared secret key to verify a message's integrity and authenticity.
+- **Digital signatures**: Use a private key to sign and the corresponding public key to verify authenticity and integrity.
+
+**Banking example**: When a customer accesses an online account, TLS protects the connection and authenticates the server. Encryption protects stored customer information, while digital signatures can verify signed transactions or software.
+
+**For your interview**: "Cryptography protects sensitive information through encryption, hashing, and digital signatures. As a cloud engineer, my responsibility is to use approved cryptographic services correctly and securely manage the keys throughout their lifecycle."
+
 ### 1. How do confidentiality and integrity differ?
 
 Confidentiality prevents unauthorized disclosure; integrity protects against unauthorized modification. Encryption provides confidentiality, while authenticated encryption also detects tampering. Digital signatures and HMACs can protect authenticity and integrity. I first identify the required security properties, then select the appropriate controls.
