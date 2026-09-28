@@ -576,7 +576,11 @@ I would establish the current baseline and identify which portion is controllabl
 
 <a id="q78"></a>
 **Q78. Tell me about a cost optimization you led.**  
-Use STAR with evidence: “At [company], [workload or account group] had [baseline and problem]. I analyzed [billing and utilization data], aligned [owners], and implemented [specific IaC or operational change]. Over [period], normalized spend moved from [before] to [after], giving [verified saving], while [SLO/security outcome] remained within target.”
+"At Citi, I led cost governance for AWS infrastructure supporting multiple application teams. We needed to reduce spend while maintaining the resilience expected in a banking environment.
+
+I worked with platform and application owners to review usage and identify rightsizing opportunities. We also used Spot capacity where workloads could tolerate interruptions, reviewed Savings Plans for predictable usage, and automated FSx lifecycle policies. I helped make those changes repeatable through our Terraform-based platform standards, while the teams checked workload performance and availability.
+
+Together, those efforts delivered sustained infrastructure cost savings of about 20–25% without compromising platform resilience. The key was treating each recommendation as an engineering change with an owner and a measured outcome."
 
 <a id="q79"></a>
 **Q79. Tell me about a recommendation you rejected.**  
