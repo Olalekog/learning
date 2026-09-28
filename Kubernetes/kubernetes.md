@@ -38,6 +38,7 @@ first — this doc goes deeper, not wider.
 24. [Study Checklist (CKA Domain-Mapped)](#24-study-checklist-cka-domain-mapped)
 25. [Kubernetes Objects Reference (Glossary)](#25-kubernetes-objects-reference-glossary)
 26. [HashiCorp Vault Secrets Integration on EKS](#26-hashicorp-vault-secrets-integration-on-eks)
+27. [Cluster Autoscaler vs. Karpenter](#27-cluster-autoscaler-vs-karpenter)
 
 ---
 
@@ -2331,5 +2332,226 @@ EKS does not store the real secret — Vault does. EKS pods
 authenticate to Vault using their Kubernetes ServiceAccount, and
 Vault returns only the secrets allowed by that ServiceAccount's
 mapped Vault policy.
+
+[⬆ Back to top](#top)
+
+---
+
+# 27. Cluster Autoscaler vs. Karpenter
+
+## Overview
+
+Both **Cluster Autoscaler (CA)** and **Karpenter** are Kubernetes node
+autoscalers — they add worker-node capacity when Pods can't be
+scheduled and remove unnecessary capacity when it's no longer needed.
+The difference is the provisioning model: Cluster Autoscaler scales
+*predefined* node groups; Karpenter *dynamically provisions* nodes
+that match workload requirements directly. See [§14](#14-scheduling-affinity-taintstolerations-priority)
+for the scheduling constraints (affinity, taints/tolerations) both of
+them respect when choosing where new capacity goes.
+
+## Cluster Autoscaler
+
+Cluster Autoscaler adjusts the number of nodes in predefined node
+groups, such as Amazon EKS Managed Node Groups backed by EC2 Auto
+Scaling Groups.
+
+**Characteristics**: scales predefined node groups; detects
+unschedulable/Pending Pods; performs scale-out and scale-in;
+considers Pod CPU/memory requests; respects Kubernetes scheduling
+constraints; supports multiple node groups; integrates with multiple
+cloud providers; gives predictable infrastructure configurations —
+well suited where an organization requires controlled instance types
+and node configurations.
+
+```mermaid
+flowchart TB
+    PP["Pending Pods"] --> CA["Cluster Autoscaler"]
+    CA --> FIND["Find suitable\nexisting Node Group"]
+    FIND --> INC["Increase desired capacity"]
+    INC --> ASG["Auto Scaling Group\nlaunches Nodes"]
+    ASG --> SCHED["Pods are scheduled"]
+```
+
+The node groups and their instance configurations generally need to
+exist *beforehand* — Cluster Autoscaler only decides how many nodes
+each existing group should have, never what a new group should look
+like.
+
+## Karpenter
+
+Karpenter dynamically provisions worker nodes based on the actual
+requirements of unschedulable Pods. Instead of asking "which existing
+node group should be scaled?", Karpenter asks "what type of node
+should be provisioned to satisfy these workloads?"
+
+**Characteristics**: dynamic node provisioning; direct cloud-provider
+capacity provisioning; **NodePools** define provisioning constraints;
+**NodeClaims** represent requested/provisioned node capacity; flexible
+instance-type selection; Spot and On-Demand support; multi-AZ
+provisioning; amd64 and arm64 architecture support; taints and
+tolerations; node affinity; topology awareness; resource-based
+provisioning; node consolidation; node expiration; drift detection;
+interruption handling; disruption budgets.
+
+```mermaid
+flowchart TB
+    PP["Pending Pods"] --> K["Karpenter"]
+    K --> REQ["Evaluates CPU/memory,\narchitecture, AZ,\nSpot/On-Demand,\naffinity, taints/tolerations"]
+    REQ --> FIND["Find compatible capacity"]
+    FIND --> PROV["Provision Node"]
+    PROV --> SCHED["Pod Scheduled"]
+```
+
+## Cluster Autoscaler vs. Karpenter
+
+| Feature | Cluster Autoscaler | Karpenter |
+|---|---|---|
+| Primary purpose | Node autoscaling | Dynamic provisioning and node lifecycle management |
+| Infrastructure model | Predefined node groups | Dynamic NodePools and NodeClaims |
+| Node groups required | Yes | Not in the traditional CA sense |
+| Instance selection | From configured node groups | Dynamically selects compatible capacity |
+| Cloud interaction | Scales existing groups | Provisions individual cloud resources |
+| Scaling flexibility | Moderate | High |
+| Instance diversity | Requires node-group planning | Can evaluate many compatible instance types |
+| Node lifecycle | Primarily autoscaling | Broader lifecycle management |
+| Consolidation | Scale-down/removal | Advanced consolidation and replacement |
+| Drift management | Not a primary function | Supported |
+| Node expiration | Not a core capability | Supported |
+| Spot interruption handling | Usually requires a complementary mechanism | Integrated interruption handling |
+| Multi-cloud ecosystem | Broader | More provider-specific |
+| Configuration model | Node groups + CA | NodePool + provider-specific NodeClass |
+| Best fit | Predictable node configurations | Dynamic cloud-native workloads |
+
+## Scaling Example
+
+Suppose an EKS cluster receives 50 Pending Pods, each requesting
+2 vCPU and 6 GiB memory.
+
+**Cluster Autoscaler approach** — assume these groups already exist:
+Node Group A (`m5.large`) and Node Group B (`m5.xlarge`). Cluster
+Autoscaler determines which existing group can accommodate the Pods
+and increases that group's desired capacity — following the same flow
+shown above. The important point is that the node groups must already
+be configured; CA cannot invent a group that doesn't exist.
+
+**Karpenter approach** — Karpenter evaluates the workload requirements
+directly, following the same flow shown above, against a NodePool's
+requirements:
+
+```yaml
+requirements:
+  - key: kubernetes.io/arch
+    operator: In
+    values:
+      - amd64
+
+  - key: karpenter.sh/capacity-type
+    operator: In
+    values:
+      - spot
+      - on-demand
+```
+
+Karpenter can select compatible instances within these constraints
+rather than being limited to a single predefined node group.
+
+## Karpenter Consolidation
+
+Karpenter can evaluate whether workloads spread across multiple
+underutilized nodes can safely run on fewer nodes:
+
+```text
+Before consolidation:
+Node1  Node2  Node3  Node4  Node5
+ 20%    25%    10%    15%    20%
+
+                |
+          Consolidation
+                |
+                v
+
+After consolidation:
+Node1              Node2
+(higher            (higher
+ utilization)       utilization)
+```
+
+This can improve infrastructure utilization and reduce cost — a
+capability Cluster Autoscaler does not provide on its own.
+
+## Spot Instance Handling
+
+A Karpenter NodePool can permit both Spot and On-Demand capacity:
+
+```yaml
+- key: karpenter.sh/capacity-type
+  operator: In
+  values:
+    - spot
+    - on-demand
+```
+
+Karpenter can diversify capacity across compatible instance types and
+handle interruption events, such as Spot interruption warnings and
+related cloud infrastructure events, as part of its normal
+disruption handling.
+
+## Relationship with Horizontal Pod Autoscaler
+
+HPA scales **Pods**. Cluster Autoscaler and Karpenter scale **Nodes**
+— they operate on different axes and commonly work together.
+
+```mermaid
+flowchart TB
+    DEMAND["Application demand increases"] --> HPA["Horizontal Pod Autoscaler"]
+    HPA --> MORE["More Pods"]
+    MORE --> CHECK{"Enough Node\nCapacity?"}
+    CHECK -->|"Yes"| SCHED["Schedule"]
+    CHECK -->|"No"| PENDING["Pods Pending"]
+    PENDING --> NA["Cluster Autoscaler\nor Karpenter"]
+    NA --> NODES["More Nodes"]
+```
+
+Example: HPA scales 5 Pods to 20 Pods, and the node autoscaler in turn
+scales 3 Nodes to 8 Nodes to make room for them. See the
+[HorizontalPodAutoscaler glossary entry](#25-kubernetes-objects-reference-glossary)
+for how HPA decides replica count in the first place.
+
+## When Each Fits
+
+**Cluster Autoscaler** is useful when the organization already uses
+managed node groups, predictable instance configurations are
+required, broad cloud-provider support matters, governance requires
+predefined worker-node groups, or existing Auto Scaling Groups are
+central to the infrastructure model.
+
+**Karpenter** is useful when workloads change significantly over
+time, flexible instance selection is desirable, Spot capacity is
+heavily used, dynamic provisioning matters, better consolidation and
+resource utilization are priorities, or node lifecycle capabilities
+such as drift detection and expiration are required.
+
+## Interview Answer
+
+> "Cluster Autoscaler and Karpenter both solve Kubernetes node
+> scaling, but they use different provisioning models. Cluster
+> Autoscaler scales predefined node groups, such as EKS Managed Node
+> Groups backed by Auto Scaling Groups — when Pods become
+> unschedulable, it determines which existing group can accommodate
+> them and increases that group's capacity. Karpenter is more
+> dynamic: it evaluates the Pods' CPU, memory, architecture,
+> topology, affinity, and capacity requirements and directly
+> provisions compatible nodes within NodePool constraints. Karpenter
+> also provides broader node lifecycle capabilities such as
+> consolidation, drift management, expiration, and interruption
+> handling. In EKS environments with highly variable workloads or
+> significant Spot usage, those capabilities can simplify capacity
+> management and improve utilization."
+
+**Further reading**: [Kubernetes node autoscaling](https://kubernetes.io/docs/concepts/cluster-administration/node-autoscaling/) ·
+[Karpenter documentation](https://karpenter.sh/docs/) ·
+[Karpenter NodePools](https://karpenter.sh/docs/concepts/nodepools/) ·
+[Karpenter disruption](https://karpenter.sh/docs/concepts/disruption/)
 
 [⬆ Back to top](#top)
