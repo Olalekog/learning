@@ -148,6 +148,45 @@ I avoid a new narrow EC2 family commitment that assumes the old footprint will r
 **Q39. Should you buy commitments before rightsizing?**  
 Usually I first remove obvious waste and account for approved migrations so the commitment reflects the durable baseline. If timing requires an earlier purchase, I use a conservative floor and document the residual risk. A discount on unneeded capacity is still waste.
 
+### Deep dive: Savings Plans vs. Reserved Instances
+
+Savings Plans is the umbrella term for AWS pricing plans that discount
+eligible usage in exchange for a one-year or three-year commitment,
+usually expressed as a dollar amount per hour. EC2 Instance Savings
+Plans and Compute Savings Plans are two types. AWS also offers
+Database and SageMaker AI Savings Plans. Payment can be all upfront,
+partial upfront, or no upfront.
+
+| Option | What you commit to | What receives the discount | Flexibility |
+|---|---|---|---|
+| EC2 Reserved Instance (RI) | A matching EC2 configuration for 1 or 3 years | Eligible EC2 instance usage | The most configuration-specific of these options. A regional RI can offer limited instance-size flexibility; a zonal RI reserves capacity in its Availability Zone. |
+| EC2 Instance Savings Plan | A dollar-per-hour amount for an EC2 instance family in one Region | EC2 usage in that family and Region | You can change instance size, operating system, or tenancy within that family and Region. |
+| Compute Savings Plan | A dollar-per-hour amount of eligible compute usage | EC2, Fargate, and Lambda | The most flexible compute option: coverage can follow changes in EC2 family, size, Region, OS, or tenancy, or a move to Fargate or Lambda. |
+
+AWS describes EC2 Instance Savings Plans as offering up to 72% off
+On-Demand rates and Compute Savings Plans as offering up to 66%. Those
+are maximums, not a guaranteed saving for a particular workload.
+
+The key RI distinction: an RI is generally a billing discount, not an
+instance that AWS launches for you. A regional RI does not reserve
+capacity; a zonal RI does in its specified Availability Zone. Savings
+Plans do not reserve capacity.
+
+**Example**: If your organization expects steady use of the m5 family
+in us-east-1, an EC2 Instance Savings Plan may fit. If it expects to
+change families or Regions, or move some work from EC2 to ECS or EKS
+on Fargate, a Compute Savings Plan offers more flexibility. Both
+compute plan types can discount eligible EC2 worker instances used by
+EKS or ECS; they do not discount the EKS cluster charge itself.
+
+**Interview answer**: "I rightsize first, forecast the stable hourly
+baseline, and review existing commitment coverage and utilization.
+Then I compare an RI for predictable matching EC2 usage, an EC2
+Instance Savings Plan for a stable family and Region, and a Compute
+Savings Plan when flexibility across compute services or Regions
+matters. I measure the effective saving and the risk of unused
+commitment before recommending a purchase."
+
 ## 6. Terraform, automation, and CI/CD
 
 **Q40. How do you use Terraform for FinOps?**  
