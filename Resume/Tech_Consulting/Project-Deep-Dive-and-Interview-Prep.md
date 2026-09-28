@@ -28,7 +28,8 @@ Bank), see
 13. [Resume-Based Interview Questions & STAR Answers](#resume-based-interview-questions--star-answers)
 14. [PCI DSS, HIPAA & Compliance STAR Answers](#pci-dss-hipaa--compliance-star-answers)
 15. [Cloud Platform, CI/CD, MLOps & Observability Answers](#cloud-platform-cicd-mlops--observability-answers)
-16. [Most Important Concepts to Know First](#most-important-concepts-to-know-first)
+16. [Choosing a Cloud Provider for a Client](#choosing-a-cloud-provider-for-a-client)
+17. [Most Important Concepts to Know First](#most-important-concepts-to-know-first)
 
 ---
 
@@ -1826,6 +1827,32 @@ recovery time during subsequent incidents.
 - **Observability**: Metrics tell me something is wrong, logs help
   explain why, and traces help show where the failure is occurring
   across the request path.
+
+[⬆ Back to top](#top)
+
+---
+
+## Choosing a Cloud Provider for a Client
+
+### If a client wants to do something on the cloud, which provider would you recommend among AWS, Azure, and Google Cloud?
+
+I would first understand what the client wants to achieve, their
+existing systems, security requirements, budget, and team expertise
+before recommending AWS, Azure, or Google Cloud.
+
+For example, I would evaluate Azure first for a Microsoft-centered
+environment, AWS for a client already operating AWS workloads, and
+Google Cloud when its data and analytics services fit the
+requirements.
+
+I would compare the actual workload across the shortlisted platforms,
+including migration effort, total cost, compliance, availability, and
+operational support. Then I would validate the recommendation through
+a small proof of concept.
+
+My recommendation would be the cloud that best meets the business
+requirements and that the client's team can operate securely and
+reliably.
 
 [⬆ Back to top](#top)
 
