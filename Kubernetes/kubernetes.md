@@ -37,6 +37,7 @@ first — this doc goes deeper, not wider.
 23. [Interview Questions](#23-interview-questions)
 24. [Study Checklist (CKA Domain-Mapped)](#24-study-checklist-cka-domain-mapped)
 25. [Kubernetes Objects Reference (Glossary)](#25-kubernetes-objects-reference-glossary)
+26. [HashiCorp Vault Secrets Integration on EKS](#26-hashicorp-vault-secrets-integration-on-eks)
 
 ---
 
@@ -1983,5 +1984,352 @@ exists.
 | **Operator** | The pattern of pairing a CRD with a custom controller that watches instances of that CRD and drives real-world state to match — encoding operational knowledge (backup, failover, upgrade procedures) that would otherwise live in a runbook into code that runs continuously. A CRD without a controller watching it is just inert data; the controller is what makes it an Operator. See [§19](#19-custom-resources-and-operators). |
 | **MutatingWebhookConfiguration** | Registers a webhook the API server calls during admission to *modify* an object before it's persisted (e.g., injecting a sidecar container automatically) — mutating webhooks always run before validating ones, so a mutation can still be rejected by a validating webhook afterward. See [§17](#17-kubernetes-cluster-security-hardening). |
 | **ValidatingWebhookConfiguration** | Registers a webhook the API server calls during admission to *accept or reject* an object based on custom policy (e.g., Kyverno/OPA Gatekeeper enforcing "images must come from an approved registry") — unlike a mutating webhook, it can only allow or deny, never change the object. See [§17](#17-kubernetes-cluster-security-hardening). |
+
+[⬆ Back to top](#top)
+
+---
+
+# 26. HashiCorp Vault Secrets Integration on EKS
+
+An EKS cluster can use HashiCorp Vault as the central secret store by
+letting Kubernetes workloads authenticate to Vault with their own
+Kubernetes ServiceAccount token, then retrieve only the secrets they
+are authorized to access. This extends the native `Secret` object
+covered in [§9](#9-configmaps-secrets-and-the-downward-api) — Vault
+becomes the source of truth, and Kubernetes never has to hold the
+real secret value at rest.
+
+## The Production Flow
+
+```mermaid
+flowchart LR
+    POD["EKS Pod"] -->|"Uses Kubernetes\nServiceAccount token"| AUTH["Vault Kubernetes\nAuth Method"]
+    AUTH -->|"Matches ServiceAccount + Namespace\nto Vault Role"| POLICY["Vault Policy"]
+    POLICY -->|"Allows access to\nspecific secret path"| APP["Application receives secret"]
+```
+
+## Main Ways EKS Workloads Consume Vault Secrets
+
+| Pattern | How it works | Best use case |
+|---|---|---|
+| **Vault Agent Injector** | Injects a Vault sidecar/init container into the pod and writes secrets as files | Most common Vault-native pattern |
+| **Secrets Store CSI Driver + Vault Provider** | Mounts secrets into the pod as ephemeral volumes | Good when you want secrets mounted as files without app code changes |
+| **Vault Secrets Operator / External Secrets Operator** | Syncs Vault secrets into Kubernetes Secrets | Good when apps already expect Kubernetes Secrets |
+
+## Option 1: Vault Agent Injector Pattern
+
+This is one of the cleanest patterns for EKS.
+
+```mermaid
+flowchart LR
+    POD["Application Pod\n(annotated)"] -->|"Pod annotation requests\nVault secret"| INJ["Vault Agent Injector"]
+    INJ -->|"Adds init/sidecar\ncontainer"| AGENT["Vault Agent"]
+    AGENT -->|"Authenticates to Vault,\nreads secret"| VAULT["HashiCorp Vault"]
+    VAULT -->|"Writes secret to file"| FILE["/vault/secrets/&lt;file&gt;"]
+```
+
+**Step 1 — Install Vault with Helm**
+
+```bash
+helm repo add hashicorp https://helm.releases.hashicorp.com
+helm repo update
+kubectl create namespace vault
+
+helm install vault hashicorp/vault \
+  --namespace vault \
+  --set "server.dev.enabled=false" \
+  --set "injector.enabled=true"
+```
+
+In production, also configure HA mode, TLS, auto-unseal using AWS
+KMS, persistent storage, audit logging, and backup/disaster recovery.
+
+**Step 2 — Enable Kubernetes authentication in Vault**
+
+```bash
+vault auth enable kubernetes
+
+vault write auth/kubernetes/config \
+  kubernetes_host="https://$KUBERNETES_PORT_443_TCP_ADDR:443"
+```
+
+In production, configure the Kubernetes host, CA certificate, and
+token reviewer JWT correctly based on your cluster.
+
+**Step 3 — Store a secret in Vault**
+
+```bash
+vault secrets enable -path=secret kv-v2
+
+vault kv put secret/myapp/db \
+  username="appuser" \
+  password="StrongPassword123"
+```
+
+**Step 4 — Create a Vault policy** scoped to only that application's
+secret path:
+
+```hcl
+# myapp-policy.hcl
+path "secret/data/myapp/db" {
+  capabilities = ["read"]
+}
+```
+
+```bash
+vault policy write myapp-policy myapp-policy.hcl
+```
+
+**Step 5 — Create a Kubernetes ServiceAccount in EKS**
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: myapp-sa
+  namespace: prod
+```
+
+```bash
+kubectl create namespace prod
+kubectl apply -f serviceaccount.yaml
+```
+
+**Step 6 — Create a Vault role mapped to the ServiceAccount** — this
+connects the Kubernetes identity to the Vault policy:
+
+```bash
+vault write auth/kubernetes/role/myapp-role \
+  bound_service_account_names=myapp-sa \
+  bound_service_account_namespaces=prod \
+  policies=myapp-policy \
+  ttl=1h
+```
+
+In other words: only pods using ServiceAccount `myapp-sa` in
+namespace `prod` can authenticate as Vault role `myapp-role`, and
+they receive only the `myapp-policy` policy.
+
+**Step 7 — Annotate the EKS Deployment**
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: prod
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "myapp-role"
+        vault.hashicorp.com/agent-inject-secret-db.txt: "secret/data/myapp/db"
+        vault.hashicorp.com/agent-inject-template-db.txt: |
+          {{- with secret "secret/data/myapp/db" -}}
+          DB_USERNAME={{ .Data.data.username }}
+          DB_PASSWORD={{ .Data.data.password }}
+          {{- end }}
+    spec:
+      serviceAccountName: myapp-sa
+      containers:
+      - name: myapp
+        image: <account-id>.dkr.ecr.us-east-1.amazonaws.com/myapp:1.0.0
+        ports:
+        - containerPort: 8080
+```
+
+The secret is written into the pod as a file, typically under
+`/vault/secrets/db.txt`. The application reads that file and loads
+`DB_USERNAME` and `DB_PASSWORD` from it.
+
+## Option 2: Vault CSI Driver Pattern
+
+With the CSI pattern, Vault secrets are mounted into the pod as
+files through the Kubernetes Secrets Store CSI Driver instead of a
+sidecar.
+
+```mermaid
+flowchart LR
+    POD["EKS Pod"] -->|"Mounts CSI volume"| CSI["Secrets Store\nCSI Driver"]
+    CSI --> PROVIDER["Vault CSI Provider"]
+    PROVIDER --> VAULT["HashiCorp Vault"]
+```
+
+**SecretProviderClass**
+
+```yaml
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: vault-db-secret
+  namespace: prod
+spec:
+  provider: vault
+  parameters:
+    vaultAddress: "https://vault.example.com"
+    roleName: "myapp-role"
+    objects: |
+      - objectName: "db-password"
+        secretPath: "secret/data/myapp/db"
+        secretKey: "password"
+```
+
+**Pod volume mount**
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: prod
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      serviceAccountName: myapp-sa
+      containers:
+      - name: myapp
+        image: <account-id>.dkr.ecr.us-east-1.amazonaws.com/myapp:1.0.0
+        volumeMounts:
+        - name: vault-secrets
+          mountPath: "/mnt/secrets-store"
+          readOnly: true
+      volumes:
+      - name: vault-secrets
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: vault-db-secret
+```
+
+The application reads the secret from `/mnt/secrets-store/db-password`.
+
+## Option 3: Vault Secrets Operator Pattern
+
+In this model, Vault remains the source of truth, but the operator
+creates or updates native Kubernetes Secrets:
+
+```mermaid
+flowchart LR
+    VS["Vault Secret"] --> VSO["Vault Secrets Operator"]
+    VSO --> KS["Kubernetes Secret"]
+    KS --> POD["Pod consumes secret\nas env var or volume"]
+```
+
+This is useful when the application already expects a Kubernetes
+Secret:
+
+```yaml
+env:
+- name: DB_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: myapp-db-secret
+      key: password
+```
+
+The tradeoff is that the secret now exists as a native Kubernetes
+Secret, so etcd encryption at rest (see [§9](#9-configmaps-secrets-and-the-downward-api))
+and tight RBAC on that Secret object both remain essential — the
+operator pattern does not remove that responsibility.
+
+## Which Option Should You Use?
+
+For production EKS, the recommended choices are usually the **Vault
+Agent Injector** or the **Secrets Store CSI Driver with Vault
+Provider** — both avoid ever creating a native Kubernetes Secret.
+
+| Requirement | Best option |
+|---|---|
+| Avoid storing secrets as Kubernetes Secrets | Vault Agent Injector or CSI Driver |
+| App can read secrets from files | Vault Agent Injector or CSI Driver |
+| App requires env vars from Kubernetes Secrets | Vault Secrets Operator |
+| Need secret rotation without redeploying app | Vault Agent sidecar or CSI rotation pattern |
+| Want minimal app change | CSI Driver |
+| Want Vault-native templating | Vault Agent Injector |
+
+## Production EKS + Vault Design
+
+```text
+EKS Cluster
+│
+├── Namespace: vault
+│   ├── Vault server
+│   ├── Vault injector
+│   └── Vault policies
+│
+├── Namespace: prod
+│   ├── ServiceAccount: myapp-sa
+│   ├── Deployment: myapp
+│   ├── Vault annotations
+│   └── Secret mounted into pod as file
+│
+└── AWS Integration
+    ├── AWS KMS for Vault auto-unseal
+    ├── EBS/EFS for Vault storage
+    ├── CloudWatch/Splunk for audit logs
+    └── IAM/RBAC for platform access
+```
+
+## Best Practices for EKS Using Vault
+
+1. Do not hardcode secrets in Kubernetes YAML.
+2. Do not store secrets in Git.
+3. Use Kubernetes ServiceAccounts for workload identity.
+4. Map each app ServiceAccount to a specific Vault role.
+5. Give each Vault role a narrow policy.
+6. Use short TTLs for Vault tokens.
+7. Enable Vault audit logging.
+8. Use TLS between EKS and Vault.
+9. Use AWS KMS auto-unseal for production Vault.
+10. Use private networking between EKS and Vault.
+11. Restrict access to the Vault namespace.
+12. Avoid giving all apps access to the same Vault role.
+13. Rotate secrets regularly.
+14. Use Argo CD only for non-secret manifests.
+15. Store secret references in Git, not actual secret values.
+
+## Example Final Flow with Argo CD
+
+For GitOps, keep only references in Git — never the resolved value:
+
+```yaml
+annotations:
+  vault.hashicorp.com/agent-inject: "true"
+  vault.hashicorp.com/role: "myapp-role"
+  vault.hashicorp.com/agent-inject-secret-db.txt: "secret/data/myapp/db"
+```
+
+Never commit the resolved value (`DB_PASSWORD: StrongPassword123`) —
+only the reference above belongs in Git.
+
+```mermaid
+flowchart LR
+    GH["GitHub"] -->|"Argo CD syncs\nKubernetes manifests"| EKS["EKS"]
+    EKS -->|"Pod starts with\nmyapp-sa"| AGENT["Vault Agent\nauthenticates to Vault"]
+    AGENT -->|"Vault validates\nServiceAccount + namespace"| VAULT["Vault"]
+    VAULT -->|"Returns only\nallowed secret"| SECRET["Secret mounted\ninside pod"]
+```
+
+## Summary
+
+EKS does not store the real secret — Vault does. EKS pods
+authenticate to Vault using their Kubernetes ServiceAccount, and
+Vault returns only the secrets allowed by that ServiceAccount's
+mapped Vault policy.
 
 [⬆ Back to top](#top)
