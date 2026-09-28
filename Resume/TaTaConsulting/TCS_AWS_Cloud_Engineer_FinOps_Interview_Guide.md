@@ -560,7 +560,26 @@ Completeness, source and version, billing period, account coverage, tags and cos
 
 <a id="q74"></a>
 **Q74. How do you speak to a CXO about FinOps?**  
-I lead with business outcomes: spend versus plan, value-stream unit cost, realized savings, forecast risk, and decisions needed. I keep the technical detail available for follow-up but show owners, deadlines, and the effect on reliability or delivery.
+"When I speak to a CXO about FinOps, I start with the decision they
+need to make. I show spend against budget, the quarter-end forecast,
+verified savings, and cost per business outcome — not a long list of
+AWS resources.
+
+For example, if a platform is forecast to exceed budget, I would
+explain the cause and present a few actions: schedule approved
+nonproduction environments, rightsize underused capacity, and evaluate
+a Savings Plan for the stable usage that remains. For each action, I
+show expected savings, the owner, timing, and any reliability risk.
+
+I separate projected opportunities from savings already visible in the
+bill. Then I return with the measured result, so leadership can see
+whether the decision delivered value."
+
+| CXO concern | What you could say |
+|---|---|
+| "Are we saving money?" | "We identified an estimated $300,000 annual opportunity; $80,000 is verified so far. The remainder depends on approved changes." |
+| "Why did spending rise?" | "Spend rose 12%, but transaction volume rose 30%, so cost per transaction fell. We're checking whether capacity will scale efficiently as volume grows." |
+| "What decision do you need?" | "The application owner needs to approve the production sizing test, and finance needs to approve the proposed commitment after that test." |
 
 <a id="q75"></a>
 **Q75. How do you align the Cloud Business Office, platform, and app teams?**  
