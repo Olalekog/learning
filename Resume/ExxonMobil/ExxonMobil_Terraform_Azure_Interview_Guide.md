@@ -1,3 +1,5 @@
+<a id="top"></a>
+
 # ExxonMobil — Terraform and Azure Interview Guide
 
 Prepared for Olalekan Gabriel Ogundare.
@@ -14,6 +16,38 @@ These are practice answers, not verified accounts of your work history. For scen
 | Azure engineering | 25% |
 | Enterprise platform administration | 10% |
 | SQL Server infrastructure support | 5% |
+
+## Index
+
+<details>
+<summary>All 20 questions (click to expand)</summary>
+
+1. [Tell me about yourself and why you fit this role.](#1-tell-me-about-yourself-and-why-you-fit-this-role)
+2. [How would you maintain and improve a large enterprise Terraform codebase?](#2-how-would-you-maintain-and-improve-a-large-enterprise-terraform-codebase)
+3. [Describe how you would troubleshoot a failed Terraform deployment.](#3-describe-how-you-would-troubleshoot-a-failed-terraform-deployment)
+4. [How do you design reusable Terraform modules, and who should consume them?](#4-how-do-you-design-reusable-terraform-modules-and-who-should-consume-them)
+5. [How do you version modules and handle a breaking change?](#5-how-do-you-version-modules-and-handle-a-breaking-change)
+6. [Where would you publish Terraform modules, and how would teams consume them?](#6-where-would-you-publish-terraform-modules-and-how-would-teams-consume-them)
+7. [How do you manage and protect Terraform state in Azure?](#7-how-do-you-manage-and-protect-terraform-state-in-azure)
+8. [What would you do if Terraform state were locked or damaged?](#8-what-would-you-do-if-terraform-state-were-locked-or-damaged)
+9. [How do you detect and remediate infrastructure drift?](#9-how-do-you-detect-and-remediate-infrastructure-drift)
+10. [How do you use Terraform workspaces for development, test, and production?](#10-how-do-you-use-terraform-workspaces-for-development-test-and-production)
+11. [Describe a Terraform deployment pipeline using Azure DevOps or GitHub Actions.](#11-describe-a-terraform-deployment-pipeline-using-azure-devops-or-github-actions)
+12. [What checks should run beyond terraform validate?](#12-what-checks-should-run-beyond-terraform-validate)
+13. [How do you manage Terraform variables, secrets, and provider upgrades?](#13-how-do-you-manage-terraform-variables-secrets-and-provider-upgrades)
+14. [How would you troubleshoot an Azure application that suddenly became unavailable?](#14-how-would-you-troubleshoot-an-azure-application-that-suddenly-became-unavailable)
+15. [How do you implement least-privilege RBAC and Azure governance?](#15-how-do-you-implement-least-privilege-rbac-and-azure-governance)
+16. [How would you design high availability and disaster recovery?](#16-how-would-you-design-high-availability-and-disaster-recovery)
+17. [Give an example of an Azure cost optimization opportunity.](#17-give-an-example-of-an-azure-cost-optimization-opportunity)
+18. [How would you support SQL Server infrastructure alongside DBAs?](#18-how-would-you-support-sql-server-infrastructure-alongside-dbas)
+19. [How would you deploy Terraform in a restricted or disconnected network?](#19-how-would-you-deploy-terraform-in-a-restricted-or-disconnected-network)
+20. [Do you have ArcGIS Enterprise experience, and how would you support it?](#20-do-you-have-arcgis-enterprise-experience-and-how-would-you-support-it)
+
+</details>
+
+[⬆ Back to top](#top)
+
+---
 
 ## Questions and answers
 
@@ -143,6 +177,10 @@ Use this answer if you do not have direct ArcGIS experience:
 
 I would work with the GIS team to understand the supported architecture, sizing, networking, certificates, storage, identity, and recovery requirements. I could contribute by automating the Azure foundation, improving monitoring, and managing infrastructure changes. I would also learn the application-specific health checks and upgrade procedures so that platform changes are validated against GIS functionality.”
 
+[⬆ Back to top](#top)
+
+---
+
 ## Technical references
 
 - Questions 5–6: [HashiCorp Terraform style guide](https://developer.hashicorp.com/terraform/language/style) and [Module configuration](https://developer.hashicorp.com/terraform/language/modules/configuration).
@@ -156,3 +194,5 @@ I would work with the GIS team to understand the supported architecture, sizing,
 - Question 16: [Azure Site Recovery reliability](https://learn.microsoft.com/en-us/azure/reliability/reliability-site-recovery).
 - Question 17: [Azure VM cost optimization](https://learn.microsoft.com/en-us/azure/virtual-machines/cost-optimization-best-practices).
 - Question 18: [SQL Server Always On availability groups on Azure VMs](https://learn.microsoft.com/en-us/azure/azure-sql/virtual-machines/windows/availability-group-overview?view=azuresql).
+
+[⬆ Back to top](#top)
