@@ -8,19 +8,7 @@ Prepared for Olalekan Gabriel Ogundare.
 
 These are practice answers, not verified accounts of your work history. For scenario questions, substitute a real project, company, and outcome you can explain confidently.
 
-## Role priorities
-
-| Focus | Allocation |
-|---|---:|
-| Infrastructure as Code and automation | 60% |
-| Azure engineering | 25% |
-| Enterprise platform administration | 10% |
-| SQL Server infrastructure support | 5% |
-
 ## Index
-
-<details>
-<summary>All 20 questions (click to expand)</summary>
 
 1. [Tell me about yourself and why you fit this role.](#1-tell-me-about-yourself-and-why-you-fit-this-role)
 2. [How would you maintain and improve a large enterprise Terraform codebase?](#2-how-would-you-maintain-and-improve-a-large-enterprise-terraform-codebase)
@@ -43,7 +31,18 @@ These are practice answers, not verified accounts of your work history. For scen
 19. [How would you deploy Terraform in a restricted or disconnected network?](#19-how-would-you-deploy-terraform-in-a-restricted-or-disconnected-network)
 20. [Do you have ArcGIS Enterprise experience, and how would you support it?](#20-do-you-have-arcgis-enterprise-experience-and-how-would-you-support-it)
 
-</details>
+[⬆ Back to top](#top)
+
+---
+
+## Role priorities
+
+| Focus | Allocation |
+|---|---:|
+| Infrastructure as Code and automation | 60% |
+| Azure engineering | 25% |
+| Enterprise platform administration | 10% |
+| SQL Server infrastructure support | 5% |
 
 [⬆ Back to top](#top)
 
