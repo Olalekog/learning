@@ -125,7 +125,7 @@ I also have Linux and Windows administration experience and work closely with ap
 
 I use `ssh -vvv` to identify where SSH fails. If an alternative approved connection is available, I inspect the SSH service, host firewall, disk capacity, and authentication logs. After correcting the cause, I reconnect from the original source and verify application health. I avoid opening administrative ports broadly.”
 
-**Console:** Walkthrough 1. **Commands:** Command set A.
+**Console:** [Walkthrough 1 — EC2 inaccessible](#walkthrough-1--ec2-inaccessible-questions-2-22-31). **Commands:** Command set A.
 
 [⬆ Go to top](#top)
 
@@ -153,7 +153,7 @@ I use `ssh -vvv` to identify where SSH fails. If an alternative approved connect
 
 I inspect database inbound rules, application outbound rules, routes, and network ACLs. For separate VPCs, I check the connecting network and return path. If TCP connects but login fails, I investigate credentials, database permissions, TLS, and connection limits. I verify recovery through an application database transaction.”
 
-**Console:** Walkthrough 3. **Commands:** Command set C.
+**Console:** [Walkthrough 3 — EC2 to RDS](#walkthrough-3--ec2-to-rds-question-4). **Commands:** Command set C.
 
 [⬆ Go to top](#top)
 
@@ -165,7 +165,7 @@ I inspect database inbound rules, application outbound rules, routes, and networ
 
 I create alarms with suitable thresholds, evaluation periods, missing-data treatment, and operational notifications. During incidents, I correlate metric timestamps with logs and recent changes. I verify recovery through monitoring and a user-facing transaction, then improve the alarm if the incident revealed a gap.”
 
-**Console:** Walkthrough 2. **Commands:** Command set B.
+**Console:** [Walkthrough 2 — CloudWatch alarms and slowness](#walkthrough-2--cloudwatch-alarms-and-slowness-questions-5-6-18). **Commands:** Command set B.
 
 [⬆ Go to top](#top)
 
@@ -177,7 +177,7 @@ I create alarms with suitable thresholds, evaluation periods, missing-data treat
 
 I restore service through a controlled rollback, traffic shift, instance replacement, or capacity change supported by the evidence. Finally, I run business smoke tests, confirm normal error rates and latency, and investigate the root cause.”
 
-**Console:** Walkthroughs 2, 4, and 5. **Commands:** Command set B.
+**Console:** [Walkthrough 2 — CloudWatch alarms and slowness](#walkthrough-2--cloudwatch-alarms-and-slowness-questions-5-6-18) · [Walkthrough 4 — RDS performance and availability](#walkthrough-4--rds-performance-and-availability-question-28) · [Walkthrough 5 — Unhealthy load-balancer target](#walkthrough-5--unhealthy-load-balancer-target-question-10). **Commands:** Command set B.
 
 [⬆ Go to top](#top)
 
@@ -199,7 +199,7 @@ Private subnets have no direct Internet Gateway route. They can use a NAT Gatewa
 
 I review unused permissions and use IAM Access Analyzer to validate policies and assess unintended access. For AccessDenied, I check identity and resource policies, boundaries, organizational controls, and explicit denies. I verify both permitted tasks and actions that should remain blocked.”
 
-**Console:** Walkthrough 9.
+**Console:** [Walkthrough 9 — IAM least privilege and temporary access](#walkthrough-9--iam-least-privilege-and-temporary-access-questions-8-43).
 
 [⬆ Go to top](#top)
 
@@ -224,7 +224,7 @@ I review unused permissions and use IAM Access Analyzer to validate policies and
 
 I review security groups, network ACLs, host firewalls, and application logs. If failures followed a release, I assess rollback. I confirm recovery through healthy targets, successful requests through the load balancer, and normal latency and errors.”
 
-**Console:** Walkthrough 5. **Commands:** Command set D.
+**Console:** [Walkthrough 5 — Unhealthy load-balancer target](#walkthrough-5--unhealthy-load-balancer-target-question-10). **Commands:** Command set D.
 
 [⬆ Go to top](#top)
 
@@ -236,7 +236,7 @@ I review security groups, network ACLs, host firewalls, and application logs. If
 
 The workflow includes formatting, validation, security checks, and review of the proposed plan. Production changes include approval and a recovery strategy. With CloudFormation, I review change sets before execution. After either deployment, I verify the resources and application behavior rather than relying only on deployment success.”
 
-**Console:** Walkthrough 15. **Example:** Automation section.
+**Console:** [Walkthrough 15 — CloudFormation changes and drift](#walkthrough-15--cloudformation-changes-and-drift-questions-11-35). **Example:** Automation section.
 
 [⬆ Go to top](#top)
 
@@ -258,7 +258,7 @@ I separate identification from cleanup because low CPU does not prove a server i
 
 I verify the agent, instance permissions, and connectivity before relying on these capabilities. I target operations using tags, control concurrency and error thresholds, and retain execution results. After an operation, I validate application health as well as the execution status.”
 
-**Console:** Walkthroughs 10–12.
+**Console:** [Walkthrough 10 — Secure remote administration](#walkthrough-10--secure-remote-administration-questions-13-32-43) · [Walkthrough 11 — Patch Manager](#walkthrough-11--patch-manager-questions-16-34) · [Walkthrough 12 — Inventory and State Manager](#walkthrough-12--inventory-and-state-manager-question-33).
 
 [⬆ Go to top](#top)
 
@@ -270,7 +270,7 @@ I verify the agent, instance permissions, and connectivity before relying on the
 
 For hybrid DNS, I check Resolver endpoints, forwarding rules, and network connectivity. I consider TTLs and caching. After correction, I verify resolution and the application connection from the original client network.”
 
-**Console:** Walkthrough 13. **Commands:** Command set E.
+**Console:** [Walkthrough 13 — Route 53](#walkthrough-13--route-53-question-14). **Commands:** Command set E.
 
 [⬆ Go to top](#top)
 
@@ -292,7 +292,7 @@ Restoration takes priority through an approved rollback, failover, or mitigation
 
 Where practical, I replace instances using a tested patched AMI. For a single-instance workload, I communicate the expected outage. Systems Manager controls targeting and execution, but application-aware draining needs separate coordination. I verify patch compliance and business transactions afterward.”
 
-**Console:** Walkthrough 11.
+**Console:** [Walkthrough 11 — Patch Manager](#walkthrough-11--patch-manager-questions-16-34).
 
 [⬆ Go to top](#top)
 
@@ -304,7 +304,7 @@ Where practical, I replace instances using a tested patched AMI. For a single-in
 
 For RDS, I configure automated backups and point-in-time recovery where supported. Multi-AZ supports availability; backups address recovery from data loss and corruption. For regional recovery, I assess cross-Region copies or replication and the required architecture. I validate the design through restore drills and application-owner testing.”
 
-**Console:** Walkthrough 14.
+**Console:** [Walkthrough 14 — Restore and DR validation](#walkthrough-14--restore-and-dr-validation-questions-17-37-38).
 
 [⬆ Go to top](#top)
 
@@ -318,6 +318,8 @@ I correlate findings with traffic and recent changes. The correction may involve
 
 **Commands:** Command set B.
 
+**Console:** [Walkthrough 2 — CloudWatch alarms and slowness](#walkthrough-2--cloudwatch-alarms-and-slowness-questions-5-6-18).
+
 [⬆ Go to top](#top)
 
 ### 19. How do you reduce AWS costs without affecting availability?
@@ -328,7 +330,7 @@ I correlate findings with traffic and recent changes. The correction may involve
 
 Rightsizing considers peak demand, memory, network throughput, and resilience requirements—not average CPU alone. I evaluate scheduling, Auto Scaling, and commitment discounts after understanding the baseline. Owners validate changes, which follow change control. I compare savings with performance and availability after implementation.”
 
-**Console:** Walkthrough 16.
+**Console:** [Walkthrough 16 — Cost and performance](#walkthrough-16--cost-and-performance-questions-19-39).
 
 [⬆ Go to top](#top)
 
@@ -359,11 +361,15 @@ Rightsizing considers peak demand, memory, network throughput, and resilience re
 
 “I use standardized provisioning, configuration, monitoring, patching, and retirement. At provisioning, I check the approved AMI, instance size, subnet, security groups, role, encrypted storage, and ownership tags. During operation, I monitor health and compliance. Before retirement, I confirm dependencies, owner approval, retention, and recovery needs. I review associated volumes and Elastic IPs so decommissioning does not leave unnecessary costs or remove required data.”
 
+**Console:** [Walkthrough 1 — EC2 inaccessible](#walkthrough-1--ec2-inaccessible-questions-2-22-31).
+
 [⬆ Go to top](#top)
 
 ### 23. How would you secure an application's S3 bucket?
 
 “I block public access unless explicitly approved and use an application role scoped to required actions and prefixes. I enforce HTTPS, configure encryption appropriate to the data, and verify KMS access if using a customer-managed key. I review versioning, lifecycle, recovery, and audit requirements. I test permitted actions and confirm unauthorized actions remain denied.”
+
+**Console:** [Walkthrough 7 — S3 security and AccessDenied](#walkthrough-7--s3-security-and-accessdenied-questions-23-24).
 
 [⬆ Go to top](#top)
 
@@ -371,11 +377,15 @@ Rightsizing considers peak demand, memory, network throughput, and resilience re
 
 “I identify the actual caller and failed operation, then inspect identity and bucket policies and resource scope. I check explicit denies, boundaries, organizational controls, and endpoint policies. For KMS-encrypted data, I check key access. I distinguish bucket actions from object actions and repeat the exact failed request using the same role and network path after correcting permissions.”
 
+**Console:** [Walkthrough 7 — S3 security and AccessDenied](#walkthrough-7--s3-security-and-accessdenied-questions-23-24).
+
 [⬆ Go to top](#top)
 
 ### 25. How do you expand EBS safely?
 
 “I confirm whether the issue is capacity or performance, identify the volume and filesystem, and arrange appropriate backup and change approval. I modify the EBS volume, monitor progress, and extend the partition if necessary and filesystem with OS-specific tools. Increasing the AWS volume alone does not expand usable filesystem space. I verify capacity and application writes afterward.”
+
+**Console:** [Walkthrough 8 — EBS expansion](#walkthrough-8--ebs-expansion-question-25).
 
 [⬆ Go to top](#top)
 
@@ -383,17 +393,23 @@ Rightsizing considers peak demand, memory, network throughput, and resilience re
 
 “I inspect desired and maximum capacity, scaling policies, triggering metrics, and Activity history. I review the launch template, AMI, instance type, subnet addresses, quotas, roles, KMS access, lifecycle hooks, and bootstrap logs. After correction, I verify instances launch, initialize, become healthy targets, and serve traffic.”
 
+**Console:** [Walkthrough 6 — Auto Scaling launch failures](#walkthrough-6--auto-scaling-launch-failures-questions-26-27).
+
 [⬆ Go to top](#top)
 
 ### 27. How do you design reliable Auto Scaling?
 
 “I choose a metric aligned with workload demand and maintain minimum capacity across Availability Zones. I configure startup and warmup behavior around the application and verify automated bootstrap. Scale-in accounts for draining and shutdown requirements. I test scaling under load and check that additional application instances do not overload shared dependencies such as RDS.”
 
+**Console:** [Walkthrough 6 — Auto Scaling launch failures](#walkthrough-6--auto-scaling-launch-failures-questions-26-27).
+
 [⬆ Go to top](#top)
 
 ### 28. How do you support RDS operationally?
 
 “I monitor availability, CPU, memory, storage, connections, and latency, and review events, backups, and maintenance. I separate connectivity, authentication, and query-performance issues. I collaborate with DBAs or developers on slow queries, locks, and connection pools. Changes use approved procedures, and validation includes application transactions and database metrics. I also test recovery.”
+
+**Console:** [Walkthrough 4 — RDS performance and availability](#walkthrough-4--rds-performance-and-availability-question-28).
 
 [⬆ Go to top](#top)
 
@@ -413,11 +429,15 @@ Rightsizing considers peak demand, memory, network throughput, and resilience re
 
 “I start with EC2 status checks and monitoring, then use approved administrative access. I inspect services, Event Viewer, resource usage, disk capacity, and listening ports. I correlate events with changes and test DNS and destination ports. I make a targeted correction and verify service status and an application transaction rather than rebooting immediately.”
 
+**Console:** [Walkthrough 1 — EC2 inaccessible](#walkthrough-1--ec2-inaccessible-questions-2-22-31).
+
 [⬆ Go to top](#top)
 
 ### 32. What if EC2 does not appear in Systems Manager?
 
 “I confirm account, Region, instance state, agent installation and service status, instance-profile permissions, and HTTPS connectivity to the required endpoints. I inspect DNS, proxies, endpoint policies, and agent logs. After correcting the cause, I confirm managed-node visibility and test a permitted session or command.”
+
+**Console:** [Walkthrough 10 — Secure remote administration](#walkthrough-10--secure-remote-administration-questions-13-32-43).
 
 [⬆ Go to top](#top)
 
@@ -425,17 +445,23 @@ Rightsizing considers peak demand, memory, network throughput, and resilience re
 
 “I define baselines for agents, services, and security settings. I apply them with State Manager or configuration-management tooling using tags and environment-specific settings. I test changes, review compliance and failures, and remediate drift through the managed source. I update the AMI or bootstrap so newly launched instances start with the right configuration.”
 
+**Console:** [Walkthrough 12 — Inventory and State Manager](#walkthrough-12--inventory-and-state-manager-question-33).
+
 [⬆ Go to top](#top)
 
 ### 34. How do you handle patch failures?
 
 “I inspect execution output and package-manager logs for repository access, space, dependencies, permissions, or reboot problems. I assess impact and pause the wider rollout if the canary fails. I correct the cause, rerun the affected batch, and validate OS and application health. Exceptions have owners and remediation dates rather than being reported as compliant.”
 
+**Console:** [Walkthrough 11 — Patch Manager](#walkthrough-11--patch-manager-questions-16-34).
+
 [⬆ Go to top](#top)
 
 ### 35. How do you handle infrastructure drift?
 
 “I compare deployment state with code using Terraform plans or supported CloudFormation drift detection. I determine whether the change was approved, unauthorized, or external. Approved changes are incorporated into code after review; unintended changes are corrected after impact assessment. I do not automatically apply a plan that could replace production resources. I then address the access or process gap.”
+
+**Console:** [Walkthrough 15 — CloudFormation changes and drift](#walkthrough-15--cloudformation-changes-and-drift-questions-11-35).
 
 [⬆ Go to top](#top)
 
@@ -449,17 +475,23 @@ Rightsizing considers peak demand, memory, network throughput, and resilience re
 
 “I check coverage, job status, retention, and encryption, then perform isolated restore tests. I validate restored volumes or databases with the relevant owner. I record recovery time, recovery point, dependencies, and problems. A completed backup confirms creation; a tested restore provides evidence that recovery works.”
 
+**Console:** [Walkthrough 14 — Restore and DR validation](#walkthrough-14--restore-and-dr-validation-questions-17-37-38).
+
 [⬆ Go to top](#top)
 
 ### 38. How do you conduct a DR exercise?
 
 “I agree on scenario, scope, objectives, owners, and success criteria. I follow the runbook, restore or activate infrastructure and data, validate dependencies and access, and test business transactions. I compare actual recovery time and data loss with objectives and test return to normal where applicable. Gaps become owned corrective actions, and application owners confirm functionality.”
 
+**Console:** [Walkthrough 14 — Restore and DR validation](#walkthrough-14--restore-and-dr-validation-questions-17-37-38).
+
 [⬆ Go to top](#top)
 
 ### 39. How do you improve availability without unnecessary cost?
 
 “I identify failure points and business requirements, then evaluate multi-AZ application capacity, load balancing, automated replacement, database availability, and recovery procedures. I compare costs with outage risk and check application support for redundancy, including session and file storage. I validate failure behavior through controlled tests.”
+
+**Console:** [Walkthrough 16 — Cost and performance](#walkthrough-16--cost-and-performance-questions-19-39).
 
 [⬆ Go to top](#top)
 
@@ -484,6 +516,8 @@ Rightsizing considers peak demand, memory, network throughput, and resilience re
 ### 43. How do you handle urgent requests for broader production access?
 
 “I clarify the task, scope, and urgency and seek a narrowly scoped role or approved procedure. If elevation is necessary, I follow approval requirements, limit duration where supported, and retain audit evidence. I remove temporary access afterward and consider whether a permanent operational capability is needed. I understand logging limitations, including the lack of session-content logging for Session Manager SSH and port forwarding.”
+
+**Console:** [Walkthrough 9 — IAM least privilege and temporary access](#walkthrough-9--iam-least-privilege-and-temporary-access-questions-8-43) · [Walkthrough 10 — Secure remote administration](#walkthrough-10--secure-remote-administration-questions-13-32-43).
 
 [⬆ Go to top](#top)
 
