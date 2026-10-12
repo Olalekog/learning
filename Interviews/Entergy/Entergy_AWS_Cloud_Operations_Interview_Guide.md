@@ -1,3 +1,5 @@
+<a id="top"></a>
+
 # Entergy — AWS Cloud Operations Engineer Interview Guide
 
 Prepared for Olalekan Gabriel Ogundare  
@@ -14,13 +16,91 @@ The introduction reflects your stated background. Sample automation and incident
 ## Index
 
 - [Questions 1–20: Core interview questions](#questions-120-core-interview-questions)
+  - [1. Can you briefly introduce yourself and explain your AWS Cloud Operations experience?](#1-can-you-briefly-introduce-yourself-and-explain-your-aws-cloud-operations-experience)
+  - [2. How do you troubleshoot an EC2 instance that is running but inaccessible?](#2-how-do-you-troubleshoot-an-ec2-instance-that-is-running-but-inaccessible)
+  - [3. What is the difference between a Security Group and a Network ACL?](#3-what-is-the-difference-between-a-security-group-and-a-network-acl)
+  - [4. How do you troubleshoot connectivity between EC2 and RDS?](#4-how-do-you-troubleshoot-connectivity-between-ec2-and-rds)
+  - [5. How do you use CloudWatch for monitoring and troubleshooting?](#5-how-do-you-use-cloudwatch-for-monitoring-and-troubleshooting)
+  - [6. What would you do if an application on EC2 became slow or unresponsive?](#6-what-would-you-do-if-an-application-on-ec2-became-slow-or-unresponsive)
+  - [7. How do VPCs, subnets, route tables, and Internet Gateways work together?](#7-how-do-vpcs-subnets-route-tables-and-internet-gateways-work-together)
+  - [8. How do you manage IAM using least privilege?](#8-how-do-you-manage-iam-using-least-privilege)
+  - [9. What is the difference between an ALB and an NLB?](#9-what-is-the-difference-between-an-alb-and-an-nlb)
+  - [10. How do you troubleshoot a target failing load-balancer health checks?](#10-how-do-you-troubleshoot-a-target-failing-load-balancer-health-checks)
+  - [11. How do you use Terraform or CloudFormation?](#11-how-do-you-use-terraform-or-cloudformation)
+  - [12. Can you give a scripting example for AWS operational tasks?](#12-can-you-give-a-scripting-example-for-aws-operational-tasks)
+  - [13. How do you use AWS Systems Manager?](#13-how-do-you-use-aws-systems-manager)
+  - [14. How do you troubleshoot Route 53 DNS issues?](#14-how-do-you-troubleshoot-route-53-dns-issues)
+  - [15. What steps do you follow during a production incident?](#15-what-steps-do-you-follow-during-a-production-incident)
+  - [16. How do you patch EC2 while minimizing downtime?](#16-how-do-you-patch-ec2-while-minimizing-downtime)
+  - [17. How do you configure backups and disaster recovery?](#17-how-do-you-configure-backups-and-disaster-recovery)
+  - [18. How do you investigate CPU, memory, or disk pressure?](#18-how-do-you-investigate-cpu-memory-or-disk-pressure)
+  - [19. How do you reduce AWS costs without affecting availability?](#19-how-do-you-reduce-aws-costs-without-affecting-availability)
+  - [20. Tell me about a major AWS production issue you resolved.](#20-tell-me-about-a-major-aws-production-issue-you-resolved)
 - [Questions 21–45: Additional responsibility-based questions](#questions-2145-additional-responsibility-based-questions)
+  - [21. What does your daily AWS operations routine look like?](#21-what-does-your-daily-aws-operations-routine-look-like)
+  - [22. How do you manage EC2 throughout its lifecycle?](#22-how-do-you-manage-ec2-throughout-its-lifecycle)
+  - [23. How would you secure an application's S3 bucket?](#23-how-would-you-secure-an-applications-s3-bucket)
+  - [24. How do you troubleshoot S3 AccessDenied?](#24-how-do-you-troubleshoot-s3-accessdenied)
+  - [25. How do you expand EBS safely?](#25-how-do-you-expand-ebs-safely)
+  - [26. Auto Scaling is not adding instances. What do you check?](#26-auto-scaling-is-not-adding-instances-what-do-you-check)
+  - [27. How do you design reliable Auto Scaling?](#27-how-do-you-design-reliable-auto-scaling)
+  - [28. How do you support RDS operationally?](#28-how-do-you-support-rds-operationally)
+  - [29. How do you troubleshoot VPN or hybrid connectivity?](#29-how-do-you-troubleshoot-vpn-or-hybrid-connectivity)
+  - [30. What happens when a client connects to an HTTPS application?](#30-what-happens-when-a-client-connects-to-an-https-application)
+  - [31. How do you troubleshoot Windows EC2?](#31-how-do-you-troubleshoot-windows-ec2)
+  - [32. What if EC2 does not appear in Systems Manager?](#32-what-if-ec2-does-not-appear-in-systems-manager)
+  - [33. How do you maintain consistent fleet configuration?](#33-how-do-you-maintain-consistent-fleet-configuration)
+  - [34. How do you handle patch failures?](#34-how-do-you-handle-patch-failures)
+  - [35. How do you handle infrastructure drift?](#35-how-do-you-handle-infrastructure-drift)
+  - [36. How do you make scripts safe for production?](#36-how-do-you-make-scripts-safe-for-production)
+  - [37. How do you verify backups are usable?](#37-how-do-you-verify-backups-are-usable)
+  - [38. How do you conduct a DR exercise?](#38-how-do-you-conduct-a-dr-exercise)
+  - [39. How do you improve availability without unnecessary cost?](#39-how-do-you-improve-availability-without-unnecessary-cost)
+  - [40. What should a runbook contain?](#40-what-should-a-runbook-contain)
+  - [41. How do you work with application, infrastructure, security, and development teams?](#41-how-do-you-work-with-application-infrastructure-security-and-development-teams)
+  - [42. What if teams disagree about whether the fault is application or infrastructure?](#42-what-if-teams-disagree-about-whether-the-fault-is-application-or-infrastructure)
+  - [43. How do you handle urgent requests for broader production access?](#43-how-do-you-handle-urgent-requests-for-broader-production-access)
+  - [44. How do you communicate incidents to business stakeholders?](#44-how-do-you-communicate-incidents-to-business-stakeholders)
+  - [45. What would you focus on in your first 30 days?](#45-what-would-you-focus-on-in-your-first-30-days)
 - [Hands-on commands and interpretation](#hands-on-commands-and-interpretation)
+  - [Command set A — EC2 access and SSH](#command-set-a--ec2-access-and-ssh)
+  - [Command set B — CPU, memory, disk, and application health](#command-set-b--cpu-memory-disk-and-application-health)
+  - [Command set C — RDS connectivity](#command-set-c--rds-connectivity)
+  - [Command set D — Load-balancer targets](#command-set-d--load-balancer-targets)
+  - [Command set E — DNS, routes, and TLS](#command-set-e--dns-routes-and-tls)
+  - [Command set F — Windows administration](#command-set-f--windows-administration)
+  - [Command set G — AWS identity, SSM, and Auto Scaling](#command-set-g--aws-identity-ssm-and-auto-scaling)
 - [AWS console step-by-step walkthroughs](#aws-console-step-by-step-walkthroughs)
+  - [Walkthrough 1 — EC2 inaccessible (Questions 2, 22, 31)](#walkthrough-1--ec2-inaccessible-questions-2-22-31)
+  - [Walkthrough 2 — CloudWatch alarms and slowness (Questions 5, 6, 18)](#walkthrough-2--cloudwatch-alarms-and-slowness-questions-5-6-18)
+  - [Walkthrough 3 — EC2 to RDS (Question 4)](#walkthrough-3--ec2-to-rds-question-4)
+  - [Walkthrough 4 — RDS performance and availability (Question 28)](#walkthrough-4--rds-performance-and-availability-question-28)
+  - [Walkthrough 5 — Unhealthy load-balancer target (Question 10)](#walkthrough-5--unhealthy-load-balancer-target-question-10)
+  - [Walkthrough 6 — Auto Scaling launch failures (Questions 26, 27)](#walkthrough-6--auto-scaling-launch-failures-questions-26-27)
+  - [Walkthrough 7 — S3 security and AccessDenied (Questions 23, 24)](#walkthrough-7--s3-security-and-accessdenied-questions-23-24)
+  - [Walkthrough 8 — EBS expansion (Question 25)](#walkthrough-8--ebs-expansion-question-25)
+  - [Walkthrough 9 — IAM least privilege and temporary access (Questions 8, 43)](#walkthrough-9--iam-least-privilege-and-temporary-access-questions-8-43)
+  - [Walkthrough 10 — Secure remote administration (Questions 13, 32, 43)](#walkthrough-10--secure-remote-administration-questions-13-32-43)
+  - [Walkthrough 11 — Patch Manager (Questions 16, 34)](#walkthrough-11--patch-manager-questions-16-34)
+  - [Walkthrough 12 — Inventory and State Manager (Question 33)](#walkthrough-12--inventory-and-state-manager-question-33)
+  - [Walkthrough 13 — Route 53 (Question 14)](#walkthrough-13--route-53-question-14)
+  - [Walkthrough 14 — Restore and DR validation (Questions 17, 37, 38)](#walkthrough-14--restore-and-dr-validation-questions-17-37-38)
+  - [Walkthrough 15 — CloudFormation changes and drift (Questions 11, 35)](#walkthrough-15--cloudformation-changes-and-drift-questions-11-35)
+  - [Walkthrough 16 — Cost and performance (Questions 19, 39)](#walkthrough-16--cost-and-performance-questions-19-39)
 - [Automation examples](#automation-examples)
+  - [Terraform — Three-tier AWS project](#terraform--three-tier-aws-project)
+  - [Python — EC2/EBS operational report](#python--ec2ebs-operational-report)
+  - [Bash and PowerShell operational examples](#bash-and-powershell-operational-examples)
 - [Production support and communication](#production-support-and-communication)
+  - [Prioritization and escalation](#prioritization-and-escalation)
+  - [Change and rollback preparation](#change-and-rollback-preparation)
+  - [Incident update example](#incident-update-example)
+  - [Root-cause analysis](#root-cause-analysis)
+  - [Runbook outline](#runbook-outline)
 - [Security review](#security-review)
 - [Teams-call preparation](#teams-call-preparation)
+  - [Work arrangement and authorization](#work-arrangement-and-authorization)
+  - [Questions to ask the interviewer](#questions-to-ask-the-interviewer)
 - [Official AWS references](#official-aws-references)
 
 ## Questions 1–20: Core interview questions
@@ -35,6 +115,8 @@ My strength is combining production support with engineering improvements. I tro
 
 I also have Linux and Windows administration experience and work closely with application, security, and infrastructure teams. This role aligns with my focus on keeping production environments reliable, secure, and operationally efficient.”
 
+[⬆ Go to top](#top)
+
 ### 2. How do you troubleshoot an EC2 instance that is running but inaccessible?
 
 **Answer:**
@@ -44,6 +126,8 @@ I also have Linux and Windows administration experience and work closely with ap
 I use `ssh -vvv` to identify where SSH fails. If an alternative approved connection is available, I inspect the SSH service, host firewall, disk capacity, and authentication logs. After correcting the cause, I reconnect from the original source and verify application health. I avoid opening administrative ports broadly.”
 
 **Console:** Walkthrough 1. **Commands:** Command set A.
+
+[⬆ Go to top](#top)
 
 ### 3. What is the difference between a Security Group and a Network ACL?
 
@@ -59,6 +143,8 @@ I use `ssh -vvv` to identify where SSH fails. If an alternative approved connect
 
 “I use security groups to control communication between workloads. For example, the database security group allows the database port from the application security group. Network ACLs provide subnet-level filtering. Because they are stateless, I check both request and return traffic, including the relevant ephemeral ports, during troubleshooting.”
 
+[⬆ Go to top](#top)
+
 ### 4. How do you troubleshoot connectivity between EC2 and RDS?
 
 **Answer:**
@@ -68,6 +154,8 @@ I use `ssh -vvv` to identify where SSH fails. If an alternative approved connect
 I inspect database inbound rules, application outbound rules, routes, and network ACLs. For separate VPCs, I check the connecting network and return path. If TCP connects but login fails, I investigate credentials, database permissions, TLS, and connection limits. I verify recovery through an application database transaction.”
 
 **Console:** Walkthrough 3. **Commands:** Command set C.
+
+[⬆ Go to top](#top)
 
 ### 5. How do you use CloudWatch for monitoring and troubleshooting?
 
@@ -79,6 +167,8 @@ I create alarms with suitable thresholds, evaluation periods, missing-data treat
 
 **Console:** Walkthrough 2. **Commands:** Command set B.
 
+[⬆ Go to top](#top)
+
 ### 6. What would you do if an application on EC2 became slow or unresponsive?
 
 **Answer:**
@@ -89,6 +179,8 @@ I restore service through a controlled rollback, traffic shift, instance replace
 
 **Console:** Walkthroughs 2, 4, and 5. **Commands:** Command set B.
 
+[⬆ Go to top](#top)
+
 ### 7. How do VPCs, subnets, route tables, and Internet Gateways work together?
 
 **Answer:**
@@ -96,6 +188,8 @@ I restore service through a controlled rollback, traffic shift, instance replace
 “A VPC provides an isolated network, and subnets divide its address space across Availability Zones. Route tables determine where subnet traffic goes. A public subnet has a route to an Internet Gateway; direct IPv4 internet communication also requires an appropriate public address and security rules.
 
 Private subnets have no direct Internet Gateway route. They can use a NAT Gateway for outbound IPv4 internet access or VPC endpoints for supported AWS services. I typically place internet-facing load balancers in public subnets and application servers and databases in private subnets.”
+
+[⬆ Go to top](#top)
 
 ### 8. How do you manage IAM using least privilege?
 
@@ -106,6 +200,8 @@ Private subnets have no direct Internet Gateway route. They can use a NAT Gatewa
 I review unused permissions and use IAM Access Analyzer to validate policies and assess unintended access. For AccessDenied, I check identity and resource policies, boundaries, organizational controls, and explicit denies. I verify both permitted tasks and actions that should remain blocked.”
 
 **Console:** Walkthrough 9.
+
+[⬆ Go to top](#top)
 
 ### 9. What is the difference between an ALB and an NLB?
 
@@ -118,6 +214,8 @@ I review unused permissions and use IAM Access Analyzer to validate policies and
 
 “I choose an ALB for HTTP-aware routing, such as sending `/api` and `/web` requests to different target groups. I choose an NLB for transport-level protocols or static IP requirements. I base the decision on application protocols, routing behavior, connectivity requirements, and operational needs.”
 
+[⬆ Go to top](#top)
+
 ### 10. How do you troubleshoot a target failing load-balancer health checks?
 
 **Answer:**
@@ -127,6 +225,8 @@ I review unused permissions and use IAM Access Analyzer to validate policies and
 I review security groups, network ACLs, host firewalls, and application logs. If failures followed a release, I assess rollback. I confirm recovery through healthy targets, successful requests through the load balancer, and normal latency and errors.”
 
 **Console:** Walkthrough 5. **Commands:** Command set D.
+
+[⬆ Go to top](#top)
 
 ### 11. How do you use Terraform or CloudFormation?
 
@@ -138,6 +238,8 @@ The workflow includes formatting, validation, security checks, and review of the
 
 **Console:** Walkthrough 15. **Example:** Automation section.
 
+[⬆ Go to top](#top)
+
 ### 12. Can you give a scripting example for AWS operational tasks?
 
 **Sample answer — use only if it matches implemented work:**
@@ -145,6 +247,8 @@ The workflow includes formatting, validation, security checks, and review of the
 “One example is a Python and Boto3 operational report for potentially idle EC2 instances and unattached EBS volumes. It collects resource metadata, ownership tags, and monitoring evidence, handles pagination and API errors, and generates a reviewable report.
 
 I separate identification from cleanup because low CPU does not prove a server is unused. Owners validate candidates, and destructive actions follow approved changes with retention and recovery considerations. This reduces manual effort while protecting production resources.”
+
+[⬆ Go to top](#top)
 
 ### 13. How do you use AWS Systems Manager?
 
@@ -156,6 +260,8 @@ I verify the agent, instance permissions, and connectivity before relying on the
 
 **Console:** Walkthroughs 10–12.
 
+[⬆ Go to top](#top)
+
 ### 14. How do you troubleshoot Route 53 DNS issues?
 
 **Answer:**
@@ -166,6 +272,8 @@ For hybrid DNS, I check Resolver endpoints, forwarding rules, and network connec
 
 **Console:** Walkthrough 13. **Commands:** Command set E.
 
+[⬆ Go to top](#top)
+
 ### 15. What steps do you follow during a production incident?
 
 **Answer:**
@@ -173,6 +281,8 @@ For hybrid DNS, I check Resolver endpoints, forwarding rules, and network connec
 “I confirm impact, assign severity under the organization's model, establish ownership, and engage the required teams. I communicate known facts and the next update time. I review metrics, logs, and recent changes to form a focused hypothesis.
 
 Restoration takes priority through an approved rollback, failover, or mitigation with clear validation criteria. I document actions and avoid unrelated changes. Before resolution, I verify business transactions and stable monitoring. Follow-up includes root-cause analysis, corrective actions, owners, deadlines, and runbook updates.”
+
+[⬆ Go to top](#top)
 
 ### 16. How do you patch EC2 while minimizing downtime?
 
@@ -184,6 +294,8 @@ Where practical, I replace instances using a tested patched AMI. For a single-in
 
 **Console:** Walkthrough 11.
 
+[⬆ Go to top](#top)
+
 ### 17. How do you configure backups and disaster recovery?
 
 **Answer:**
@@ -193,6 +305,8 @@ Where practical, I replace instances using a tested patched AMI. For a single-in
 For RDS, I configure automated backups and point-in-time recovery where supported. Multi-AZ supports availability; backups address recovery from data loss and corruption. For regional recovery, I assess cross-Region copies or replication and the required architecture. I validate the design through restore drills and application-owner testing.”
 
 **Console:** Walkthrough 14.
+
+[⬆ Go to top](#top)
 
 ### 18. How do you investigate CPU, memory, or disk pressure?
 
@@ -204,6 +318,8 @@ I correlate findings with traffic and recent changes. The correction may involve
 
 **Commands:** Command set B.
 
+[⬆ Go to top](#top)
+
 ### 19. How do you reduce AWS costs without affecting availability?
 
 **Answer:**
@@ -213,6 +329,8 @@ I correlate findings with traffic and recent changes. The correction may involve
 Rightsizing considers peak demand, memory, network throughput, and resilience requirements—not average CPU alone. I evaluate scheduling, Auto Scaling, and commitment discounts after understanding the baseline. Owners validate changes, which follow change control. I compare savings with performance and availability after implementation.”
 
 **Console:** Walkthrough 16.
+
+[⬆ Go to top](#top)
 
 ### 20. Tell me about a major AWS production issue you resolved.
 
@@ -227,107 +345,159 @@ Rightsizing considers peak demand, memory, network throughput, and resilience re
 
 “After a deployment, an application experienced intermittent errors and unhealthy targets. I reviewed the target-health reasons and correlated failures with the release. Network connectivity was working, but the new version returned an unexpected health response. I coordinated rollback and verified recovery through target health and application transactions. We then added health-endpoint tests and post-deployment validation. For my actual example, I would explain my personal actions and use only recovery times I can substantiate.”
 
+[⬆ Go to top](#top)
+
 ## Questions 21–45: Additional responsibility-based questions
 
 ### 21. What does your daily AWS operations routine look like?
 
 “I review active incidents, overnight alerts, service health, and handover notes. I check critical dashboards, failed backups, patch compliance, and capacity warnings. I then review scheduled changes and prioritize business impact, security exposure, and availability risks. During the day, I investigate issues and support approved changes. Before handover, I document unresolved issues, actions, risks, and next owners. I also identify repeatable work suitable for automation.”
 
+[⬆ Go to top](#top)
+
 ### 22. How do you manage EC2 throughout its lifecycle?
 
 “I use standardized provisioning, configuration, monitoring, patching, and retirement. At provisioning, I check the approved AMI, instance size, subnet, security groups, role, encrypted storage, and ownership tags. During operation, I monitor health and compliance. Before retirement, I confirm dependencies, owner approval, retention, and recovery needs. I review associated volumes and Elastic IPs so decommissioning does not leave unnecessary costs or remove required data.”
+
+[⬆ Go to top](#top)
 
 ### 23. How would you secure an application's S3 bucket?
 
 “I block public access unless explicitly approved and use an application role scoped to required actions and prefixes. I enforce HTTPS, configure encryption appropriate to the data, and verify KMS access if using a customer-managed key. I review versioning, lifecycle, recovery, and audit requirements. I test permitted actions and confirm unauthorized actions remain denied.”
 
+[⬆ Go to top](#top)
+
 ### 24. How do you troubleshoot S3 AccessDenied?
 
 “I identify the actual caller and failed operation, then inspect identity and bucket policies and resource scope. I check explicit denies, boundaries, organizational controls, and endpoint policies. For KMS-encrypted data, I check key access. I distinguish bucket actions from object actions and repeat the exact failed request using the same role and network path after correcting permissions.”
+
+[⬆ Go to top](#top)
 
 ### 25. How do you expand EBS safely?
 
 “I confirm whether the issue is capacity or performance, identify the volume and filesystem, and arrange appropriate backup and change approval. I modify the EBS volume, monitor progress, and extend the partition if necessary and filesystem with OS-specific tools. Increasing the AWS volume alone does not expand usable filesystem space. I verify capacity and application writes afterward.”
 
+[⬆ Go to top](#top)
+
 ### 26. Auto Scaling is not adding instances. What do you check?
 
 “I inspect desired and maximum capacity, scaling policies, triggering metrics, and Activity history. I review the launch template, AMI, instance type, subnet addresses, quotas, roles, KMS access, lifecycle hooks, and bootstrap logs. After correction, I verify instances launch, initialize, become healthy targets, and serve traffic.”
+
+[⬆ Go to top](#top)
 
 ### 27. How do you design reliable Auto Scaling?
 
 “I choose a metric aligned with workload demand and maintain minimum capacity across Availability Zones. I configure startup and warmup behavior around the application and verify automated bootstrap. Scale-in accounts for draining and shutdown requirements. I test scaling under load and check that additional application instances do not overload shared dependencies such as RDS.”
 
+[⬆ Go to top](#top)
+
 ### 28. How do you support RDS operationally?
 
 “I monitor availability, CPU, memory, storage, connections, and latency, and review events, backups, and maintenance. I separate connectivity, authentication, and query-performance issues. I collaborate with DBAs or developers on slow queries, locks, and connection pools. Changes use approved procedures, and validation includes application transactions and database metrics. I also test recovery.”
+
+[⬆ Go to top](#top)
 
 ### 29. How do you troubleshoot VPN or hybrid connectivity?
 
 “I identify the scope and check tunnel status, routing, and BGP where applicable. I trace both directions across the on-premises network, VPN, gateway or Transit Gateway, and VPC. I inspect filtering and DNS separately and use port-specific tests because ping is not sufficient. I coordinate with networking and verify the affected application transaction.”
 
+[⬆ Go to top](#top)
+
 ### 30. What happens when a client connects to an HTTPS application?
 
 “The client resolves DNS, establishes TCP connectivity, negotiates TLS, and sends an HTTP request. An AWS load balancer may forward that request to a healthy target. I troubleshoot in that order: DNS, network, TLS, HTTP, then dependencies. I test from the client's actual network because internal tests may follow a different path.”
+
+[⬆ Go to top](#top)
 
 ### 31. How do you troubleshoot Windows EC2?
 
 “I start with EC2 status checks and monitoring, then use approved administrative access. I inspect services, Event Viewer, resource usage, disk capacity, and listening ports. I correlate events with changes and test DNS and destination ports. I make a targeted correction and verify service status and an application transaction rather than rebooting immediately.”
 
+[⬆ Go to top](#top)
+
 ### 32. What if EC2 does not appear in Systems Manager?
 
 “I confirm account, Region, instance state, agent installation and service status, instance-profile permissions, and HTTPS connectivity to the required endpoints. I inspect DNS, proxies, endpoint policies, and agent logs. After correcting the cause, I confirm managed-node visibility and test a permitted session or command.”
+
+[⬆ Go to top](#top)
 
 ### 33. How do you maintain consistent fleet configuration?
 
 “I define baselines for agents, services, and security settings. I apply them with State Manager or configuration-management tooling using tags and environment-specific settings. I test changes, review compliance and failures, and remediate drift through the managed source. I update the AMI or bootstrap so newly launched instances start with the right configuration.”
 
+[⬆ Go to top](#top)
+
 ### 34. How do you handle patch failures?
 
 “I inspect execution output and package-manager logs for repository access, space, dependencies, permissions, or reboot problems. I assess impact and pause the wider rollout if the canary fails. I correct the cause, rerun the affected batch, and validate OS and application health. Exceptions have owners and remediation dates rather than being reported as compliant.”
+
+[⬆ Go to top](#top)
 
 ### 35. How do you handle infrastructure drift?
 
 “I compare deployment state with code using Terraform plans or supported CloudFormation drift detection. I determine whether the change was approved, unauthorized, or external. Approved changes are incorporated into code after review; unintended changes are corrected after impact assessment. I do not automatically apply a plan that could replace production resources. I then address the access or process gap.”
 
+[⬆ Go to top](#top)
+
 ### 36. How do you make scripts safe for production?
 
 “I use explicit account, Region, and resource selection, structured logging, pagination, error handling, bounded retries, and dry-run support. Destructive operations need clear criteria, exclusions, and approval. I use roles, avoid logging secrets, design idempotent behavior where possible, and start with a controlled batch. I validate actual resource state and partial failures.”
+
+[⬆ Go to top](#top)
 
 ### 37. How do you verify backups are usable?
 
 “I check coverage, job status, retention, and encryption, then perform isolated restore tests. I validate restored volumes or databases with the relevant owner. I record recovery time, recovery point, dependencies, and problems. A completed backup confirms creation; a tested restore provides evidence that recovery works.”
 
+[⬆ Go to top](#top)
+
 ### 38. How do you conduct a DR exercise?
 
 “I agree on scenario, scope, objectives, owners, and success criteria. I follow the runbook, restore or activate infrastructure and data, validate dependencies and access, and test business transactions. I compare actual recovery time and data loss with objectives and test return to normal where applicable. Gaps become owned corrective actions, and application owners confirm functionality.”
+
+[⬆ Go to top](#top)
 
 ### 39. How do you improve availability without unnecessary cost?
 
 “I identify failure points and business requirements, then evaluate multi-AZ application capacity, load balancing, automated replacement, database availability, and recovery procedures. I compare costs with outage risk and check application support for redundancy, including session and file storage. I validate failure behavior through controlled tests.”
 
+[⬆ Go to top](#top)
+
 ### 40. What should a runbook contain?
 
 “A runbook includes symptoms, scope, prerequisites, access, diagnostics, expected results, recovery actions, rollback criteria, validation, and escalation. Commands have clear placeholders and decision points. It has an owner and review date. I test it with an engineer who did not write it and update it after incidents and platform changes.”
+
+[⬆ Go to top](#top)
 
 ### 41. How do you work with application, infrastructure, security, and development teams?
 
 “I establish a shared problem and assign investigation based on evidence. Application and development teams inspect behavior and releases; infrastructure teams investigate hosts, storage, and networks; security assesses access or security events. I maintain a common timeline, owners, and next steps. We jointly verify recovery and assign prevention actions to the appropriate owners.”
 
+[⬆ Go to top](#top)
+
 ### 42. What if teams disagree about whether the fault is application or infrastructure?
 
 “I replace assumptions with tests. I compare local application responses, private-network responses, and requests through the load balancer, then correlate them with metrics, logs, dependencies, and changes. Local failures with healthy host resources guide application investigation; successful local tests with remote failures guide network-path investigation. We document evidence and validate the correction together.”
+
+[⬆ Go to top](#top)
 
 ### 43. How do you handle urgent requests for broader production access?
 
 “I clarify the task, scope, and urgency and seek a narrowly scoped role or approved procedure. If elevation is necessary, I follow approval requirements, limit duration where supported, and retain audit evidence. I remove temporary access afterward and consider whether a permanent operational capability is needed. I understand logging limitations, including the lack of session-content logging for Session Manager SSH and port forwarding.”
 
+[⬆ Go to top](#top)
+
 ### 44. How do you communicate incidents to business stakeholders?
 
 “I lead with the affected service, user impact, and scope, then explain current actions, workarounds, and the next update time. I separate facts from hypotheses and do not promise unsupported recovery times. After recovery, I summarize the cause, validation, and preventive actions in plain language. Technical teams receive detailed evidence separately.”
 
+[⬆ Go to top](#top)
+
 ### 45. What would you focus on in your first 30 days?
 
 “I learn account structure, critical applications, procedures, access, and escalation. I review dashboards, alerts, backups, patch compliance, maintenance, and runbooks, and shadow incidents. I then agree on a few practical improvements, such as a missing alarm, untested recovery step, or manual task. My priority is understanding the environment enough to support it safely and independently.”
+
+[⬆ Go to top](#top)
 
 ## Hands-on commands and interpretation
 
@@ -357,6 +527,8 @@ sudo journalctl -u sshd --since "30 minutes ago"
 | Permission denied | Username, key, account and authentication logs |
 
 Authentication logs may be in `/var/log/secure`, `/var/log/auth.log`, or the journal depending on OS configuration.
+
+[⬆ Go to top](#top)
 
 ### Command set B — CPU, memory, disk, and application health
 
@@ -393,6 +565,8 @@ fields @timestamp, @logStream, @message
 | limit 100
 ```
 
+[⬆ Go to top](#top)
+
 ### Command set C — RDS connectivity
 
 ```bash
@@ -401,6 +575,8 @@ nc -vz -w 5 <rds-endpoint> 3306   # MySQL example
 ```
 
 A successful TCP test proves a connection can be established, not that database authentication or queries succeed. Use the appropriate database client or application transaction for final validation.
+
+[⬆ Go to top](#top)
 
 ### Command set D — Load-balancer targets
 
@@ -414,6 +590,8 @@ curl -v --max-time 5 http://<target-private-ip>:8080/health
 
 A listener bound only to `127.0.0.1` can pass local checks while being unreachable to the load balancer. Verify that the health endpoint does not unexpectedly require authentication or redirect.
 
+[⬆ Go to top](#top)
+
 ### Command set E — DNS, routes, and TLS
 
 ```bash
@@ -425,6 +603,8 @@ nc -vz -w 5 <destination> <port>
 curl -v --max-time 10 https://<hostname>/health
 openssl s_client -connect <hostname>:443 -servername <hostname>
 ```
+
+[⬆ Go to top](#top)
 
 ### Command set F — Windows administration
 
@@ -441,6 +621,8 @@ Test-NetConnection <hostname> -Port 443
 
 Also inspect Application events and the application's own logs as appropriate.
 
+[⬆ Go to top](#top)
+
 ### Command set G — AWS identity, SSM, and Auto Scaling
 
 ```bash
@@ -455,6 +637,8 @@ sudo tail -n 100 /var/log/amazon/ssm/amazon-ssm-agent.log
 ```
 
 Agent service and log locations can vary by installation method. CLI use requires appropriate credentials, Region configuration, and tools; CLI Session Manager sessions also require the Session Manager plugin.
+
+[⬆ Go to top](#top)
 
 ## AWS console step-by-step walkthroughs
 
@@ -472,6 +656,8 @@ Agent service and log locations can vary by installation method. CLI use require
 10. Inspect service status, firewall, authentication logs, and disk capacity.
 
 **Verify:** Reconnect using the original approved method and test application health. Use approved Windows access and Event Viewer where applicable.
+
+[⬆ Go to top](#top)
 
 ### Walkthrough 2 — CloudWatch alarms and slowness (Questions 5, 6, 18)
 
@@ -502,6 +688,8 @@ Agent service and log locations can vary by installation method. CLI use require
 6. Name and create the alarm.
 7. Test notifications and the operational response process.
 
+[⬆ Go to top](#top)
+
 ### Walkthrough 3 — EC2 to RDS (Question 4)
 
 1. Open **RDS → Databases → select database**.
@@ -516,6 +704,8 @@ Agent service and log locations can vary by installation method. CLI use require
 
 **Verify:** Complete a real application database transaction.
 
+[⬆ Go to top](#top)
+
 ### Walkthrough 4 — RDS performance and availability (Question 28)
 
 1. Open **RDS → Databases → select database**.
@@ -527,6 +717,8 @@ Agent service and log locations can vary by installation method. CLI use require
 7. Review capacity or parameter changes through the change process.
 
 **Verify:** Business transactions, response times, and connection counts recover.
+
+[⬆ Go to top](#top)
 
 ### Walkthrough 5 — Unhealthy load-balancer target (Question 10)
 
@@ -542,6 +734,8 @@ Agent service and log locations can vary by installation method. CLI use require
 
 **Verify:** Healthy targets, successful requests through the load balancer, and normal errors/latency.
 
+[⬆ Go to top](#top)
+
 ### Walkthrough 6 — Auto Scaling launch failures (Questions 26, 27)
 
 1. Open **EC2 → Auto Scaling Groups → select group**.
@@ -556,6 +750,8 @@ Agent service and log locations can vary by installation method. CLI use require
 
 **Verify:** Instances launch, reach **InService**, pass target checks, and serve requests.
 
+[⬆ Go to top](#top)
+
 ### Walkthrough 7 — S3 security and AccessDenied (Questions 23, 24)
 
 1. Open **S3 → Buckets → select bucket → Permissions**.
@@ -568,6 +764,8 @@ Agent service and log locations can vary by installation method. CLI use require
 8. Review organizational controls and explicit denies.
 
 **Verify:** Repeat the failed action with the real application role and original network path, and test that disallowed actions remain denied.
+
+[⬆ Go to top](#top)
 
 ### Walkthrough 8 — EBS expansion (Question 25)
 
@@ -586,6 +784,8 @@ df -hT
 
 **Verify:** Increased filesystem capacity and successful application writes. Do not assume that modifying the AWS volume grows the filesystem.
 
+[⬆ Go to top](#top)
+
 ### Walkthrough 9 — IAM least privilege and temporary access (Questions 8, 43)
 
 1. Open **IAM → Roles → select role**.
@@ -599,6 +799,8 @@ df -hT
 
 **Verify:** Required work succeeds and unrelated access remains denied. Event history is not a complete data-access audit; configure data events where needed.
 
+[⬆ Go to top](#top)
+
 ### Walkthrough 10 — Secure remote administration (Questions 13, 32, 43)
 
 1. Open **Systems Manager → Session Manager → Start session**.
@@ -608,6 +810,8 @@ df -hT
 5. If unavailable, inspect agent, role, DNS, and endpoint connectivity.
 
 **Verify:** Approved access works and configured audit records are retained. Standard session-content logging does not capture SSH or port-forwarding sessions.
+
+[⬆ Go to top](#top)
 
 ### Walkthrough 11 — Patch Manager (Questions 16, 34)
 
@@ -621,6 +825,8 @@ df -hT
 8. Review post-patching compliance.
 
 **Verify:** Patch status, reboots, services, target health, and business transactions. Coordinate traffic draining separately; Patch now does not automatically implement application-aware draining. A no-reboot choice does not guarantee patches are fully effective without a later reboot.
+
+[⬆ Go to top](#top)
 
 ### Walkthrough 12 — Inventory and State Manager (Question 33)
 
@@ -642,6 +848,8 @@ df -hT
 
 **Verify:** Inspect actual configuration on representative nodes, not only association status.
 
+[⬆ Go to top](#top)
+
 ### Walkthrough 13 — Route 53 (Question 14)
 
 1. Open **Route 53 → Hosted zones → select zone**.
@@ -654,6 +862,8 @@ df -hT
 8. Test resolution from the affected network and consider TTL/cache behavior.
 
 **Verify:** Correct resolution and successful application access from the original client.
+
+[⬆ Go to top](#top)
 
 ### Walkthrough 14 — Restore and DR validation (Questions 17, 37, 38)
 
@@ -671,6 +881,8 @@ df -hT
 
 **Verify:** Application/database owners confirm functionality and data; record gaps and corrective actions.
 
+[⬆ Go to top](#top)
+
 ### Walkthrough 15 — CloudFormation changes and drift (Questions 11, 35)
 
 1. Open **CloudFormation → Stacks → select stack**.
@@ -683,6 +895,8 @@ df -hT
 
 **Verify:** Resource state and application behavior. Terraform normally runs through CLI/CI; use AWS consoles to inspect the resulting resources.
 
+[⬆ Go to top](#top)
+
 ### Walkthrough 16 — Cost and performance (Questions 19, 39)
 
 1. Open **Billing and Cost Management → Cost Explorer**.
@@ -694,6 +908,8 @@ df -hT
 7. Agree with application owners and implement an approved change.
 
 **Verify:** Compare costs over a suitable period while checking performance and availability. Include peak and seasonal demand in rightsizing decisions.
+
+[⬆ Go to top](#top)
 
 ## Automation examples
 
@@ -718,6 +934,8 @@ terraform apply tfplan
 
 **Rollback:** Reverting Git does not automatically undo an infrastructure change. Review a new plan against current state. Resource replacement or data changes may require restoration and application coordination. Do not assume reverting state is a rollback method.
 
+[⬆ Go to top](#top)
+
 ### Python — EC2/EBS operational report
 
 **Sample or proposed design, unless already implemented:**
@@ -734,17 +952,23 @@ terraform apply tfplan
 
 **Discuss:** Boto3 clients, pagination, retries, least-privilege role, dry run, logging, nonproduction testing, and why low CPU alone is insufficient evidence for termination.
 
+[⬆ Go to top](#top)
+
 ### Bash and PowerShell operational examples
 
 - Bash: collect service, disk, and memory diagnostics into a timestamped report.
 - PowerShell: collect Windows service status, event logs, and disk capacity.
 - Use controlled targets, avoid secrets in output, preserve exit/error information, and validate results.
 
+[⬆ Go to top](#top)
+
 ## Production support and communication
 
 ### Prioritization and escalation
 
 Use the organization's severity model. Critical service outage, widespread business disruption, data-integrity risk, and security incidents require appropriate urgency. Engage application, networking, database, infrastructure, security, and AWS Support based on evidence.
+
+[⬆ Go to top](#top)
 
 ### Change and rollback preparation
 
@@ -760,13 +984,19 @@ Before a production change, document:
 
 Emergency work follows the established emergency-change process; urgency does not remove the need for traceability.
 
+[⬆ Go to top](#top)
+
 ### Incident update example
 
 “Users are experiencing elevated errors on the application. We have isolated the issue to two unhealthy targets following the latest release. The application team is validating rollback, and we will provide the next update in 15 minutes.”
 
+[⬆ Go to top](#top)
+
 ### Root-cause analysis
 
 Record impact, timeline, detection, trigger, root cause, contributing factors, restoration actions, and validation evidence. Corrective actions need owners and deadlines. Include monitoring, automation, testing, and documentation improvements. Avoid assigning blame in place of identifying system and process weaknesses.
+
+[⬆ Go to top](#top)
 
 ### Runbook outline
 
@@ -779,6 +1009,8 @@ Record impact, timeline, detection, trigger, root cause, contributing factors, r
 7. Business and technical validation.
 8. Evidence and ticket closure requirements.
 9. Owner, review date, and revision history.
+
+[⬆ Go to top](#top)
 
 ## Security review
 
@@ -813,6 +1045,8 @@ Use current facts; do not assume location or status:
 
 The recruiter lists USC/GC as a requirement. If your authorization differs, clarify eligibility with the recruiter rather than representing it as citizenship or permanent residency.
 
+[⬆ Go to top](#top)
+
 ### Questions to ask the interviewer
 
 - Which applications are most critical, and what are their recovery objectives?
@@ -822,6 +1056,8 @@ The recruiter lists USC/GC as a requirement. If your authorization differs, clar
 - Which operational improvements would you want this engineer to deliver first?
 
 **Closing interview sentence:** “I document the evidence, make the approved correction, and verify the business service before closing the incident.”
+
+[⬆ Go to top](#top)
 
 ## Official AWS references
 
