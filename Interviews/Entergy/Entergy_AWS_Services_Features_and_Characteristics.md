@@ -1,7 +1,31 @@
+<a id="top"></a>
+
 # Entergy — AWS Services: Features and Characteristics
 
 AWS Cloud Operations Engineer interview reference  
 Updated: October 13, 2026
+
+## Index
+
+- [Service overview](#service-overview)
+- [1. Amazon EC2 — Elastic Compute Cloud](#1-amazon-ec2--elastic-compute-cloud)
+- [2. Amazon S3 — Simple Storage Service](#2-amazon-s3--simple-storage-service)
+- [3. Amazon EBS — Elastic Block Store](#3-amazon-ebs--elastic-block-store)
+- [4. Amazon VPC — Virtual Private Cloud](#4-amazon-vpc--virtual-private-cloud)
+  - [Networking components to distinguish](#networking-components-to-distinguish)
+- [5. AWS IAM — Identity and Access Management](#5-aws-iam--identity-and-access-management)
+- [6. Amazon RDS — Relational Database Service](#6-amazon-rds--relational-database-service)
+- [7. Amazon Route 53](#7-amazon-route-53)
+- [8. Elastic Load Balancing — ELB](#8-elastic-load-balancing--elb)
+- [9. Amazon EC2 Auto Scaling](#9-amazon-ec2-auto-scaling)
+- [10. Amazon CloudWatch](#10-amazon-cloudwatch)
+  - [Useful operations metrics](#useful-operations-metrics)
+- [11. AWS Systems Manager — SSM](#11-aws-systems-manager--ssm)
+- [12. AWS CloudFormation](#12-aws-cloudformation)
+- [Supporting Services and Tools](#supporting-services-and-tools)
+- [Key Comparisons to Rehearse](#key-comparisons-to-rehearse)
+- [Interview Practice Framework](#interview-practice-framework)
+- [Official References](#official-references)
 
 ## Service overview
 
@@ -24,6 +48,8 @@ The job description names 12 AWS services. Know each service's purpose, major fe
 
 Console labels and feature availability can vary. Confirm account and Region before inspecting resources. The console paths below are navigation starting points.
 
+[⬆ Go to top](#top)
+
 ## 1. Amazon EC2 — Elastic Compute Cloud
 
 **Definition:** Provides virtual servers called instances.
@@ -43,6 +69,8 @@ Console labels and feature availability can vary. Confirm account and Region bef
 **Console:** EC2 → Instances → select instance → Status and alarms / Monitoring / Networking / Security.
 
 **Interview distinction:** AWS manages the underlying infrastructure; you normally manage the guest OS, installed software, configuration, and application.
+
+[⬆ Go to top](#top)
 
 ## 2. Amazon S3 — Simple Storage Service
 
@@ -65,6 +93,8 @@ Console labels and feature availability can vary. Confirm account and Region bef
 
 **Interview distinction:** A private EC2 instance can reach S3 through NAT or an S3 gateway endpoint. The bucket does not need public access.
 
+[⬆ Go to top](#top)
+
 ## 3. Amazon EBS — Elastic Block Store
 
 **Definition:** Persistent block storage attached to EC2, typically used for operating systems and application data.
@@ -84,6 +114,8 @@ Console labels and feature availability can vary. Confirm account and Region bef
 **Console:** EC2 → Volumes / Snapshots.
 
 **Interview distinction:** EBS is block storage; S3 is object storage. They serve different access patterns.
+
+[⬆ Go to top](#top)
 
 ## 4. Amazon VPC — Virtual Private Cloud
 
@@ -116,6 +148,8 @@ Console labels and feature availability can vary. Confirm account and Region bef
 | Public NAT Gateway | Enables outbound IPv4 access from private resources through its public-subnet route to an Internet Gateway |
 | S3 gateway endpoint | Routes matching regional S3 traffic through an endpoint without NAT or an Internet Gateway |
 
+[⬆ Go to top](#top)
+
 ## 5. AWS IAM — Identity and Access Management
 
 **Definition:** Controls who can perform which actions on AWS resources.
@@ -137,6 +171,8 @@ Console labels and feature availability can vary. Confirm account and Region bef
 
 **Interview distinction:** Trust and permissions policies answer different questions: who can assume the role, and what the role can do.
 
+[⬆ Go to top](#top)
+
 ## 6. Amazon RDS — Relational Database Service
 
 **Definition:** Simplifies provisioning and operation of relational databases.
@@ -157,6 +193,8 @@ Console labels and feature availability can vary. Confirm account and Region bef
 
 **Interview distinction:** Multi-AZ does not replace historical backups. Query tuning and application connection behavior still require customer attention. Do not assume every Multi-AZ standby is readable: Multi-AZ DB instances and Multi-AZ DB clusters differ.
 
+[⬆ Go to top](#top)
+
 ## 7. Amazon Route 53
 
 **Definition:** Provides DNS, domain-registration capabilities, health checks, and DNS-based routing.
@@ -176,6 +214,8 @@ Console labels and feature availability can vary. Confirm account and Region bef
 **Console:** Route 53 → Hosted zones / Health checks / Resolver.
 
 **Interview distinction:** Route 53 answers DNS queries; it does not proxy each application request like a load balancer.
+
+[⬆ Go to top](#top)
 
 ## 8. Elastic Load Balancing — ELB
 
@@ -202,6 +242,8 @@ Console labels and feature availability can vary. Confirm account and Region bef
 
 **Interview distinction:** Choose based on protocols, routing, and connectivity requirements rather than describing one type as universally faster.
 
+[⬆ Go to top](#top)
+
 ## 9. Amazon EC2 Auto Scaling
 
 **Definition:** Maintains an EC2 fleet and adjusts capacity.
@@ -222,6 +264,8 @@ Console labels and feature availability can vary. Confirm account and Region bef
 **Console:** EC2 → Auto Scaling Groups → Activity / Automatic scaling / Instance management.
 
 **Interview distinction:** Auto Scaling adjusts capacity; load balancing distributes traffic. They commonly work together. Configure the intended health-check integration rather than assuming application health is checked automatically.
+
+[⬆ Go to top](#top)
 
 ## 10. Amazon CloudWatch
 
@@ -253,6 +297,8 @@ Console labels and feature availability can vary. Confirm account and Region bef
 | ALB | TargetResponseTime, HealthyHostCount, HTTPCode_Target_5XX_Count |
 | RDS | DatabaseConnections, FreeableMemory, FreeStorageSpace, CPUUtilization |
 
+[⬆ Go to top](#top)
+
 ## 11. AWS Systems Manager — SSM
 
 **Definition:** Provides administration and automation for managed nodes and operational workflows.
@@ -282,6 +328,8 @@ Console labels and feature availability can vary. Confirm account and Region bef
 
 **Interview distinction:** Session Manager does not require inbound SSH, but it needs its agent, permissions, and connectivity prerequisites. Standard session-content logging does not capture SSH or port-forwarding content.
 
+[⬆ Go to top](#top)
+
 ## 12. AWS CloudFormation
 
 **Definition:** Provisions and manages AWS resources from declarative templates.
@@ -303,6 +351,8 @@ Console labels and feature availability can vary. Confirm account and Region bef
 
 **Interview distinction:** Template validation does not prove deployment will succeed. Check permissions, quotas, dependencies, replacements, and retention policies. Rollback is not a substitute for a database backup.
 
+[⬆ Go to top](#top)
+
 ## Supporting Services and Tools
 
 The role also refers to encryption, backups, costs, and automation. These supporting capabilities are relevant, although they are not all explicitly named services.
@@ -319,6 +369,8 @@ The role also refers to encryption, backups, costs, and automation. These suppor
 
 AWS Backup copy and restore features vary by resource type and configuration. A successful backup job does not prove successful application recovery; perform restore and business-validation tests.
 
+[⬆ Go to top](#top)
+
 ## Key Comparisons to Rehearse
 
 | Comparison | Main distinction |
@@ -334,6 +386,8 @@ AWS Backup copy and restore features vary by resource type and configuration. A 
 | Multi-AZ vs backup | Availability through infrastructure failures vs historical recovery |
 | NAT vs S3 gateway endpoint | General outbound connectivity vs matching regional S3 routing without NAT |
 
+[⬆ Go to top](#top)
+
 ## Interview Practice Framework
 
 For each service, answer:
@@ -344,6 +398,8 @@ For each service, answer:
 4. Which console views, metrics, logs, or commands do I inspect?
 5. What correction is safe and approved?
 6. How do I verify technical and business recovery?
+
+[⬆ Go to top](#top)
 
 ## Official References
 
@@ -367,3 +423,5 @@ For each service, answer:
 - [CloudFormation stacks](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacks.html)
 - [CloudFormation documentation](https://aws.amazon.com/documentation-overview/cloudformation/)
 - [AWS Backup overview](https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html)
+
+[⬆ Go to top](#top)
