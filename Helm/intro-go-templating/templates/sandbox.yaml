@@ -1,0 +1,6 @@
+# This is test commet
+{{- /* this is just a comment */}}
+test: {{ .Values.test }}
+labels:
+  app: {{ .Release.Name }}
+  chart: {{ .Chart.Name }}

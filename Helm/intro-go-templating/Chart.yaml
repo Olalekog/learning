@@ -1,0 +1,6 @@
+apiVersion: v2
+name: intro-go-templating
+description: A simple Helm chart for learning Go templating
+type: application
+version: 0.1.0
+appVersion: 1.0.0
