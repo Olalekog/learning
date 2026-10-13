@@ -3,11 +3,11 @@
 # Entergy — AWS Cloud Operations Engineer Interview Guide
 
 Prepared for Olalekan Gabriel Ogundare
-Updated: October 12, 2026
+Updated: October 13, 2026
 
 ## How to use this guide
 
-This guide combines 45 interview questions and answers, practical troubleshooting commands, AWS console walkthroughs, automation examples, security preparation, and production-support procedures.
+This guide combines 61 interview questions and answers, practical troubleshooting commands, AWS console walkthroughs, automation examples, security preparation, and production-support procedures.
 
 Aim for approximately 45–60 seconds for an initial answer, then use the commands and console steps when asked for details. Use this sequence: **impact → evidence → diagnosis → safe correction → verification**.
 
@@ -65,6 +65,23 @@ The introduction reflects your stated background. Sample automation and incident
     - [43. How do you handle urgent requests for broader production access?](#43-how-do-you-handle-urgent-requests-for-broader-production-access)
     - [44. How do you communicate incidents to business stakeholders?](#44-how-do-you-communicate-incidents-to-business-stakeholders)
     - [45. What would you focus on in your first 30 days?](#45-what-would-you-focus-on-in-your-first-30-days)
+  - [Questions 46–61: Backup and disaster recovery](#questions-4661-backup-and-disaster-recovery)
+    - [46. Tell me about your experience with backup and disaster recovery.](#46-tell-me-about-your-experience-with-backup-and-disaster-recovery)
+    - [47. What is the difference between backup, high availability, and disaster recovery?](#47-what-is-the-difference-between-backup-high-availability-and-disaster-recovery)
+    - [48. How do you define RTO and RPO?](#48-how-do-you-define-rto-and-rpo)
+    - [49. How do you choose a disaster-recovery strategy?](#49-how-do-you-choose-a-disaster-recovery-strategy)
+    - [50. How would you configure an AWS Backup plan?](#50-how-would-you-configure-an-aws-backup-plan)
+    - [51. Walk me through a recovery drill for an EC2 application.](#51-walk-me-through-a-recovery-drill-for-an-ec2-application)
+    - [52. How do you validate an EBS backup?](#52-how-do-you-validate-an-ebs-backup)
+    - [53. How do you recover RDS after accidental data deletion?](#53-how-do-you-recover-rds-after-accidental-data-deletion)
+    - [54. What exactly do you test during a recovery drill?](#54-what-exactly-do-you-test-during-a-recovery-drill)
+    - [55. How do you prove the drill met RTO and RPO?](#55-how-do-you-prove-the-drill-met-rto-and-rpo)
+    - [56. What evidence do you retain for audit and sign-off?](#56-what-evidence-do-you-retain-for-audit-and-sign-off)
+    - [57. What if the application owner signs off without providing test evidence?](#57-what-if-the-application-owner-signs-off-without-providing-test-evidence)
+    - [58. Tell me about a recovery drill that exposed a problem.](#58-tell-me-about-a-recovery-drill-that-exposed-a-problem)
+    - [59. How do you automate recovery testing?](#59-how-do-you-automate-recovery-testing)
+    - [60. How do you conduct a regional failover and failback?](#60-how-do-you-conduct-a-regional-failover-and-failback)
+    - [61. How often should recovery drills run?](#61-how-often-should-recovery-drills-run)
   - [Hands-on commands and interpretation](#hands-on-commands-and-interpretation)
     - [Command set A — EC2 access and SSH](#command-set-a--ec2-access-and-ssh)
     - [Command set B — CPU, memory, disk, and application health](#command-set-b--cpu-memory-disk-and-application-health)
@@ -535,6 +552,238 @@ Rightsizing considers peak demand, memory, network throughput, and resilience re
 ### 45. What would you focus on in your first 30 days?
 
 “I learn account structure, critical applications, procedures, access, and escalation. I review dashboards, alerts, backups, patch compliance, maintenance, and runbooks, and shadow incidents. I then agree on a few practical improvements, such as a missing alarm, untested recovery step, or manual task. My priority is understanding the environment enough to support it safely and independently.”
+
+[⬆ Go to top](#top)
+
+## Questions 46–61: Backup and disaster recovery
+
+This section goes deeper on backup, restore validation, and disaster recovery. Related material elsewhere in the guide: [Question 17](#17-how-do-you-configure-backups-and-disaster-recovery), [Question 37](#37-how-do-you-verify-backups-are-usable), [Question 38](#38-how-do-you-conduct-a-dr-exercise), and [Walkthrough 14 — Restore and DR validation](#walkthrough-14--restore-and-dr-validation-questions-17-37-38).
+
+### 46. Tell me about your experience with backup and disaster recovery.
+
+“At Tech Consulting, I designed backup and disaster-recovery strategies for client environments using AWS Backup and cross-Region replication, alongside Azure recovery services.
+
+I started with business requirements: how much data loss was acceptable and how quickly each service needed to recover. Those requirements guided backup frequency, retention, recovery location, and infrastructure readiness.
+
+I validated the strategy through recovery drills rather than assuming a successful backup meant successful recovery. That involved restoring resources, checking networking and access, and working with application owners to validate functionality. Findings were used to improve the recovery procedure.”
+
+[⬆ Go to top](#top)
+
+### 47. What is the difference between backup, high availability, and disaster recovery?
+
+| Concept | Purpose | Example |
+|---|---|---|
+| Backup | Recover historical data after loss or corruption | Restore an EBS snapshot or RDS recovery point |
+| High availability | Maintain service through component failures | Application instances across AZs; RDS Multi-AZ |
+| Disaster recovery | Restore the business service after a major disruption | Recover an application in another Region |
+
+“Replication can copy accidental deletion or corruption, so it does not replace historical backups. Similarly, RDS Multi-AZ supports availability within a Region; a regional recovery strategy requires additional planning.”
+
+[⬆ Go to top](#top)
+
+### 48. How do you define RTO and RPO?
+
+“RTO is the target maximum time to restore the service. RPO is the target maximum acceptable data loss measured in time.
+
+For example, an application might require a two-hour RTO and a fifteen-minute RPO. I would design recovery capabilities around those requirements and test whether the complete application can meet them.
+
+I agree on measurement points with the business before testing. Database availability alone does not mean the service has recovered; users must be able to complete the required business transactions.”
+
+[⬆ Go to top](#top)
+
+### 49. How do you choose a disaster-recovery strategy?
+
+“I consider business criticality, recovery objectives, cost, application architecture, and operational complexity.
+
+Backup and restore can suit workloads that tolerate longer recovery. Pilot light maintains core recovery components but requires additional activation. Warm standby keeps a functioning environment at reduced capacity. Active-active serves traffic from multiple locations but introduces greater complexity.
+
+I select the least costly approach that can demonstrably meet the requirements. I validate the choice through drills rather than promising recovery times from the architecture alone.”
+
+**Note:** AWS describes these four recovery strategies in the Well-Architected Framework.
+
+[⬆ Go to top](#top)
+
+### 50. How would you configure an AWS Backup plan?
+
+“I define resource coverage, schedule, retention, encryption, and any cross-account or cross-Region copies. I use tags or explicit resource selection and verify that critical resources are actually included.
+
+I also monitor failed jobs and copy operations and schedule restore tests. A backup policy is only effective if its coverage and recovery capabilities are verified.”
+
+**Console steps:**
+
+1. Open **AWS Backup → Backup plans → Create backup plan**.
+2. Choose a template or build a plan.
+3. Configure the backup rule, schedule, backup window, and retention.
+4. Select the backup vault.
+5. Configure copy rules where supported and required.
+6. Create the plan and assign resources using tags or resource IDs.
+7. Select the appropriate backup role.
+8. Review **Jobs → Backup jobs** and **Copy jobs**.
+
+**Verify:** Confirm expected resources have successful, usable recovery points—not simply that the plan exists.
+
+[⬆ Go to top](#top)
+
+### 51. Walk me through a recovery drill for an EC2 application.
+
+“I define the outage scenario and success criteria first, then restore into an isolated environment.
+
+I recover the instance and data, check security groups, IAM roles, networking, configuration, and dependencies, and validate application functionality. I measure recovery against the agreed objectives.
+
+The application owner runs representative transactions. I retain the results and record any gaps before cleanup and sign-off.”
+
+**Console steps:**
+
+1. Open **AWS Backup → Backup vaults**.
+2. Select the EC2 recovery point and choose **Restore**.
+3. Review the recovery networking, instance settings, and restore role.
+4. Start the restore and monitor **Restore jobs**.
+5. Open the restored instance in **EC2 → Instances**.
+6. Check status, storage, networking, and access.
+7. Connect through the approved administrative method.
+8. Validate services and application dependencies.
+9. Run business tests and record elapsed recovery time.
+
+**Note:** An AWS Backup EC2 restore creates infrastructure resources; application validation remains a separate responsibility.
+
+[⬆ Go to top](#top)
+
+### 52. How do you validate an EBS backup?
+
+“I restore the snapshot into a new volume in the test instance’s Availability Zone and attach it to an isolated instance.
+
+I identify the filesystem before mounting it and follow the appropriate procedures for its type. I validate required files, permissions, and application data. Where available, I compare checksums against a known reference.
+
+I also consider consistency: a filesystem that mounts successfully may still contain an inconsistent application dataset. Stateful workloads may require application-aware backup procedures.”
+
+**Console steps:**
+
+1. Open **EC2 → Snapshots**.
+2. Select the snapshot → **Actions → Create volume from snapshot**.
+3. Choose the test instance’s Availability Zone.
+4. Open **Volumes**, select the new volume, and attach it to the test instance.
+5. Inspect and validate the restored data through approved access.
+
+**Verify:** Required data is readable and usable by the application—not just that the volume attached.
+
+[⬆ Go to top](#top)
+
+### 53. How do you recover RDS after accidental data deletion?
+
+“I identify when the deletion occurred and confirm the available recovery window. I restore to a point before the incident into a new database.
+
+I validate the missing data with the database and application owners and assess valid transactions that occurred after the chosen recovery point. We decide whether to recover selected data or switch the application to the restored database.
+
+I do not redirect production automatically because that could lose newer valid transactions.”
+
+**Console steps:**
+
+1. Open **RDS → Automated backups**.
+2. Select the database → **Restore to point in time**.
+3. Choose a time before the deletion.
+4. Configure the new database, networking, and security.
+5. Monitor restoration and validate data.
+6. Perform an approved data recovery or application cutover.
+
+**Note:** RDS point-in-time recovery creates a new database; it does not rewind the existing one in place.
+
+[⬆ Go to top](#top)
+
+### 54. What exactly do you test during a recovery drill?
+
+“I test the complete dependency chain, not only the restored resource.”
+
+| Layer | Validation |
+|---|---|
+| Infrastructure | Instances, storage, required capacity |
+| Networking | Routes, DNS, load balancing, private connectivity |
+| Security | IAM, KMS, secrets, certificates, access controls |
+| Data | Expected records, consistency, actual recovery point |
+| Application | Startup, login, read/write transactions, dependencies |
+| Operations | Monitoring, alerts, runbook accuracy, escalation |
+| Business | Application-owner acceptance |
+
+“I also prevent the test environment from sending real customer notifications or triggering production integrations.”
+
+[⬆ Go to top](#top)
+
+### 55. How do you prove the drill met RTO and RPO?
+
+“I record the agreed start time, recovery actions, and the time the service passed business validation. That gives the actual recovery duration.
+
+For RPO, I examine the latest valid data recovered—using transaction timestamps, sequence numbers, or another application-specific measure—and compare it with the disruption time.
+
+For example, if the latest valid recovered transaction predates the disruption by twelve minutes, the observed data-loss window is twelve minutes. I compare that result with the target and retain the evidence. Backup-job timestamps alone are not sufficient.”
+
+[⬆ Go to top](#top)
+
+### 56. What evidence do you retain for audit and sign-off?
+
+“I retain the drill scope, approved objectives, recovery-point identifiers, execution timestamps, restore results, test output, and application-owner validation.
+
+Each test records who executed it, what was expected, what happened, and whether it passed. Failed tests create corrective actions with owners and deadlines.
+
+The application owner signs off on functionality and data. Infrastructure confirms technical recovery, and the designated risk or compliance owner provides any required control acceptance. I close the ticket according to the organization’s approval process.”
+
+[⬆ Go to top](#top)
+
+### 57. What if the application owner signs off without providing test evidence?
+
+“I would request the evidence before accepting the drill as validated. That includes the tested transactions, execution time, expected result, actual result, and tester identity.
+
+If evidence is missing, the test remains incomplete and the owner repeats the required validation.
+
+I would improve the sign-off template so approval requires linked test results. That makes it clear whether the application was actually exercised rather than simply confirmed as running.”
+
+[⬆ Go to top](#top)
+
+### 58. Tell me about a recovery drill that exposed a problem.
+
+Sample STAR answer—adapt to an actual drill:
+
+“During a recovery drill, the database restored successfully, but the application could not connect.
+
+My responsibility was to identify the dependency preventing business recovery. I checked DNS, network rules, credentials, and encryption access. We found that the recovery environment’s application role lacked the required access to a dependency.
+
+I coordinated the approved correction, repeated the business tests, and recorded the additional recovery time.
+
+We then added dependency and permission checks to the runbook and infrastructure validation. The drill demonstrated why a successful resource restore is not enough to declare the application recovered.”
+
+[⬆ Go to top](#top)
+
+### 59. How do you automate recovery testing?
+
+“I use AWS Backup restore testing for supported resources and automate validation around the restored environment.
+
+For example, a restore-completion event can trigger an EventBridge workflow that invokes Lambda to check the resource or initiate application tests. I collect results, report validation status, and alert on failures.
+
+I keep resource restoration separate from business acceptance. Automated checks help detect failures regularly, while application owners validate the business scenarios the automation does not cover.”
+
+**Note:** AWS supports restore-testing validation workflows using EventBridge targets such as Lambda.
+
+[⬆ Go to top](#top)
+
+### 60. How do you conduct a regional failover and failback?
+
+“I confirm disaster declaration and approval, then follow the runbook to activate recovery capacity, recover data, validate dependencies, and switch traffic.
+
+I prevent conflicting writes where the application requires a single writer. Before traffic moves, I check security, certificates, DNS, and application readiness.
+
+Failback is a separate planned operation. I establish the authoritative data source, synchronize changes, validate the primary environment, and perform an approved cutover.
+
+I do not assume reversing a DNS record safely returns everything to normal.”
+
+[⬆ Go to top](#top)
+
+### 61. How often should recovery drills run?
+
+“I set frequency according to criticality, policy, and the rate of change. Critical workloads need more frequent validation than low-impact systems.
+
+I also retest after significant changes to infrastructure, databases, IAM, encryption, networking, or application dependencies. Scheduled automated restore tests can complement broader business recovery exercises.
+
+The key is that the evidence remains representative of the current environment. An old successful drill may no longer prove recoverability after major changes.”
+
+**Closing line for this topic:** “I consider recovery validated when the business transaction works, the measured recovery meets the agreed objectives, and the responsible owners have signed off on the evidence.”
 
 [⬆ Go to top](#top)
 
