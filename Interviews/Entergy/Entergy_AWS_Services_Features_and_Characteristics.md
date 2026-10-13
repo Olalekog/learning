@@ -52,7 +52,7 @@ Console labels and feature availability can vary. Confirm account and Region bef
 
 ## 1. Amazon EC2 — Elastic Compute Cloud
 
-**Definition:** Provides virtual servers called instances.
+**Definition:** “Amazon EC2 is AWS's virtual server service. It provides resizable compute capacity as instances, so I can run Linux or Windows workloads without managing the underlying hardware.”
 
 **Features and characteristics:**
 
@@ -74,7 +74,7 @@ Console labels and feature availability can vary. Confirm account and Region bef
 
 ## 2. Amazon S3 — Simple Storage Service
 
-**Definition:** Stores objects in buckets, accessed through APIs rather than as an attached disk.
+**Definition:** “Amazon S3 is AWS's object storage service. It stores data as objects in buckets, and I access it through APIs rather than mounting it as an attached disk.”
 
 **Features and characteristics:**
 
@@ -97,7 +97,7 @@ Console labels and feature availability can vary. Confirm account and Region bef
 
 ## 3. Amazon EBS — Elastic Block Store
 
-**Definition:** Persistent block storage attached to EC2, typically used for operating systems and application data.
+**Definition:** “Amazon EBS is persistent block storage for EC2. Volumes attach to instances like disks and typically hold the operating system and application data.”
 
 **Features and characteristics:**
 
@@ -119,7 +119,7 @@ Console labels and feature availability can vary. Confirm account and Region bef
 
 ## 4. Amazon VPC — Virtual Private Cloud
 
-**Definition:** Provides a logically isolated network for AWS resources.
+**Definition:** “Amazon VPC is a logically isolated network for my AWS resources. It lets me define the IP ranges, subnets, routing, and traffic controls those resources use.”
 
 **Features and characteristics:**
 
@@ -152,7 +152,7 @@ Console labels and feature availability can vary. Confirm account and Region bef
 
 ## 5. AWS IAM — Identity and Access Management
 
-**Definition:** Controls who can perform which actions on AWS resources.
+**Definition:** “AWS IAM is the service that controls access to AWS. It determines who can perform which actions on which resources.”
 
 **Features and characteristics:**
 
@@ -175,7 +175,7 @@ Console labels and feature availability can vary. Confirm account and Region bef
 
 ## 6. Amazon RDS — Relational Database Service
 
-**Definition:** Simplifies provisioning and operation of relational databases.
+**Definition:** “Amazon RDS is a managed relational database service. It simplifies provisioning and operating databases: AWS manages the underlying infrastructure, while I remain responsible for configuration, queries, and data.”
 
 **Features and characteristics:**
 
@@ -197,7 +197,7 @@ Console labels and feature availability can vary. Confirm account and Region bef
 
 ## 7. Amazon Route 53
 
-**Definition:** Provides DNS, domain-registration capabilities, health checks, and DNS-based routing.
+**Definition:** “Amazon Route 53 is AWS's DNS service. It resolves domain names and also provides domain registration, health checks, and DNS-based routing.”
 
 **Features and characteristics:**
 
@@ -219,7 +219,7 @@ Console labels and feature availability can vary. Confirm account and Region bef
 
 ## 8. Elastic Load Balancing — ELB
 
-**Definition:** Distributes traffic among registered targets.
+**Definition:** “Elastic Load Balancing distributes incoming traffic among registered targets, such as EC2 instances. It uses health checks to route requests to healthy targets.”
 
 | Type | Main characteristics | Typical use |
 |---|---|---|
@@ -246,7 +246,7 @@ Console labels and feature availability can vary. Confirm account and Region bef
 
 ## 9. Amazon EC2 Auto Scaling
 
-**Definition:** Maintains an EC2 fleet and adjusts capacity.
+**Definition:** “Amazon EC2 Auto Scaling maintains a fleet of EC2 instances and adjusts its capacity. It replaces unhealthy instances and scales out or in based on demand or a schedule.”
 
 **Features and characteristics:**
 
@@ -269,7 +269,7 @@ Console labels and feature availability can vary. Confirm account and Region bef
 
 ## 10. Amazon CloudWatch
 
-**Definition:** Provides operational observability through metrics, logs, alarms, and dashboards.
+**Definition:** “Amazon CloudWatch is AWS's monitoring and observability service. It collects metrics and logs and provides alarms and dashboards, so I can see how systems are behaving and get alerted to problems.”
 
 **Features and characteristics:**
 
@@ -301,7 +301,7 @@ Console labels and feature availability can vary. Confirm account and Region bef
 
 ## 11. AWS Systems Manager — SSM
 
-**Definition:** Provides administration and automation for managed nodes and operational workflows.
+**Definition:** “AWS Systems Manager is AWS's operations management service. It provides administration and automation for managed nodes, such as remote sessions, patching, and runbooks.”
 
 | Capability | Purpose |
 |---|---|
@@ -332,7 +332,32 @@ Console labels and feature availability can vary. Confirm account and Region bef
 
 ## 12. AWS CloudFormation
 
-**Definition:** Provisions and manages AWS resources from declarative templates.
+**Definition:** “AWS CloudFormation is AWS's infrastructure-as-code service. It provisions and manages AWS resources as stacks from declarative templates.”
+
+**Core components:**
+
+| Component | Purpose |
+|---|---|
+| Template | YAML or JSON file that declares the resources and their configuration |
+| Stack | The set of resources created and managed together from one template |
+| Change set | Preview of what a stack update will add, modify, or replace before it runs |
+| StackSet | Deploys the same template across multiple accounts and Regions |
+| Nested stack | A stack created as a resource of another stack, used to reuse common templates |
+
+**Template sections:**
+
+| Section | Purpose |
+|---|---|
+| AWSTemplateFormatVersion | Identifies the template format version |
+| Description | Text describing the template |
+| Metadata | Additional information about the template |
+| Parameters | Input values supplied at deployment, such as environment or instance type |
+| Rules | Validate parameter values before resources are created or updated |
+| Mappings | Lookup tables of keys and values, such as an AMI ID per Region |
+| Conditions | Control whether resources or properties are created, such as production only |
+| Transform | Applies macros, such as the AWS Serverless Application Model transform |
+| Resources | The AWS resources to create; the only required section |
+| Outputs | Values returned by the stack, which can be exported for other stacks |
 
 **Features and characteristics:**
 
