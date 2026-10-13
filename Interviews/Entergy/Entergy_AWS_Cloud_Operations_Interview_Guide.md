@@ -7,7 +7,7 @@ Updated: October 13, 2026
 
 ## How to use this guide
 
-This guide combines 61 interview questions and answers, practical troubleshooting commands, AWS console walkthroughs, automation examples, security preparation, and production-support procedures.
+This guide combines 62 interview questions and answers, practical troubleshooting commands, AWS console walkthroughs, automation examples, security preparation, and production-support procedures.
 
 Aim for approximately 45–60 seconds for an initial answer, then use the commands and console steps when asked for details. Use this sequence: **impact → evidence → diagnosis → safe correction → verification**.
 
@@ -82,6 +82,14 @@ The introduction reflects your stated background. Sample automation and incident
     - [59. How do you automate recovery testing?](#59-how-do-you-automate-recovery-testing)
     - [60. How do you conduct a regional failover and failback?](#60-how-do-you-conduct-a-regional-failover-and-failback)
     - [61. How often should recovery drills run?](#61-how-often-should-recovery-drills-run)
+  - [Question 62: EC2 recovery when SSH access or private keys are lost](#question-62-ec2-recovery-when-ssh-access-or-private-keys-are-lost)
+    - [62. How would you recover an EC2 instance if the SSH private key was lost?](#62-how-would-you-recover-an-ec2-instance-if-the-ssh-private-key-was-lost)
+    - [Recovery method 1 — Session Manager (no SSH key required)](#recovery-method-1--session-manager-no-ssh-key-required)
+    - [Recovery method 2 — EC2 Instance Connect](#recovery-method-2--ec2-instance-connect)
+    - [Recovery method 3 — AWSSupport-ResetAccess automation](#recovery-method-3--awssupport-resetaccess-automation)
+    - [Recovery method 4 — Manual recovery using the EBS root volume](#recovery-method-4--manual-recovery-using-the-ebs-root-volume)
+    - [Common mistakes in SSH key recovery](#common-mistakes-in-ssh-key-recovery)
+    - [Preventing loss of EC2 access](#preventing-loss-of-ec2-access)
   - [Hands-on commands and interpretation](#hands-on-commands-and-interpretation)
     - [Command set A — EC2 access and SSH](#command-set-a--ec2-access-and-ssh)
     - [Command set B — CPU, memory, disk, and application health](#command-set-b--cpu-memory-disk-and-application-health)
@@ -787,6 +795,214 @@ The key is that the evidence remains representative of the current environment. 
 
 [⬆ Go to top](#top)
 
+## Question 62: EC2 recovery when SSH access or private keys are lost
+
+For a Linux EC2 instance with a lost SSH private key, you can usually recover access without rebuilding the instance. AWS cannot provide another copy of the original private key. Use an alternative access method or install a replacement public key.
+
+Distinguish key loss from network or service failures: a timeout suggests connectivity or host problems, connection refusal suggests a listener or rejection problem, and permission denied suggests authentication problems.
+
+Try these recovery methods in order:
+
+1. [Systems Manager Session Manager](#recovery-method-1--session-manager-no-ssh-key-required).
+2. [EC2 Instance Connect](#recovery-method-2--ec2-instance-connect).
+3. [AWSSupport-ResetAccess automation](#recovery-method-3--awssupport-resetaccess-automation).
+4. [Offline recovery using the EBS root volume](#recovery-method-4--manual-recovery-using-the-ebs-root-volume).
+
+Commands contain placeholders that must be replaced. Use the actual Linux username, filesystem layout, and approved access path.
+
+Related material elsewhere in the guide: [Question 2](#2-how-do-you-troubleshoot-an-ec2-instance-that-is-running-but-inaccessible), [Command set A — EC2 access and SSH](#command-set-a--ec2-access-and-ssh), and [Walkthrough 1 — EC2 inaccessible](#walkthrough-1--ec2-inaccessible-questions-2-22-31).
+
+### 62. How would you recover an EC2 instance if the SSH private key was lost?
+
+**Answer — approximately 60 seconds:**
+
+“If an EC2 SSH key is lost, I first try Session Manager because it does not depend on SSH keys. If unavailable, I check EC2 Instance Connect. Once connected, I install a replacement public key and test it before removing the old key.
+
+If neither method works, I use AWS's ResetAccess automation or an approved offline EBS root-volume recovery. For offline recovery, I stop the instance, attach its root volume to a helper in the same Availability Zone, update the original user's authorized-keys file, and reattach the volume using its original mapping.
+
+I protect the data, account for downtime and Auto Scaling behavior, and verify administrative access and application health before closing the incident.”
+
+[⬆ Go to top](#top)
+
+### Recovery method 1 — Session Manager (no SSH key required)
+
+**Prerequisites:**
+
+- Functioning SSM Agent.
+- Appropriate instance and operator IAM permissions.
+- Connectivity to the required Systems Manager endpoints.
+
+**Console steps:**
+
+1. Open **EC2 → Instances**.
+2. Select the instance and choose **Connect**.
+3. Select **Session Manager → Connect**.
+4. Alternatively, open **Systems Manager → Session Manager → Start session**.
+5. Once connected, install the replacement public key for the intended Linux user.
+
+**Generate a replacement key on your computer:**
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/ec2-recovery
+```
+
+Use a key algorithm allowed by your organization's policy and the target system. This creates:
+
+- `ec2-recovery`: private key; keep it on your computer and protect it.
+- `ec2-recovery.pub`: public key; install it on the instance.
+
+Display the public key:
+
+```bash
+cat ~/.ssh/ec2-recovery.pub
+```
+
+**Install the public key inside the Session Manager session:**
+
+For Amazon Linux, using `ec2-user`:
+
+```bash
+sudo install -d -m 700 -o ec2-user -g ec2-user \
+  /home/ec2-user/.ssh
+
+sudo tee -a /home/ec2-user/.ssh/authorized_keys >/dev/null <<'KEY'
+PASTE_THE_COMPLETE_PUBLIC_KEY_LINE_HERE
+KEY
+
+sudo chown ec2-user:ec2-user \
+  /home/ec2-user/.ssh/authorized_keys
+
+sudo chmod 600 /home/ec2-user/.ssh/authorized_keys
+```
+
+For Ubuntu, replace `ec2-user` with `ubuntu` and use `/home/ubuntu`. Other AMIs may use different users. Confirm the configured SSH authorized-keys location if the host uses a custom configuration.
+
+**Verify from your computer:**
+
+```bash
+ssh -i ~/.ssh/ec2-recovery ec2-user@<instance-address>
+```
+
+Keep the recovery session open until a separate SSH connection succeeds. Remove the obsolete public key afterward; if compromise is suspected, follow the security incident process promptly.
+
+[⬆ Go to top](#top)
+
+### Recovery method 2 — EC2 Instance Connect
+
+EC2 Instance Connect provides temporary SSH authentication without the original private key. It requires supported instance configuration, IAM permissions, and a reachable SSH network path.
+
+**Console steps:**
+
+1. Open **EC2 → Instances → select instance → Connect**.
+2. Select **EC2 Instance Connect**.
+3. Choose an available connection method:
+   - Public-address connection with the required network access.
+   - EC2 Instance Connect Endpoint for an appropriately configured private connection.
+4. Confirm the Linux username.
+5. Choose **Connect**.
+6. Install a persistent replacement public key using the steps in [Recovery method 1](#recovery-method-1--session-manager-no-ssh-key-required).
+
+**Verify:** Open a separate SSH connection using the new private key. Instance Connect does not fix a stopped SSH service or blocked network path, and a console connection option alone does not prove its prerequisites are satisfied.
+
+[⬆ Go to top](#top)
+
+### Recovery method 3 — AWSSupport-ResetAccess automation
+
+This AWS runbook can recover Linux access using an offline SSH-key injection workflow. It is useful when ordinary remote access is unavailable.
+
+**Console steps:**
+
+1. Open **Systems Manager → Automation**.
+2. Choose **Execute automation**.
+3. Search for **AWSSupport-ResetAccess**.
+4. Read the current prerequisites, permissions, parameters, and operational impact.
+5. Enter the instance ID and required execution settings.
+6. Execute during an approved recovery window.
+7. Monitor execution steps.
+8. Follow the runbook's output instructions to obtain the replacement access credentials securely.
+
+**Operational considerations:** The workflow can stop the instance. Review downtime, instance-store data, and Auto Scaling behavior before execution. Ensure the operator and automation role have the documented permissions.
+
+**Verify:** Verify SSH access, EC2 status checks, application services, load-balancer health, and a representative business transaction.
+
+[⬆ Go to top](#top)
+
+### Recovery method 4 — Manual recovery using the EBS root volume
+
+Use this when the previous methods are unavailable and the instance has an EBS-backed root volume.
+
+**Console and recovery steps:**
+
+1. Record the instance ID, Availability Zone, root-volume ID, and original root-device mapping.
+2. Create a snapshot of the root volume as a recovery safeguard. A snapshot of a running workload may be crash-consistent rather than application-consistent.
+3. Arrange the approved window and handle production traffic or Auto Scaling replacement behavior.
+4. Open **EC2 → Instances → Instance state → Stop instance**.
+5. Wait until the instance is stopped.
+6. Open **EC2 → Volumes** and select the root volume.
+7. Choose **Actions → Detach volume**.
+8. Attach it as a secondary volume to a recovery instance in the same Availability Zone.
+9. Connect to the recovery instance and identify the attached disk:
+
+   ```bash
+   lsblk -f
+   ```
+
+10. Mount the appropriate filesystem using the procedure for its filesystem and partition layout. Account for LVM or duplicate filesystem identifiers where applicable.
+11. Add the replacement public key to the original user's authorized-keys file, typically:
+
+    ```text
+    <mount-point>/home/ec2-user/.ssh/authorized_keys
+    ```
+
+12. Preserve the original user's numeric UID/GID ownership. Set `.ssh` permissions to `700` and `authorized_keys` to `600`. Do not assume that the recovery instance's user IDs match those on the recovered volume.
+13. Preserve or repair required SELinux contexts using the appropriate procedure for the target OS.
+14. Unmount the filesystem cleanly and detach the volume from the recovery instance.
+15. Reattach it to the original instance using its original root-device mapping.
+16. Start the original instance and test access.
+
+**Important checks:**
+
+- Do not format the volume.
+- Encrypted volumes require appropriate KMS access.
+- A stop/start can change an automatically assigned public IPv4 address.
+- Stopping an instance can discard instance-store data.
+- Offline editing requires suitable privileges and careful disk identification.
+
+**Verify:** Confirm:
+
+- SSH succeeds with the replacement key.
+- EC2 status checks pass.
+- Application services start correctly.
+- Load-balancer targets are healthy, if applicable.
+- Business transactions succeed.
+- The temporary recovery resources are cleaned up after acceptance.
+
+[⬆ Go to top](#top)
+
+### Common mistakes in SSH key recovery
+
+| Mistake | Correct approach |
+|---|---|
+| Creating a new EC2 key pair and expecting existing SSH access to change | Install its public key in the instance's authorized-keys configuration |
+| Deleting a key-pair entry and assuming it revokes host access | Remove the corresponding public key from the host |
+| Opening SSH broadly to fix an authentication failure | Diagnose credentials separately from network access |
+| Removing the old key before testing the replacement | Test a separate connection first, subject to security incident needs |
+| Attaching a volume to a helper in another Availability Zone | Use a helper in the volume's Availability Zone |
+| Using helper-host usernames to change recovered-file ownership | Preserve the original numeric UID/GID |
+| Assuming SSH recovery means application recovery | Validate services and business transactions too |
+
+[⬆ Go to top](#top)
+
+### Preventing loss of EC2 access
+
+- Enable and validate Systems Manager access where appropriate.
+- Restrict recovery privileges and use audited operational procedures.
+- Protect private keys; do not place them in repositories or ordinary logs.
+- Document key rotation, recovery access, and application validation.
+- Keep tested backups and current recovery runbooks.
+
+[⬆ Go to top](#top)
+
 ## Hands-on commands and interpretation
 
 ### Command set A — EC2 access and SSH
@@ -1369,3 +1585,9 @@ The guide is based on the provided role and official AWS documentation checked d
 - [Systems Manager tools](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-tools.html)
 - [Patch now operations](https://docs.aws.amazon.com/systems-manager/latest/userguide/patch-manager-patch-now-on-demand.html)
 - [AWS Backup restoration](https://docs.aws.amazon.com/aws-backup/latest/devguide/restoring-a-backup.html)
+- [EC2 key pairs](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html)
+- [Add or replace a public key on a Linux instance](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/replacing-key-pair.html)
+- [EC2 Instance Connect prerequisites](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-connect-prerequisites.html)
+- [Connect using EC2 Instance Connect](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-connect-methods.html)
+- [AWSSupport-ResetAccess runbook](https://docs.aws.amazon.com/systems-manager-automation-runbooks/latest/userguide/automation-awssupport-resetaccess.html)
+- [Reset EC2 passwords and SSH keys](https://docs.aws.amazon.com/systems-manager/latest/userguide/automation-ec2reset.html)
