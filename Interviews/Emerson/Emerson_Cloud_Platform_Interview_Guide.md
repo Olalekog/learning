@@ -1,3 +1,5 @@
+<a id="top"></a>
+
 # Emerson Cloud Platform Infrastructure Engineer — Interview Preparation
 
 **Candidate:** Olalekan G. Ogundare  
@@ -6,11 +8,49 @@
 
 This guide combines the elevator pitch, all 38 interview questions and answers, and questions to ask the interviewer. Most answers are designed for approximately 30–60 seconds of spoken delivery. Experience answers use the supplied resume; scenario answers describe a proposed approach. Adjust wording to reflect your exact personal contribution. Formal SAFe experience is not established in the resume.
 
-## Contents
+## Index
 
 - [Elevator pitch](#elevator-pitch)
 - [Core interview questions: 1–20](#core-interview-questions-120)
+  - [1. Tell me about yourself and your cloud infrastructure experience.](#1-tell-me-about-yourself-and-your-cloud-infrastructure-experience)
+  - [2. Why are you interested in this role at Emerson?](#2-why-are-you-interested-in-this-role-at-emerson)
+  - [3. Describe your Kubernetes experience.](#3-describe-your-kubernetes-experience)
+  - [4. How would you design a reliable production Kubernetes platform?](#4-how-would-you-design-a-reliable-production-kubernetes-platform)
+  - [5. How would you upgrade a Kubernetes cluster safely?](#5-how-would-you-upgrade-a-kubernetes-cluster-safely)
+  - [6. A Kubernetes pod is not starting. How would you troubleshoot it?](#6-a-kubernetes-pod-is-not-starting-how-would-you-troubleshoot-it)
+  - [7. How do you troubleshoot Kubernetes networking problems?](#7-how-do-you-troubleshoot-kubernetes-networking-problems)
+  - [8. Explain service discovery and load balancing in Kubernetes.](#8-explain-service-discovery-and-load-balancing-in-kubernetes)
+  - [9. How have you used Terraform in production?](#9-how-have-you-used-terraform-in-production)
+  - [10. How do you protect Terraform state and prevent conflicting changes?](#10-how-do-you-protect-terraform-state-and-prevent-conflicting-changes)
+  - [11. How would you implement GitOps with Argo CD?](#11-how-would-you-implement-gitops-with-argo-cd)
+  - [12. How do you integrate security into CI/CD?](#12-how-do-you-integrate-security-into-cicd)
+  - [13. How would you prepare for an architecture or cybersecurity review?](#13-how-would-you-prepare-for-an-architecture-or-cybersecurity-review)
+  - [14. How do you monitor cloud infrastructure and Kubernetes?](#14-how-do-you-monitor-cloud-infrastructure-and-kubernetes)
+  - [15. How would you respond to a production outage?](#15-how-would-you-respond-to-a-production-outage)
+  - [16. Explain your backup and disaster recovery approach.](#16-explain-your-backup-and-disaster-recovery-approach)
+  - [17. How do you use Python and Bash in infrastructure engineering?](#17-how-do-you-use-python-and-bash-in-infrastructure-engineering)
+  - [18. Tell me about an automation improvement you delivered.](#18-tell-me-about-an-automation-improvement-you-delivered)
+  - [19. How do you work effectively with global teams in an Agile environment?](#19-how-do-you-work-effectively-with-global-teams-in-an-agile-environment)
+  - [20. What would your first 90 days look like?](#20-what-would-your-first-90-days-look-like)
 - [Specific job description questions: 21–38](#specific-job-description-questions-2138)
+  - [21. What experience do you have supporting large-scale infrastructure in production?](#21-what-experience-do-you-have-supporting-large-scale-infrastructure-in-production)
+  - [22. How would you manage the complete Kubernetes cluster lifecycle?](#22-how-would-you-manage-the-complete-kubernetes-cluster-lifecycle)
+  - [23. How would you containerize an application using Docker?](#23-how-would-you-containerize-an-application-using-docker)
+  - [24. How do you document, maintain, improve, and validate your work products?](#24-how-do-you-document-maintain-improve-and-validate-your-work-products)
+  - [25. What does ‘done’ mean for an infrastructure task?](#25-what-does-done-mean-for-an-infrastructure-task)
+  - [26. How would you contribute to sprint planning as an infrastructure engineer?](#26-how-would-you-contribute-to-sprint-planning-as-an-infrastructure-engineer)
+  - [27. How would you contribute to a retrospective and continuous improvement?](#27-how-would-you-contribute-to-a-retrospective-and-continuous-improvement)
+  - [28. Do you have experience with SAFe?](#28-do-you-have-experience-with-safe)
+  - [29. How would you address a cybersecurity review finding close to release?](#29-how-would-you-address-a-cybersecurity-review-finding-close-to-release)
+  - [30. What would you do if an architect disagreed with your proposed design?](#30-what-would-you-do-if-an-architect-disagreed-with-your-proposed-design)
+  - [31. How do you demonstrate a strong understanding of network architecture and security protocols?](#31-how-do-you-demonstrate-a-strong-understanding-of-network-architecture-and-security-protocols)
+  - [32. How would you optimize infrastructure performance and scalability?](#32-how-would-you-optimize-infrastructure-performance-and-scalability)
+  - [33. How would you choose between AWS and Azure for a workload?](#33-how-would-you-choose-between-aws-and-azure-for-a-workload)
+  - [34. How would you coordinate a project with a global engineering team?](#34-how-would-you-coordinate-a-project-with-a-global-engineering-team)
+  - [35. Tell me about an innovation you introduced to improve engineering work.](#35-tell-me-about-an-innovation-you-introduced-to-improve-engineering-work)
+  - [36. How do you ensure infrastructure solutions meet customer expectations?](#36-how-do-you-ensure-infrastructure-solutions-meet-customer-expectations)
+  - [37. What would you do if a project encountered an unexpected obstacle?](#37-what-would-you-do-if-a-project-encountered-an-unexpected-obstacle)
+  - [38. What is your strongest match for this position?](#38-what-is-your-strongest-match-for-this-position)
 - [Questions to ask the interviewer](#questions-to-ask-the-interviewer)
 - [Technical references](#technical-references)
 
@@ -24,6 +64,8 @@ Previously, as an AVP in Cloud Engineering and DevOps at Citibank, I standardize
 
 What attracts me to Emerson is the opportunity to combine hands-on Kubernetes engineering, infrastructure automation, and collaboration across architecture, security, and development teams to deliver reliable, scalable cloud platforms.
 
+[⬆ Go to top](#top)
+
 ## Core interview questions: 1–20
 
 ### 1. Tell me about yourself and your cloud infrastructure experience.
@@ -34,6 +76,8 @@ In my current consulting role, I build reusable Terraform modules, manage EKS an
 
 My strengths are combining hands-on troubleshooting with automation and working across application, infrastructure, and security teams. That aligns closely with Emerson’s need for reliable, scalable cloud-native platforms.
 
+[⬆ Go to top](#top)
+
 ### 2. Why are you interested in this role at Emerson?
 
 What interests me is the combination of hands-on infrastructure engineering and collaboration across architecture, cybersecurity, and development teams.
@@ -41,6 +85,8 @@ What interests me is the combination of hands-on infrastructure engineering and 
 My experience covers the main areas in the role: Kubernetes, Terraform, cloud networking, CI/CD, observability, and disaster recovery. I also enjoy creating reusable platform patterns that make it easier for other engineers to deliver applications.
 
 This role gives me an opportunity to apply that experience while contributing to Emerson’s digital transformation and working with a global engineering team.
+
+[⬆ Go to top](#top)
 
 ### 3. Describe your Kubernetes experience.
 
@@ -50,6 +96,8 @@ In my current consulting role, I work with both EKS and AKS, using Terraform for
 
 My approach is to manage Kubernetes as a production platform, considering security, capacity, networking, recovery, and the developer experience together.
 
+[⬆ Go to top](#top)
+
 ### 4. How would you design a reliable production Kubernetes platform?
 
 I would begin with application requirements: availability targets, expected traffic, data dependencies, security requirements, and recovery objectives.
@@ -57,6 +105,8 @@ I would begin with application requirements: availability targets, expected traf
 I would distribute worker capacity across availability zones, provide sufficient application replicas, and configure readiness probes, resource requests, and appropriate autoscaling. For isolation, I would use RBAC, namespaces, network policies, and workload-specific cloud permissions.
 
 I would also establish centralized monitoring, controlled deployments, and tested backup and recovery procedures. Before production, I would validate the design through load testing, node failure testing, and application recovery exercises.
+
+[⬆ Go to top](#top)
 
 ### 5. How would you upgrade a Kubernetes cluster safely?
 
@@ -68,6 +118,8 @@ For worker maintenance, I would drain nodes gradually and respect PodDisruptionB
 
 **Technical note:** Kubernetes documents node draining and disruption budgets as mechanisms for managing voluntary maintenance disruptions. See references 1–3.
 
+[⬆ Go to top](#top)
+
 ### 6. A Kubernetes pod is not starting. How would you troubleshoot it?
 
 I would start with the pod status and events to identify the failure category.
@@ -75,6 +127,8 @@ I would start with the pod status and events to identify the failure category.
 If it is Pending, I would check resource availability, node selectors, taints, quotas, and persistent volume claims. For ImagePullBackOff, I would verify the image reference, registry access, and credentials. For CrashLoopBackOff, I would inspect current and previous container logs, startup configuration, dependencies, and probes.
 
 I would also check recent changes and compare the failing deployment with the last working version. After restoring service, I would address the underlying cause and improve validation or monitoring to prevent recurrence.
+
+[⬆ Go to top](#top)
 
 ### 7. How do you troubleshoot Kubernetes networking problems?
 
@@ -86,6 +140,8 @@ If the application is healthy, I inspect network policies, the CNI, cloud securi
 
 This approach helps me isolate whether the problem is name resolution, traffic routing, network filtering, or the application itself.
 
+[⬆ Go to top](#top)
+
 ### 8. Explain service discovery and load balancing in Kubernetes.
 
 Service discovery allows applications to locate each other without depending on changing pod IP addresses. Kubernetes Services provide a stable name and access point, and cluster DNS allows applications to resolve those names.
@@ -94,6 +150,8 @@ A Service directs traffic to its eligible backend endpoints. For external access
 
 When troubleshooting, I check DNS, Service selectors, endpoints, readiness, and the application’s listening port.
 
+[⬆ Go to top](#top)
+
 ### 9. How have you used Terraform in production?
 
 At Citibank, I built reusable Terraform modules for services including VPCs, EC2, load balancers, RDS, S3, IAM, and KMS. These modules standardized deployments across development, UAT, and production.
@@ -101,6 +159,8 @@ At Citibank, I built reusable Terraform modules for services including VPCs, EC2
 I integrated infrastructure changes with reviewed CI/CD workflows and used OPA and Sentinel to enforce security requirements before deployment.
 
 In my current consulting role, I also administer Terraform Enterprise and Cloud workflows, including workspace design, access controls, and approval gates. My focus is making infrastructure repeatable, reviewable, and easier for engineering teams to consume.
+
+[⬆ Go to top](#top)
 
 ### 10. How do you protect Terraform state and prevent conflicting changes?
 
@@ -114,6 +174,8 @@ I also remember that marking a value sensitive hides it from normal output; it d
 
 **Technical note:** HashiCorp recommends protecting state with access controls and using locking where the backend supports it. See references 4–5.
 
+[⬆ Go to top](#top)
+
 ### 11. How would you implement GitOps with Argo CD?
 
 I would keep Kubernetes deployment definitions in Git, using Helm or Kustomize to manage environment differences. CI would build, test, and scan the image, then propose a change to the deployment configuration.
@@ -124,6 +186,8 @@ I would configure self-healing and pruning deliberately because they control dif
 
 **Technical note:** Argo CD exposes separate controls for automated synchronization, self-healing, and pruning. See reference 6.
 
+[⬆ Go to top](#top)
+
 ### 12. How do you integrate security into CI/CD?
 
 At Citibank, I embedded security checks directly into delivery pipelines, including static code analysis, dependency scanning, secret detection, container scanning, and Terraform security checks.
@@ -131,6 +195,8 @@ At Citibank, I embedded security checks directly into delivery pipelines, includ
 I also used OPA and Sentinel policies to block infrastructure that violated defined requirements before apply.
 
 My approach is to provide developers with clear feedback and an actionable remediation path. Any exception should have an accountable owner, documented justification, compensating controls, and an expiration date. That allows teams to deliver while maintaining traceability and security standards.
+
+[⬆ Go to top](#top)
 
 ### 13. How would you prepare for an architecture or cybersecurity review?
 
@@ -140,6 +206,8 @@ For the architecture review, I would explain availability, scaling, networking, 
 
 I would document the decisions, trade-offs, and unresolved risks, then assign owners to follow-up actions. My goal is to make the design understandable and ensure review findings lead to concrete implementation changes.
 
+[⬆ Go to top](#top)
+
 ### 14. How do you monitor cloud infrastructure and Kubernetes?
 
 At Citibank, I used CloudWatch, Prometheus, Grafana, and centralized logging to connect infrastructure behavior with application health.
@@ -147,6 +215,8 @@ At Citibank, I used CloudWatch, Prometheus, Grafana, and centralized logging to 
 I monitor application latency, error rates, traffic, and saturation alongside cluster capacity, pod restarts, scheduling failures, and node health. I also track deployment changes so incidents can be correlated with releases.
 
 Alerts should identify actionable conditions and link to a runbook. The observability improvements documented in my resume helped reduce incident detection and recovery time by 35%.
+
+[⬆ Go to top](#top)
 
 ### 15. How would you respond to a production outage?
 
@@ -156,6 +226,8 @@ I would coordinate incident ownership, review monitoring and recent changes, and
 
 I would communicate impact, actions, and the next update time. After recovery, I would lead or contribute to a blameless root-cause review and track corrective actions through completion.
 
+[⬆ Go to top](#top)
+
 ### 16. Explain your backup and disaster recovery approach.
 
 I start with business-approved recovery time and recovery point objectives, then design the recovery approach around those targets.
@@ -163,6 +235,8 @@ I start with business-approved recovery time and recovery point objectives, then
 In my consulting role, I have designed strategies using AWS Backup, cross-region replication, Azure Backup, and Azure Site Recovery.
 
 I consider the complete application: data, infrastructure, configuration, secrets, connectivity, and dependencies. Backups alone are insufficient, so I validate recovery through drills, measure actual recovery time and data loss, and capture application-owner validation. Any gaps become tracked improvements to the recovery plan.
+
+[⬆ Go to top](#top)
 
 ### 17. How do you use Python and Bash in infrastructure engineering?
 
@@ -172,6 +246,8 @@ For example, a Python automation could inventory resources across accounts, eval
 
 For either language, I prioritize clear logging, input validation, safe credential handling, and repeatable execution. For actions that modify infrastructure, I include a preview or dry-run option where practical.
 
+[⬆ Go to top](#top)
+
 ### 18. Tell me about an automation improvement you delivered.
 
 At Citibank, infrastructure provisioning involved repetitive activities across multiple environments.
@@ -179,6 +255,8 @@ At Citibank, infrastructure provisioning involved repetitive activities across m
 I helped standardize the process through reusable Terraform modules and automated workflows using Terraform, Ansible, and CI/CD tooling. Security checks and reviews became part of the delivery process rather than separate manual steps.
 
 The work reduced manual provisioning by approximately 45%. It also improved consistency because teams used reviewed patterns across environments. The main lesson was that automation delivers more value when it includes documentation, governance, and a clear adoption path.
+
+[⬆ Go to top](#top)
 
 ### 19. How do you work effectively with global teams in an Agile environment?
 
@@ -188,6 +266,8 @@ For infrastructure changes, I include dependencies, validation steps, operationa
 
 During planning and retrospectives, I bring operational evidence such as recurring incidents, deployment failures, and manual effort. That helps the team prioritize improvements that benefit both application delivery and platform reliability.
 
+[⬆ Go to top](#top)
+
 ### 20. What would your first 90 days look like?
 
 In the first 30 days, I would learn the platform architecture, team responsibilities, deployment processes, security requirements, and major operational challenges.
@@ -195,6 +275,8 @@ In the first 30 days, I would learn the platform architecture, team responsibili
 By 60 days, I would aim to own a scoped improvement, such as strengthening a Terraform module, improving an alert, or addressing a recurring deployment issue.
 
 By 90 days, I would want to deliver a measurable improvement with documentation and operational handover. I would agree on priorities with the team so my work supports Emerson’s immediate needs and longer-term platform direction.
+
+[⬆ Go to top](#top)
 
 ## Specific job description questions: 21–38
 
@@ -206,6 +288,8 @@ My responsibilities included infrastructure automation, deployment pipelines, se
 
 That experience taught me to evaluate infrastructure changes beyond whether they deploy successfully. I also consider their effect on application availability, security, capacity, and recovery.
 
+[⬆ Go to top](#top)
+
 ### 22. How would you manage the complete Kubernetes cluster lifecycle?
 
 I would manage the lifecycle through version-controlled infrastructure and documented operational procedures.
@@ -216,6 +300,8 @@ Each stage needs validation. For example, provisioning should include connectivi
 
 My EKS and AKS experience provides a strong foundation for managing these responsibilities.
 
+[⬆ Go to top](#top)
+
 ### 23. How would you containerize an application using Docker?
 
 I would first understand the application’s runtime, dependencies, startup behavior, ports, and persistent data requirements.
@@ -223,6 +309,8 @@ I would first understand the application’s runtime, dependencies, startup beha
 Then I would create a Dockerfile using a trusted, minimal base image and a multistage build where appropriate. I would run the application as a non-root user, keep secrets outside the image, and send logs to standard output and error.
 
 The pipeline would build, test, and scan the image before publishing it. Before deployment, I would validate startup, graceful shutdown, resource consumption, and connectivity to external dependencies.
+
+[⬆ Go to top](#top)
 
 ### 24. How do you document, maintain, improve, and validate your work products?
 
@@ -234,6 +322,8 @@ I validate the work through appropriate automated checks and testing in a repres
 
 At Citibank, reusable modules and standardized workflows helped make infrastructure easier to review, support, and improve.
 
+[⬆ Go to top](#top)
+
 ### 25. What does ‘done’ mean for an infrastructure task?
 
 Done means the change meets its acceptance criteria and is ready to operate.
@@ -241,6 +331,8 @@ Done means the change meets its acceptance criteria and is ready to operate.
 The code should be reviewed, required security checks should pass, and the change should be validated in the target environment. Monitoring, documentation, access controls, and recovery procedures should be appropriate to the change.
 
 For example, deploying a Kubernetes service is only part of completion. I would also verify routing, application health, resource configuration, and operational ownership before closing the task.
+
+[⬆ Go to top](#top)
 
 ### 26. How would you contribute to sprint planning as an infrastructure engineer?
 
@@ -250,6 +342,8 @@ For example, a cluster upgrade might require separate work for compatibility ass
 
 I would identify dependencies on application and security teams early and account for operational support responsibilities when estimating capacity. That helps the team make realistic commitments and reduces surprises during the sprint.
 
+[⬆ Go to top](#top)
+
 ### 27. How would you contribute to a retrospective and continuous improvement?
 
 I would bring evidence about what slowed delivery or created operational risk, such as repeated manual steps, failed deployments, unclear handoffs, or recurring incidents.
@@ -257,6 +351,8 @@ I would bring evidence about what slowed delivery or created operational risk, s
 Then I would help the team choose a small number of actionable improvements with owners and measurable outcomes.
 
 For example, if infrastructure changes repeatedly fail because of missing configuration, we could improve module validation and pipeline checks. At the next retrospective, I would review whether those changes reduced failures or rework.
+
+[⬆ Go to top](#top)
 
 ### 28. Do you have experience with SAFe?
 
@@ -268,6 +364,8 @@ I understand that SAFe extends Agile planning and delivery across multiple teams
 
 I would be comfortable adapting to your implementation. I would bring clear infrastructure requirements, identify cross-team dependencies early, and make operational and security work visible in the planning process.
 
+[⬆ Go to top](#top)
+
 ### 29. How would you address a cybersecurity review finding close to release?
 
 I would first clarify the finding, its severity, the affected resources, and the potential exposure.
@@ -275,6 +373,8 @@ I would first clarify the finding, its severity, the affected resources, and the
 Then I would work with security and application owners to determine whether we can remediate and validate the fix before release. If that is impractical, I would evaluate compensating controls and follow the organization’s exception process.
 
 Any exception needs an authorized risk owner, a remediation deadline, and documented evidence. I would communicate the impact clearly so the release decision is made by the appropriate accountable owners.
+
+[⬆ Go to top](#top)
 
 ### 30. What would you do if an architect disagreed with your proposed design?
 
@@ -284,6 +384,8 @@ For example, if we disagreed about shared versus dedicated Kubernetes clusters, 
 
 Where evidence is missing, I would propose a focused proof of concept. Once a decision is made, I would document the rationale and help implement it consistently.
 
+[⬆ Go to top](#top)
+
 ### 31. How do you demonstrate a strong understanding of network architecture and security protocols?
 
 In my consulting work, I have designed hybrid connectivity using AWS VPCs, Transit Gateway, Direct Connect, Azure hub-and-spoke networks, ExpressRoute, and VPNs.
@@ -291,6 +393,8 @@ In my consulting work, I have designed hybrid connectivity using AWS VPCs, Trans
 I begin with address planning, routing, DNS, segmentation, and the required traffic flows. Then I apply least-privilege network access, private connectivity where appropriate, and encryption in transit.
 
 When troubleshooting, I trace the connection end to end rather than changing firewall rules without evidence. That helps distinguish routing, DNS, filtering, TLS, and application problems.
+
+[⬆ Go to top](#top)
 
 ### 32. How would you optimize infrastructure performance and scalability?
 
@@ -302,6 +406,8 @@ At Citibank, I optimized FSx for Lustre throughput and S3-backed dataset access,
 
 I would also check that the improvement remains cost-effective and performs well during peak demand.
 
+[⬆ Go to top](#top)
+
 ### 33. How would you choose between AWS and Azure for a workload?
 
 I would start with business and technical requirements rather than choosing a provider first.
@@ -312,6 +418,8 @@ For example, a workload with strong Microsoft dependencies may benefit from exis
 
 My experience across both providers helps me explain the trade-offs and recommend the option the organization can operate reliably.
 
+[⬆ Go to top](#top)
+
 ### 34. How would you coordinate a project with a global engineering team?
 
 I would establish clear ownership, milestones, dependencies, and agreed communication channels.
@@ -319,6 +427,8 @@ I would establish clear ownership, milestones, dependencies, and agreed communic
 For work across time zones, I would maintain concise written updates covering completed work, outstanding decisions, blockers, and the next action. I would use shared documentation and decision records so progress does not depend on everyone attending the same meeting.
 
 For a production change, I would also confirm support coverage, escalation contacts, and handoff responsibilities. That keeps execution predictable and reduces delays caused by unclear ownership.
+
+[⬆ Go to top](#top)
 
 ### 35. Tell me about an innovation you introduced to improve engineering work.
 
@@ -330,6 +440,8 @@ That work reduced manual provisioning by approximately 45%. It also reduced vari
 
 My approach to innovation is practical: identify recurring friction, build a reusable solution, and measure whether it improves delivery or operations.
 
+[⬆ Go to top](#top)
+
 ### 36. How do you ensure infrastructure solutions meet customer expectations?
 
 I clarify expectations before implementation, including availability, performance, security, delivery timelines, and operational support.
@@ -340,6 +452,8 @@ For example, if a team requests faster provisioning, I would measure the current
 
 I also make trade-offs visible early so stakeholders understand the cost and operational implications of their choices.
 
+[⬆ Go to top](#top)
+
 ### 37. What would you do if a project encountered an unexpected obstacle?
 
 I would assess the impact, identify which work is blocked, and determine what can continue independently.
@@ -347,6 +461,8 @@ I would assess the impact, identify which work is blocked, and determine what ca
 Then I would present options with their implications for scope, risk, and timing. For example, if a dependency blocks production deployment, we may still be able to complete testing, documentation, monitoring, and operational preparation.
 
 I would assign owners to the remaining blockers and communicate progress clearly. The objective is to maintain useful momentum while protecting the project’s acceptance criteria.
+
+[⬆ Go to top](#top)
 
 ### 38. What is your strongest match for this position?
 
@@ -356,6 +472,8 @@ At Citibank, I applied those skills in a regulated environment. In my current co
 
 I also bring experience with networking, observability, and tested disaster recovery. That allows me to contribute across the full platform lifecycle while collaborating effectively with application, architecture, security, and operations teams.
 
+[⬆ Go to top](#top)
+
 ## Questions to ask the interviewer
 
 1. What are the biggest reliability or operational challenges facing the platform today?
@@ -363,6 +481,8 @@ I also bring experience with networking, observability, and tested disaster reco
 3. How mature are your Terraform and GitOps workflows?
 4. How do you validate Kubernetes upgrades and disaster recovery?
 5. What would successful performance look like in the first 90 days?
+
+[⬆ Go to top](#top)
 
 ## Technical references
 
@@ -374,3 +494,5 @@ These official sources support the technical notes above. Personal experience an
 4. [HashiCorp — Manage Sensitive Data](https://developer.hashicorp.com/terraform/language/manage-sensitive-data)
 5. [HashiCorp — State Locking](https://developer.hashicorp.com/terraform/language/state/locking)
 6. [Argo CD — Automated Sync Policy (official project documentation)](https://github.com/argoproj/argo-cd/blob/master/docs/user-guide/auto_sync.md)
+
+[⬆ Go to top](#top)
