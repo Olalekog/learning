@@ -628,6 +628,8 @@ Workloads requiring stronger isolation or independent lifecycle management recei
 - What are the largest current reliability or developer-experience problems?
 - What would successful delivery look like in the first 90 days?
 
+[⬆ Go to top](#top)
+
 ## Final preparation checklist
 
 - Practice the introduction in under 60 seconds.
@@ -641,6 +643,8 @@ Workloads requiring stronger isolation or independent lifecycle management recei
 - Explain why namespaces, multiple clusters, and backups alone do not guarantee isolation or recovery.
 - Be ready to discuss standards adoption, exceptions, and ownership.
 - Select two or three questions for the interviewer.
+
+[⬆ Go to top](#top)
 
 ## Official technical references
 
@@ -662,3 +666,5 @@ These sources informed the technical preparation. Check current provider documen
 - [Argo CD automated sync](https://argo-cd.readthedocs.io/en/stable/user-guide/auto_sync/)
 
 Resume basis: Gabriel_O_Resume 5(1).docx, supplied for this interview preparation. No new employment history or personal achievements have been added.
+
+[⬆ Go to top](#top)

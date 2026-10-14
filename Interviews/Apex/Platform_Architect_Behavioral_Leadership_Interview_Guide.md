@@ -21,6 +21,7 @@ These behavioral and leadership questions are tailored to the Platform Architect
 11. [Resistance to standards](#11-resistance-to-standards)
 12. [Measuring success](#12-measuring-success)
 13. [Interest in the role](#13-interest-in-the-role)
+14. [Practice checklist](#practice-checklist)
 
 ## 1 Leadership style
 
@@ -212,3 +213,5 @@ I’m interested in applying that experience to a platform that helps multiple t
 - Explain your individual contribution and acknowledge other teams’ responsibilities.
 - Prepare evidence for results, including the baseline and measurement period for any metric.
 - Be ready to explain one disagreement, one mistake, one adoption effort, and one incident leadership example.
+
+[⬆ Go to top](#top)

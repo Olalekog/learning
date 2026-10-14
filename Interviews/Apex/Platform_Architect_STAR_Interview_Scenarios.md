@@ -17,6 +17,7 @@ STAR means Situation, Task, Action, and Result. Be ready to explain your persona
 5. [Architecture tradeoff](#5-architecture-tradeoff)
 6. [Resilience and recovery](#6-resilience-and-recovery)
 7. [Influencing teams without direct authority](#7-influencing-teams-without-direct-authority)
+8. [Practice checklist](#practice-checklist)
 
 ## 1 Reusable platform standards
 
@@ -152,3 +153,5 @@ STAR means Situation, Task, Action, and Result. Be ready to explain your persona
 - Prepare one technical detail, one tradeoff, and one verified outcome for each story.
 
 Resume basis: Gabriel_O_Resume 5(1).docx supplied for the Platform Architect interview preparation.
+
+[⬆ Go to top](#top)
