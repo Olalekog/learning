@@ -1,3 +1,5 @@
+<a id="top"></a>
+
 # Platform Architect Cloud and Kubernetes Interview Preparation Guide
 
 Prepared for Olalekan Gabriel Ogundare
@@ -61,6 +63,8 @@ The following matches come from the Gabriel_O_Resume 5(1).docx supplied for this
 
 **Best interview sequence:** Lead with Truist for platform standards, EKS/AKS, security, and delivery. Use Regeneron for secure multi-cloud architecture, sensitive workloads, recovery objectives, and Terraform/Bicep integration. Use Southern Company for EKS operations and CloudWatch/Prometheus examples.
 
+[⬆ Go to top](#top)
+
 ## Vendor screening and platform leadership
 
 ### Q1 Tell me about yourself and why you fit this role
@@ -85,6 +89,8 @@ At Truist, I developed reusable platform patterns covering networking, identity,
 
 This role aligns with my experience translating enterprise requirements into repeatable deployment patterns application teams can use. My deepest cloud experience is AWS and Azure, while GCP is a secondary area where I bring transferable architecture and Kubernetes knowledge.”
 
+[⬆ Go to top](#top)
+
 ### Q2 How much hands-on GCP experience do you have
 
 **Sample answer:**
@@ -97,6 +103,8 @@ For a GCP platform, I would apply those principles while validating Google-speci
 
 **Prepare:** Identify the exact GCP tasks you have performed yourself. Separate production ownership from pilots, labs, and design knowledge.
 
+[⬆ Go to top](#top)
+
 ### Q3 What is the difference between a Platform Architect and a DevOps Engineer
 
 **Sample answer:**
@@ -104,6 +112,8 @@ For a GCP platform, I would apply those principles while validating Google-speci
 “A Platform Architect defines the platform direction: deployment patterns, security boundaries, integration standards, operational responsibilities, and the roadmap. A DevOps Engineer typically implements and operates the automation, pipelines, infrastructure, and deployment workflows supporting that direction. The roles overlap.
 
 My approach is to stay close to implementation. Architecture decisions should be validated through working reference implementations, operational testing, and feedback from application teams. Success means teams can deploy securely and reliably using clear standards, with fewer manual decisions and less repeated engineering.”
+
+[⬆ Go to top](#top)
 
 ### Q4 How would you define the target-state architecture
 
@@ -117,6 +127,8 @@ Then I would define the platform layers—cloud foundations, Kubernetes, identit
 
 The roadmap would prioritize the largest reliability and security gaps. At Truist, my reusable AWS and Azure platform work followed this general principle: provide consistent foundations while allowing workload-specific choices.”
 
+[⬆ Go to top](#top)
+
 ### Q5 Tell me about a platform architecture initiative you led
 
 **STAR outline based on your resume:**
@@ -129,6 +141,8 @@ The result was a more consistent foundation for new projects. My resume records 
 
 **Confirm before speaking:** How the 40% was measured, the workflows included, your individual contribution, stakeholders, and one concrete architecture decision. Do not attribute the metric to unrelated changes.
 
+[⬆ Go to top](#top)
+
 ### Q6 What would your first 90 days look like
 
 **Sample answer:**
@@ -136,6 +150,8 @@ The result was a more consistent foundation for new projects. My resume records 
 “In the first 30 days, I would understand the existing architecture, stakeholder needs, incidents, security gaps, and platform ownership. During the next 30 days, I would agree on the highest-priority improvements and develop a reference implementation with a pilot application team.
 
 By day 90, I would aim to have a validated deployment pattern, documented architecture decisions, operational guidance, and an adoption roadmap. I would keep the scope realistic. One working pattern with clear evidence of value provides a strong foundation for expansion.”
+
+[⬆ Go to top](#top)
 
 ## Cloud architecture and governance
 
@@ -157,6 +173,8 @@ I would define approved ingress, private service access, and egress patterns, in
 
 **Review topics:** Shared VPC host/service projects, hub-and-spoke connectivity, Private Service Connect, PrivateLink, Cloud Armor, AWS WAF, private DNS, NAT, firewall rules, and egress controls. These are related capabilities, not exact one-to-one equivalents.
 
+[⬆ Go to top](#top)
+
 ### Q8 How would you secure application access to cloud services
 
 **Relevant resume experience:** Connect to Truist’s AWS Organizations/SCPs, Security Hub, GuardDuty, and aligned Azure governance. The resume does not explicitly establish an IRSA or EKS Pod Identity implementation; confirm your direct involvement before claiming one.
@@ -173,6 +191,8 @@ I would separate identities by service and environment, review access to sensiti
 
 “Kubernetes RBAC controls Kubernetes API access. Cloud IAM controls access to cloud services. Both are needed, with separate permissions for operators and application workloads.”
 
+[⬆ Go to top](#top)
+
 ### Q9 What would you standardize across clouds
 
 **Sample answer:**
@@ -187,6 +207,8 @@ I would allow native databases or messaging services when their benefits justify
 
 “It makes parts of deployment more portable. Storage, identity, networking, databases, and external dependencies can still require significant changes.”
 
+[⬆ Go to top](#top)
+
 ### Q10 How would you choose a modernization strategy
 
 **Sample answer:**
@@ -196,6 +218,8 @@ I would allow native databases or messaging services when their benefits justify
 I would avoid turning every migration into a rewrite. I would propose an incremental roadmap with measurable outcomes and recovery options. The decision should reflect business value and delivery risk rather than a technology preference.”
 
 **Governance discussion points:** Least privilege, organization policies and SCPs, encryption, secrets management, security posture visibility, CIS-aligned hardening where applicable, and documented exceptions. Distinguish preventive controls from detection and remediation.
+
+[⬆ Go to top](#top)
 
 ## Kubernetes platform engineering
 
@@ -211,6 +235,8 @@ It would include scaling guidance, disruption budgets, topology placement, secre
 
 Responsibilities would be clear: the platform team owns shared capabilities, while application teams own application behavior, dependencies, and service objectives.”
 
+[⬆ Go to top](#top)
+
 ### Q12 How would you manage multiple clusters
 
 **Relevant resume experience:** Use Truist’s EKS and companion AKS platforms to explain consistent cross-platform standards. Do not describe GKE fleet ownership as prior production experience without a real example.
@@ -223,6 +249,8 @@ Each cluster would follow a versioned baseline covering identity, networking, po
 
 I would maintain ownership, inventory, capacity visibility, and compatibility checks. In GCP, I would evaluate fleets for supported multi-cluster management capabilities.”
 
+[⬆ Go to top](#top)
+
 ### Q13 What experience do you have with internally managed Kubernetes
 
 **Sample answer:**
@@ -232,6 +260,8 @@ I would maintain ownership, inventory, capacity visibility, and compatibility ch
 An internally managed platform adds responsibility for control-plane availability, etcd protection, certificates, operating-system maintenance, and cluster lifecycle management. I would assess those capabilities, the existing distribution, and the support model before recommending changes. I would distinguish components I personally operated from those owned by another team.”
 
 **Important:** Your uploaded resume establishes managed Kubernetes experience more clearly than self-managed control-plane ownership.
+
+[⬆ Go to top](#top)
 
 ### Q14 How would you select a multi-cluster management approach
 
@@ -249,6 +279,8 @@ I would run a proof of concept covering provisioning, onboarding, upgrades, and 
 
 **Review topics:** Cluster API, GKE enterprise/fleet capabilities, EKS Anywhere, Rancher, and OpenShift. Compare what each actually manages; they are not interchangeable products. Validate current names and support before making a recommendation.
 
+[⬆ Go to top](#top)
+
 ### Q15 How would you upgrade Kubernetes safely
 
 **Relevant resume experience:** EKS upgrades are explicitly described at Truist and Southern Company. Add the actual upgrade you handled, compatibility issue, validation process, and division of responsibility.
@@ -260,6 +292,8 @@ I would run a proof of concept covering provisioning, onboarding, upgrades, and 
 Production upgrades would proceed in stages with validation and stop conditions. Node replacement requires spare capacity, appropriate disruption budgets, and applications that tolerate draining.
 
 Recovery must be defined before execution. It may involve replacing a cluster and moving workloads rather than assuming a control-plane downgrade is available. Success means applications meet their service objectives throughout the change.”
+
+[⬆ Go to top](#top)
 
 ### Q16 How would you design capacity and scaling
 
@@ -277,6 +311,8 @@ Scaling policies should protect dependencies such as databases, because adding r
 
 “Capacity shortages, quotas, node selectors, taints, storage constraints, or topology requirements. I would inspect scheduling events before assuming insufficient nodes.”
 
+[⬆ Go to top](#top)
+
 ### Q17 How would you design a resilient application
 
 **Sample answer:**
@@ -291,6 +327,8 @@ Finally, I would test node loss and dependency failure. Resilience is demonstrat
 
 “No. It does not prevent unexpected node or zone failure. Availability also depends on placement, spare capacity, application behavior, and dependencies.”
 
+[⬆ Go to top](#top)
+
 ### Q18 How would you design disaster recovery
 
 **Relevant resume experience:** Regeneron documents recovery objectives, runbooks, and automated recovery paths. Connect the design answer to that work; identify the actual recovery tests you performed before claiming recovery-drill results.
@@ -304,6 +342,8 @@ I would evaluate Velero where it fits Kubernetes resource and storage recovery r
 I would run a recovery exercise and measure results against the objectives. A successful backup is useful evidence, but a successful restore proves recoverability.”
 
 **Definitions:** RTO is the target time to restore service. RPO is the acceptable data-loss window. Multiple clusters alone do not establish DR; storage backup behavior must be validated for the actual CSI driver and provider.
+
+[⬆ Go to top](#top)
 
 ## Service mesh and observability
 
@@ -321,6 +361,8 @@ I would test failure behavior because poorly configured retries can amplify an o
 
 **Technical distinction:** Mutual TLS encrypts and authenticates communication. Authorization policies determine which access is permitted. Avoid claiming production mesh ownership solely because Istio appears in your skills list.
 
+[⬆ Go to top](#top)
+
 ### Q20 How would you define observability and reliability standards
 
 **Relevant resume experience:** Truist documents reliability goals and alert/runbook improvements. Southern Company explicitly names CloudWatch and Prometheus. Explain a real alert or dashboard and the operational decision it supported.
@@ -334,6 +376,8 @@ Alerts should identify actionable service impact and link to runbooks. I would w
 My experience improving alerts, runbooks, and incident response would help connect those standards to operational outcomes.”
 
 **Definitions:** An SLI measures service behavior; an SLO sets a target over a defined window; an SLA is an agreement, potentially with consequences. An error budget expresses the unreliability allowed by the SLO.
+
+[⬆ Go to top](#top)
 
 ## Automation and developer experience
 
@@ -349,6 +393,8 @@ GitOps would provide reconciliation and desired-state history. Production contro
 
 At Truist, my resume records approximately a 40% reduction in release cycle time using Azure DevOps and GitHub Actions while retaining approvals and audit trails.”
 
+[⬆ Go to top](#top)
+
 ### Q22 How would you choose between Helm Kustomize and Crossplane
 
 **Sample answer:**
@@ -356,6 +402,8 @@ At Truist, my resume records approximately a 40% reduction in release cycle time
 “Helm is useful for packaging configurable applications and shared deployment templates. Kustomize is useful for maintaining Kubernetes manifests with environment overlays. Crossplane addresses infrastructure provisioning through Kubernetes APIs and can support self-service abstractions.
 
 These tools can coexist, but I would avoid unnecessary overlap. Each resource should have a clear owner, particularly when Terraform and infrastructure controllers are both present. I would prioritize maintainability, debugging, lifecycle ownership, and existing team skills.”
+
+[⬆ Go to top](#top)
 
 ### Q23 How would you design canary deployments
 
@@ -366,6 +414,8 @@ These tools can coexist, but I would avoid unnecessary overlap. Each resource sh
 I would consider database compatibility, background workers, and external side effects because HTTP traffic shifting does not address every risk. The platform provides rollout mechanisms and guardrails; application teams define meaningful acceptance criteria.”
 
 **Review topics:** Argo Rollouts or Flagger, ingress/mesh integrations, blue-green delivery, analysis windows, failure thresholds, and backward-compatible schema changes.
+
+[⬆ Go to top](#top)
 
 ### Q24 How would you improve developer experience and drive adoption
 
@@ -378,6 +428,8 @@ I would consider database compatibility, background workers, and external side e
 It would include self-service provisioning, templates, documentation, dashboards, and clear support ownership. I would pilot it with application teams and improve it using feedback. Security and operations would participate early so controls are built into the workflow.
 
 I would measure onboarding time, deployment success, support demand, and adoption. A standard succeeds when teams can use it effectively and it improves operational outcomes.”
+
+[⬆ Go to top](#top)
 
 ## Concrete scenario one Reusable platform pattern
 
@@ -405,15 +457,21 @@ I would validate the pattern with one team before expanding adoption. Success me
 | Delivery | Build once; promote the same image digest |
 | Observability | Common labels, metrics, structured logs, and trace correlation |
 
+[⬆ Go to top](#top)
+
 ### Follow-up How would you handle a breaking change
 
 “I would release a new major version, document migration, and test with a pilot application. Teams pin chart and module versions so adoption is deliberate. I would provide a migration window and retire the previous version according to support and security requirements.”
+
+[⬆ Go to top](#top)
 
 ### Follow-up How do you avoid making the pattern too restrictive
 
 “Separate mandatory controls from configurable defaults. Security requirements remain enforced, while teams tune resources, scaling, and application settings. Exceptions have an owner and review process.”
 
 **Evidence to prepare:** One actual module/chart interface, release process, consumer team, onboarding example, and measurable improvement. Do not invent team counts or savings.
+
+[⬆ Go to top](#top)
 
 ## Concrete scenario two Kubernetes incident
 
@@ -430,6 +488,8 @@ I would validate the pattern with one team before expanding adoption. Success me
 In this scenario, pods were Running but not Ready. The release changed the readiness endpoint, while Helm values referenced the old path. The probe returned 404, leaving no ready backends for normal traffic.
 
 I would restore the previous configuration through Git and verify recovery using readiness, successful requests, and error-rate monitoring. After recovery, I would add a deployment test validating health endpoints and update the checklist. Running pods do not necessarily mean an available application.”
+
+[⬆ Go to top](#top)
 
 ### Concrete troubleshooting commands
 
@@ -452,19 +512,27 @@ kubectl rollout status deployment/orders-api -n prod
 | EndpointSlices show no ready backends | Service lacks eligible normal traffic targets |
 | Known-good configuration restores service | Supports the release-related hypothesis |
 
+[⬆ Go to top](#top)
+
 ### Follow-up Why not just restart pods
 
 “Restarting reproduces the incorrect configuration. I would correct or revert desired configuration and verify readiness and successful customer requests.”
 
+[⬆ Go to top](#top)
+
 ### Follow-up How would you roll back with Argo CD
 
 “I would revert the deployment change in Git and reconcile the known-good configuration. Direct Kubernetes rollback can conflict with GitOps reconciliation. Argo CD’s own rollback operation requires accounting for its restriction when automated sync is enabled.”
+
+[⬆ Go to top](#top)
 
 ### Follow-up What would the root-cause analysis include
 
 “The trigger, customer impact, detection and recovery timeline, why release validation missed the mismatch, and corrective actions with owners. Actions would include health-contract testing and post-deployment synthetic checks. I would verify recovery before closing the incident.”
 
 **Important:** HTTP 503 has several possible causes. Do not conclude probe failure without checking routing, service selectors, ports, readiness, and relevant logs. This scenario has no invented recovery-time metric.
+
+[⬆ Go to top](#top)
 
 ## Concrete scenario three Architecture tradeoff
 
@@ -491,19 +559,27 @@ Workloads requiring stronger isolation or independent lifecycle management recei
 | Failure containment | Shared cluster failure boundary | Separate cluster failure boundary |
 | Platform maintenance | Fewer clusters | More lifecycle work |
 
+[⬆ Go to top](#top)
+
 ### Follow-up Are dedicated node pools equivalent to dedicated clusters
 
 “Node pools improve placement and capacity separation but share the control plane and cluster-wide resources. I would use them for scheduling or resource needs and assess stronger isolation separately.”
 
+[⬆ Go to top](#top)
+
 ### Follow-up How would you justify the additional cost
 
 “Connect cost to a specific requirement such as compliance, outage containment, or independent maintenance. Compare added operating cost with the business impact of sharing that failure boundary and record the assumptions.”
+
+[⬆ Go to top](#top)
 
 ### Follow-up What controls belong in a shared cluster
 
 “Namespace-scoped RBAC, quotas, appropriate limits, network policies enforced by the networking implementation, workload security controls, admission policies, and restrictions on cluster-wide changes. Namespace separation alone is insufficient.”
 
 **Decision record:** Document context, options, decision, consequences, operational owner, and conditions that would trigger reconsideration. Dedicated clusters may still share cloud accounts, networks, or external dependencies; evaluate those boundaries too.
+
+[⬆ Go to top](#top)
 
 ## Questions to ask the vendor
 

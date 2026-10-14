@@ -1,3 +1,5 @@
+<a id="top"></a>
+
 # Platform Architect Cloud and Kubernetes STAR Interview Scenarios
 
 Prepared for Olalekan Gabriel Ogundare
@@ -31,6 +33,8 @@ STAR means Situation, Task, Action, and Result. Be ready to explain your persona
 
 **Preparation guidance:** Identify the specific patterns and modules you authored, the decisions you made, and how you worked with the teams responsible for implementation and operations.
 
+[⬆ Go to top](#top)
+
 ## 2 Delivery speed and security
 
 **Question:** Describe a time you improved delivery speed while maintaining security.
@@ -46,6 +50,8 @@ STAR means Situation, Task, Action, and Result. Be ready to explain your persona
 
 **Preparation guidance:** Explain your actual baseline, measurement period, and release stages. Confirm those details before using the percentage.
 
+[⬆ Go to top](#top)
+
 ## 3 Platform architecture for sensitive workloads
 
 **Question:** Tell me about a time you designed a platform for sensitive workloads.
@@ -60,6 +66,8 @@ STAR means Situation, Task, Action, and Result. Be ready to explain your persona
 **Likely follow-up:** What was the hardest architecture decision?
 
 **Preparation guidance:** Choose a real decision involving connectivity, identity, data access, or deployment controls. Explain the alternatives and why you selected your approach.
+
+[⬆ Go to top](#top)
 
 ## 4 Kubernetes production incident
 
@@ -78,6 +86,8 @@ STAR means Situation, Task, Action, and Result. Be ready to explain your persona
 
 **Adaptation guidance:** Replace this practice incident with an actual incident before presenting it as your employment experience. A 503 response has multiple possible causes; readiness failure must be supported by investigation evidence.
 
+[⬆ Go to top](#top)
+
 ## 5 Architecture tradeoff
 
 **Question:** Describe a difficult architecture tradeoff you made.
@@ -95,6 +105,8 @@ STAR means Situation, Task, Action, and Result. Be ready to explain your persona
 
 **Adaptation guidance:** Use the actual options, constraints, stakeholders, and outcome from a decision you made. Do not claim this specific decision was implemented unless it was.
 
+[⬆ Go to top](#top)
+
 ## 6 Resilience and recovery
 
 **Question:** Tell me about a time you improved resilience and recovery.
@@ -109,6 +121,8 @@ STAR means Situation, Task, Action, and Result. Be ready to explain your persona
 **Likely follow-up:** How did you validate recovery?
 
 **Preparation guidance:** Describe the checks or recovery exercises you actually performed, the dependencies involved, and the observed results. Use measured RTO or RPO figures only if you can substantiate them.
+
+[⬆ Go to top](#top)
 
 ## 7 Influencing teams without direct authority
 
@@ -126,6 +140,8 @@ STAR means Situation, Task, Action, and Result. Be ready to explain your persona
 **Sample answer:** “I would understand the specific objection, assess whether the standard meets its requirements, and agree on either an improvement or a documented exception with clear ownership.”
 
 **Adaptation guidance:** Connect this to a real adoption effort and describe the team’s actual concerns, your influence, and the resulting behavior.
+
+[⬆ Go to top](#top)
 
 ## Practice checklist
 

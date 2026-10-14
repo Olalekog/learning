@@ -1,3 +1,5 @@
+<a id="top"></a>
+
 # Platform Architect Behavioral and Leadership Interview Guide
 
 Prepared for Olalekan Gabriel Ogundare
@@ -32,6 +34,8 @@ At Truist, my work on reusable AWS and Azure patterns required thinking beyond i
 
 I believe effective technical leadership includes listening to application, security, and operations teams, making tradeoffs explicit, and staying accountable for the outcome. I also stay close enough to implementation to recognize when a design needs adjustment.”
 
+[⬆ Go to top](#top)
+
 ## 2 Influence without direct authority
 
 **Question:** How do you influence teams when you do not have direct authority?
@@ -43,6 +47,8 @@ I believe effective technical leadership includes listening to application, secu
 I would demonstrate the approach through a pilot, incorporate feedback, and distinguish mandatory controls from configurable defaults.
 
 My experience developing reusable patterns at Truist is relevant because adoption depends on other teams finding those patterns useful. I would measure success through actual usage and improved delivery outcomes.”
+
+[⬆ Go to top](#top)
 
 ## 3 Technical disagreement
 
@@ -56,6 +62,8 @@ We would compare isolation, workload criticality, upgrade independence, cost, an
 
 I would document the decision and its consequences. My goal would be a defensible architecture that both teams understood, with a clear process for revisiting it.”
 
+[⬆ Go to top](#top)
+
 ## 4 Security and developer velocity
 
 **Question:** How do you balance security requirements with developer velocity?
@@ -67,6 +75,8 @@ I would document the decision and its consequences. My goal would be a defensibl
 At Truist, I worked with cloud governance and automated delivery while retaining approvals and audit trails. That experience showed me that predictable controls can support faster delivery.
 
 When a requirement creates friction, I would examine the risk it addresses and whether automation can satisfy it more efficiently. Exceptions should have a clear owner, compensating controls, and a review date.”
+
+[⬆ Go to top](#top)
 
 ## 5 Competing priorities
 
@@ -80,6 +90,8 @@ I would make those criteria visible so stakeholders understand the sequence. An 
 
 When priorities conflict, I explain the consequences of each choice and ask the appropriate business owner to resolve the tradeoff. I then communicate the agreed priorities and revisit them when conditions change.”
 
+[⬆ Go to top](#top)
+
 ## 6 Incident leadership
 
 **Question:** How do you lead during a major production incident?
@@ -91,6 +103,8 @@ When priorities conflict, I explain the consequences of each choice and ask the 
 My resume includes major-outage coordination at Truist and incident response at Southern Company. Those experiences are relevant to bringing application, infrastructure, and operations teams together.
 
 During recovery, I focus on evidence and safe actions. Afterward, I make sure the review produces specific improvements with owners, such as better alerts, runbooks, or automation.”
+
+[⬆ Go to top](#top)
 
 ## 7 Communicating risk to leadership
 
@@ -104,6 +118,8 @@ For example, when discussing recovery investment, I would connect the proposal t
 
 I make uncertainty explicit and distinguish measured evidence from assumptions. Leadership should leave the discussion understanding the recommendation, the alternatives, and what accepting or delaying the work means.”
 
+[⬆ Go to top](#top)
+
 ## 8 Mentoring engineers
 
 **Question:** How do you mentor engineers?
@@ -115,6 +131,8 @@ I make uncertainty explicit and distinguish measured evidence from assumptions. 
 For platform work, that might mean explaining an architecture decision, pairing on a module change, and asking them to lead validation or present the tradeoffs.
 
 I use reviews to teach the reasoning behind standards, not simply correct implementation details. I would assess progress through stronger independent decisions, clearer troubleshooting, and better communication with other teams.”
+
+[⬆ Go to top](#top)
 
 ## 9 Mistakes and lessons learned
 
@@ -128,6 +146,8 @@ I would take responsibility, gather feedback, and simplify the interface around 
 
 The lesson is that platform architecture must address usability and ownership as well as technical requirements. I now place greater emphasis on early feedback and validating the developer experience.”
 
+[⬆ Go to top](#top)
+
 ## 10 Ambiguous requirements
 
 **Question:** What do you do when requirements are ambiguous?
@@ -139,6 +159,8 @@ The lesson is that platform architecture must address usability and ownership as
 I document assumptions and avoid committing to expensive decisions before validating them. Where possible, I use a small prototype or reference implementation to test the approach.
 
 I also explain what evidence would change the recommendation. That allows the team to make progress while keeping important uncertainties visible.”
+
+[⬆ Go to top](#top)
 
 ## 11 Resistance to standards
 
@@ -152,6 +174,8 @@ If the standard does not meet a legitimate requirement, I would improve it or es
 
 I would avoid treating every objection as unwillingness to cooperate. Feedback can expose weaknesses in the platform. At the same time, enterprise security and reliability requirements need clear accountability.”
 
+[⬆ Go to top](#top)
+
 ## 12 Measuring success
 
 **Question:** How do you know whether you are succeeding as a Platform Architect?
@@ -164,6 +188,8 @@ I also assess whether ownership is clear and whether the platform meets its reli
 
 My Truist experience includes reusable patterns and release-workflow improvements, which are relevant examples. I would establish baselines before claiming an improvement and combine metrics with feedback from application and operations teams.”
 
+[⬆ Go to top](#top)
+
 ## 13 Interest in the role
 
 **Question:** Why are you interested in this role?
@@ -175,6 +201,8 @@ My Truist experience includes reusable patterns and release-workflow improvement
 At Truist, I have worked on reusable platform foundations and enterprise deployment standards. At Regeneron, I designed secure cloud architecture for research workloads with demanding governance requirements.
 
 I’m interested in applying that experience to a platform that helps multiple teams deploy reliably and consistently. The AWS and GCP emphasis also gives me an opportunity to contribute my strongest AWS experience while developing deeper GCP expertise.”
+
+[⬆ Go to top](#top)
 
 ## Practice checklist
 
