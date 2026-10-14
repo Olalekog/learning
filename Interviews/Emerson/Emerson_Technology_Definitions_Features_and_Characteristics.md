@@ -1,3 +1,5 @@
+<a id="top"></a>
+
 # Emerson — Technology Definitions, Features, and Characteristics
 
 **Candidate:** Olalekan G. Ogundare  
@@ -6,6 +8,25 @@
 Emerson’s job description names Kubernetes, Docker, Terraform, AWS, Azure, GCP, Argo CD, Flux, and several programming languages. It also includes practices such as CI/CD, DevSecOps, disaster recovery, Scrum, and SAFe.
 
 This guide covers their definitions, features, and characteristics, with examples relevant to your interview. Individual cloud services in the comparison table are illustrative equivalents; the job description names the cloud platforms broadly.
+
+## Index
+
+- [1. Kubernetes](#1-kubernetes)
+- [2. Docker](#2-docker)
+- [3. Terraform](#3-terraform)
+- [4. Argo CD](#4-argo-cd)
+- [5. Flux](#5-flux)
+- [6. AWS, Azure, and GCP](#6-aws-azure-and-gcp)
+- [7. Programming and scripting languages](#7-programming-and-scripting-languages)
+- [8. Infrastructure as Code — IaC](#8-infrastructure-as-code--iac)
+- [9. CI/CD](#9-cicd)
+- [10. DevSecOps](#10-devsecops)
+- [11. Service discovery](#11-service-discovery)
+- [12. Load balancing](#12-load-balancing)
+- [13. Backup and disaster recovery](#13-backup-and-disaster-recovery)
+- [14. Agile and Scrum](#14-agile-and-scrum)
+- [15. SAFe — Scaled Agile Framework](#15-safe--scaled-agile-framework)
+- [16. Architecture and cybersecurity reviews](#16-architecture-and-cybersecurity-reviews)
 
 ## 1. Kubernetes
 
@@ -40,6 +61,8 @@ Key components to understand:
 
 **Sources:** [Kubernetes concepts](https://kubernetes.io/docs/concepts/), [Kubernetes components](https://kubernetes.io/docs/concepts/overview/components/), [Services and networking](https://kubernetes.io/docs/concepts/services-networking/).
 
+[⬆ Go to top](#top)
+
 ## 2. Docker
 
 **Definition:** A platform and toolset for building, distributing, and running containerized applications.
@@ -59,6 +82,8 @@ Key components to understand:
 **Interview connection:** “Docker packages the application consistently; Kubernetes manages its deployment and operation across a cluster.”
 
 **Source:** [Docker overview](https://docs.docker.com/get-started/docker-overview/).
+
+[⬆ Go to top](#top)
 
 ## 3. Terraform
 
@@ -80,6 +105,8 @@ Key components to understand:
 
 **Source:** [What is Terraform?](https://developer.hashicorp.com/terraform/intro).
 
+[⬆ Go to top](#top)
+
 ## 4. Argo CD
 
 **Definition:** A declarative GitOps continuous delivery tool for Kubernetes.
@@ -98,6 +125,8 @@ Key components to understand:
 **Example:** CI publishes an application image, a reviewed Git change updates its image reference, and Argo CD synchronizes the deployment.
 
 **Sources:** [Argo CD documentation](https://argo-cd.readthedocs.io/en/stable/), [Automated sync policy](https://github.com/argoproj/argo-cd/blob/master/docs/user-guide/auto_sync.md).
+
+[⬆ Go to top](#top)
 
 ## 5. Flux
 
@@ -121,6 +150,8 @@ Key components to understand:
 
 **Sources:** [Flux documentation](https://fluxcd.io/flux/), [Flux core concepts](https://fluxcd.io/flux/concepts/).
 
+[⬆ Go to top](#top)
+
 ## 6. AWS, Azure, and GCP
 
 **Definition:** Public cloud platforms providing on-demand infrastructure and managed services.
@@ -142,6 +173,8 @@ The job description names the platforms broadly. The individual services below a
 
 **Sources:** [AWS cloud computing](https://aws.amazon.com/what-is-cloud-computing/), [What is Azure?](https://azure.microsoft.com/en-us/resources/cloud-computing-dictionary/what-is-azure/), [Google Cloud documentation](https://docs.cloud.google.com/docs).
 
+[⬆ Go to top](#top)
+
 ## 7. Programming and scripting languages
 
 The job description lists these as examples; it does not require equal proficiency in every language.
@@ -157,6 +190,8 @@ The job description lists these as examples; it does not require equal proficien
 | TypeScript | JavaScript with a static type system | Compile-time checks, interfaces, JavaScript ecosystem compatibility | Application development and typed automation tooling |
 
 **Interview connection:** “My strongest scripting languages are Python and Bash. I use Python for structured automation and API integration, and Bash for operating-system tasks and command orchestration.”
+
+[⬆ Go to top](#top)
 
 ## 8. Infrastructure as Code — IaC
 
@@ -174,6 +209,8 @@ The job description lists these as examples; it does not require equal proficien
 
 **Example:** A Terraform module provisions an application’s network, compute, access controls, and monitoring.
 
+[⬆ Go to top](#top)
+
 ## 9. CI/CD
 
 **Definition:** Practices that automate software integration and delivery.
@@ -189,6 +226,8 @@ The job description lists these as examples; it does not require equal proficien
 **Interview connection:** Your resume includes Jenkins, GitHub Actions, Harness, Azure DevOps, and AWS delivery tooling.
 
 **Source:** [Microsoft — What is DevOps?](https://learn.microsoft.com/en-us/devops/what-is-devops).
+
+[⬆ Go to top](#top)
 
 ## 10. DevSecOps
 
@@ -210,6 +249,8 @@ The job description lists these as examples; it does not require equal proficien
 
 **Source:** [Microsoft — Development and testing in DevSecOps](https://learn.microsoft.com/en-us/devops/devsecops/development-testing).
 
+[⬆ Go to top](#top)
+
 ## 11. Service discovery
 
 **Definition:** A mechanism that allows applications to locate the services they need.
@@ -224,6 +265,8 @@ The job description lists these as examples; it does not require equal proficien
 **Kubernetes example:** An application calls a Service DNS name while the pods behind that Service change over time.
 
 **Source:** [Kubernetes services and networking](https://kubernetes.io/docs/concepts/services-networking/).
+
+[⬆ Go to top](#top)
 
 ## 12. Load balancing
 
@@ -242,6 +285,8 @@ The job description lists these as examples; it does not require equal proficien
 Kubernetes Services and networking integrations provide mechanisms for reaching changing sets of application endpoints.
 
 **Source:** [Kubernetes services and networking](https://kubernetes.io/docs/concepts/services-networking/).
+
+[⬆ Go to top](#top)
 
 ## 13. Backup and disaster recovery
 
@@ -270,6 +315,8 @@ Kubernetes Services and networking integrations provide mechanisms for reaching 
 
 **Sources:** [AWS — Disaster recovery options in the cloud](https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-options-in-the-cloud.html), [AWS — Plan for disaster recovery](https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/plan-for-disaster-recovery-dr.html).
 
+[⬆ Go to top](#top)
+
 ## 14. Agile and Scrum
 
 **Agile definition:** An approach to delivery emphasizing collaboration, feedback, incremental progress, and adaptation.
@@ -291,6 +338,8 @@ Kubernetes Services and networking integrations provide mechanisms for reaching 
 
 **Source:** [The Scrum Guide](https://scrumguides.org/scrum-guide.html).
 
+[⬆ Go to top](#top)
+
 ## 15. SAFe — Scaled Agile Framework
 
 **Definition:** A framework for coordinating Lean and Agile delivery across multiple teams.
@@ -309,6 +358,8 @@ SAFe is intended to support Agile coordination beyond an individual team.
 
 **Source:** [Scaled Agile — Why SAFe?](https://scaledagile.com/what-is-safe/why-safe/).
 
+[⬆ Go to top](#top)
+
 ## 16. Architecture and cybersecurity reviews
 
 These are review activities mentioned in the job description.
@@ -319,3 +370,5 @@ These are review activities mentioned in the job description.
 | Cybersecurity review | Evaluates threats and security controls | Identity, least privilege, encryption, exposure, secrets, logging, vulnerabilities |
 
 **Interview example:** Bring a diagram showing components, data flows, trust boundaries, dependencies, and operational responsibilities, together with documented decisions and open risks.
+
+[⬆ Go to top](#top)
