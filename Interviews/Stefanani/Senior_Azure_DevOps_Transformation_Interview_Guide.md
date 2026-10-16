@@ -40,13 +40,10 @@ Position yourself around assessment, platform foundations, governance, automatio
 
 ### Q1 Tell me about yourself and your suitability for this role
 
-“I’m a cloud DevOps engineer and architect with over 14 years in IT and more than 12 years focused on cloud infrastructure, particularly AWS and Azure.
-
-At Truist, I developed reusable platform patterns and Azure landing-zone modules covering networking, identity, security, and delivery. I also used Azure DevOps and GitHub Actions to improve release workflows while retaining governance and auditability.
-
-Previously, at Regeneron, I designed secure cloud foundations with shared identity, private networking, and Terraform and Bicep automation.
-
-This opportunity interests me because it combines assessment, practical architecture, and hands-on implementation. I would focus on understanding existing dependencies, building a governed foundation in parallel, and enabling migration in manageable stages.”
+“I’m an Azure platform engineer with 14 years in IT and over a decade building and governing enterprise Azure estates. Most of my work has been walking into environments that grew organically and turning them into something consistent and code-managed: standard landing zones, naming and security baselines, and governance through Azure Policy, so new teams start from a secure, repeatable foundation instead of their own one-off setup.
+A lot of that has been in regulated, high-stakes places, banking at Truist, pharma at Regeneron, and energy at Southern Company, where the estate has to be auditable and the blast radius has to be controlled. At Regeneron in particular I was building the platform foundations for a research environment moving clinical and genomic data under strict controls, which is close to the kind of work you’re describing here.
+Day to day I live in Infrastructure as Code and CI/CD. I build reusable modules for landing zones, networking and identity, and I ship them through Azure DevOps and GitHub Actions with proper plan, review and approval gates. At Truist that approach cut our release cycle time by around 40% while keeping the audit trail regulators needed.
+What I like about this role is that it’s a transformation, not steady-state ops. Assess a messy estate, design a pragmatic target platform, build the Terraform foundations, and migrate workloads incrementally onto it. That’s the exact shape of work I’ve done before, and it’s what I’d bring here
 
 ### Q2 How would you assess our existing nine subscriptions
 
