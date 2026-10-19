@@ -27,6 +27,8 @@ STAR means **Situation, Task, Action, Result**.
 - [14. Describe a time you improved documentation and operational processes.](#14-describe-a-time-you-improved-documentation-and-operational-processes)
 - [15. Tell me about a time you overcame a technical challenge.](#15-tell-me-about-a-time-you-overcame-a-technical-challenge)
 - [16. Tell me about a time you restored a corrupted Terraform state file.](#16-tell-me-about-a-time-you-restored-a-corrupted-terraform-state-file)
+- [17. How did you standardize infrastructure provisioning at Citi?](#17-how-did-you-standardize-infrastructure-provisioning-at-citi)
+- [18. How did you embed security controls into deployment pipelines?](#18-how-did-you-embed-security-controls-into-deployment-pipelines)
 - [Preparation note](#preparation-note)
 
 ## 1. Tell me about a time you automated a manual infrastructure process.
@@ -218,6 +220,30 @@ STAR means **Situation, Task, Action, Result**.
 **Action:** I stopped all pipeline runs against the affected state and confirmed the lock so no other operation could run concurrently. Our state was stored in a versioned, encrypted S3 backend, so I pulled the last known-good object version and ran a plan to compare it against the live infrastructure. Where the plan still showed unexpected drift, I reconciled it by importing resources that existed in AWS but were missing from state, rather than applying blindly and risking deletion of resources that were still in use.
 
 **Result:** We recovered a state file that accurately reflected the environment without any production impact, and I documented the recovery steps as a runbook. Afterward, I tightened state-backend permissions and alerting so a partial apply would be caught and contained faster next time.
+
+[⬆ Go to top](#top)
+
+## 17. How did you standardize infrastructure provisioning at Citi?
+
+**Situation:** At Citibank, every team needed consistent access to the same core AWS services, but without a common pattern, provisioning was repeated and inconsistent across projects.
+
+**Task:** I needed to give teams a standardized, reviewed way to provision infrastructure instead of each team building it from scratch.
+
+**Action:** I built reusable Terraform modules and golden templates for VPC, EC2, ALB/Auto Scaling, RDS, S3, IAM, KMS, EKS, CloudWatch, EventBridge, and FSx, each with a single responsibility, validated inputs, and secure defaults. I integrated them into CI/CD pipelines — Jenkins, GitHub Actions, and Harness — with formatting, validation, security scanning, and a reviewed plan before an approved apply, and used Ansible for configuration management on top of the provisioned infrastructure.
+
+**Result:** Manual provisioning dropped by about 45%, and some deployments accelerated by up to 65%, while every environment followed the same reviewed, auditable path to production.
+
+[⬆ Go to top](#top)
+
+## 18. How did you embed security controls into deployment pipelines?
+
+**Situation:** At Citibank, security reviews were largely manual and happened late, after infrastructure and application changes were already built.
+
+**Task:** I needed security checks to be a standard, automatic part of every pipeline run instead of a separate manual gate at the end.
+
+**Action:** I added Checkov for Terraform misconfigurations, Trivy for container and dependency vulnerabilities, and SonarQube for static code analysis to every pull request. For infrastructure changes specifically, I added OPA and Sentinel policy-as-code checks against the Terraform plan output to catch issues like public S3 buckets, unencrypted volumes, overly broad IAM, or missing tags before deployment. Pipelines authenticated through OIDC with short-lived, role-scoped credentials instead of long-lived AWS keys, and production required a reviewed, saved plan plus an approval gate.
+
+**Result:** A noncompliant change could not merge or deploy, and every approved change left a complete, auditable trail of what was scanned, who approved it, and what was actually applied — security became the default path instead of an optional step.
 
 [⬆ Go to top](#top)
 
