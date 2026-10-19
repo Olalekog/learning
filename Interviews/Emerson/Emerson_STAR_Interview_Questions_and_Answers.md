@@ -26,6 +26,7 @@ STAR means **Situation, Task, Action, Result**.
 - [13. Tell me about a time you coordinated architecture and operational requirements.](#13-tell-me-about-a-time-you-coordinated-architecture-and-operational-requirements)
 - [14. Describe a time you improved documentation and operational processes.](#14-describe-a-time-you-improved-documentation-and-operational-processes)
 - [15. Tell me about a time you overcame a technical challenge.](#15-tell-me-about-a-time-you-overcame-a-technical-challenge)
+- [16. Tell me about a time you restored a corrupted Terraform state file.](#16-tell-me-about-a-time-you-restored-a-corrupted-terraform-state-file)
 - [Preparation note](#preparation-note)
 
 ## 1. Tell me about a time you automated a manual infrastructure process.
@@ -205,6 +206,18 @@ STAR means **Situation, Task, Action, Result**.
 **Action:** My troubleshooting covered GPU driver compatibility, CUDA runtime errors, container access to GPUs, scheduling failures, and storage throughput. I examined the relevant layers to isolate whether the issue came from the host, runtime, container, scheduler, or storage.
 
 **Result:** This work supported the operation of GPU-accelerated workloads and strengthened my ability to troubleshoot problems that span multiple infrastructure layers.
+
+[⬆ Go to top](#top)
+
+## 16. Tell me about a time you restored a corrupted Terraform state file.
+
+**Situation:** At Citibank, a Terraform apply was interrupted partway through, leaving the state file out of sync with the actual AWS resources for a shared infrastructure stack.
+
+**Task:** I needed to restore a reliable state before any team could safely run Terraform against that environment again.
+
+**Action:** I stopped all pipeline runs against the affected state and confirmed the lock so no other operation could run concurrently. Our state was stored in a versioned, encrypted S3 backend, so I pulled the last known-good object version and ran a plan to compare it against the live infrastructure. Where the plan still showed unexpected drift, I reconciled it by importing resources that existed in AWS but were missing from state, rather than applying blindly and risking deletion of resources that were still in use.
+
+**Result:** We recovered a state file that accurately reflected the environment without any production impact, and I documented the recovery steps as a runbook. Afterward, I tightened state-backend permissions and alerting so a partial apply would be caught and contained faster next time.
 
 [⬆ Go to top](#top)
 
