@@ -1708,16 +1708,6 @@ recurrence."
 
 [Back to top](#top)
 
-<a id="q64"></a>
-
-## 64 How would you assess a native-to-React-Native migration?
-
-**General engineering answer**
-
-“I would assess the motivation for moving to React Native, the existing native capabilities, team skills, performance requirements, and integration costs. A shared codebase can simplify some cross-platform work, but platform-specific features may still require native implementation. I would validate a representative feature before recommending a migration. This is general engineering knowledge, not a claim of React Native delivery in my cloud-platform roles.”
-
-[Back to top](#top)
-
 <a id="q65"></a>
 
 ## 65 How do you work within Agile and Scrum practices?
@@ -1745,49 +1735,6 @@ recurrence."
 > between pieces, before picking specific technology, and write the
 > tradeoffs down as part of the design, not just the final diagram, so
 > a future reader understands why, not just what."
-
-[Back to top](#top)
-
-<a id="q67"></a>
-
-## 67 What are reusable components used for?
-
-**General engineering answer**
-
-> "Consistency, so the same control behaves and looks the same
-> everywhere; velocity, so teams aren't re-solving the same UI problem
-> repeatedly; and a single place to fix a bug or accessibility issue
-> instead of N places."
-
-[Back to top](#top)
-
-<a id="q68"></a>
-
-## 68 How do you respond when developers want to bypass a shared component?
-
-**General engineering answer**
-
-> "First I understand why — is the shared component genuinely missing a
-> capability they need, or is it a preference or unfamiliarity issue?
-> If it's a real gap, that's useful signal to extend the shared
-> library. If it's preference, I'll explain the maintenance cost of a
-> one-off — no shared bug fixes, inconsistent behavior — and work with
-> them to close the actual gap instead of shipping a duplicate."
-
-[Back to top](#top)
-
-<a id="q69"></a>
-
-## 69 What is module federation?
-
-**General engineering answer**
-
-> "It's a micro-frontend technique, popularized by Webpack Module
-> Federation, that lets independently built and deployed applications
-> share code — components, whole features — at runtime instead of at
-> build time. It means separate teams can ship on their own schedules
-> while still consuming a shared design system or feature module,
-> without every app having to duplicate that code in its own bundle."
 
 [Back to top](#top)
 
@@ -1832,29 +1779,6 @@ recurrence."
 > real focus time is exactly the slot where a small, concrete team
 > improvement is most likely to actually ship rather than stay a good
 > intention."
-
-[Back to top](#top)
-
-<a id="q73"></a>
-
-## 73 Describe identity-engineering work with Entra ID and Conditional Access.
-
-**Source-provided draft — specific role, team, and incident details require confirmation**
-
-> "I configured Conditional Access policies in Microsoft Entra ID
-> requiring both multi-factor authentication and device registration
-> before granting access — so authentication verified both the person
-> and the device, not just one or the other. MFA alone confirms the
-> user; device registration confirms the endpoint is one the
-> organization actually recognizes and trusts. Requiring both together
-> closes a gap that either policy alone leaves open — a compromised
-> credential with MFA satisfied on an unmanaged, unknown device is
-> still a real risk that device-based conditions catch."
-
-**Known gap**: no specifics on environment scale, a concrete incident
-or audit driver, or outcomes/metrics — the first likely follow-up
-("what problem did this actually solve, and how do you know it
-worked?") isn't yet answerable from what's been provided.
 
 [Back to top](#top)
 
@@ -1945,116 +1869,7 @@ piece of feedback that changed how someone worked. The answer describes
 the *conditions* well but doesn't yet prove them with a real story. If
 you have one, share it and this becomes a much stronger answer.
 
-[Back to top](#top)
 
-<a id="q78"></a>
-
-## 78 Describe a GitOps incident involving Argo CD self-healing.
-
-**Source-provided draft — specific role, team, and incident details require confirmation**
-
-> "At Truist Bank, during an incident on one of our GitOps-managed
-> services, someone on the team pushed a quick manual `kubectl` fix
-> straight to the cluster to stop the bleeding — and Argo CD's
-> self-heal quietly reverted it back to whatever Git said a few minutes
-> later, because as far as Argo CD was concerned, the live cluster had
-> drifted from the source of truth and its job was to correct that
-> drift. We spent precious minutes confused about why a fix that worked
-> kept undoing itself. Once we recognized what was happening, the
-> actual fix was to pause auto-sync on that application first, apply
-> the mitigation, then land the real fix in Git and let Argo CD resync
-> normally instead of fighting it. Afterward, the lasting change was
-> making 'pause sync before any manual cluster intervention' a
-> documented first step in our incident runbook, so GitOps
-> self-healing works for us during an incident instead of against us."
-
-[Back to top](#top)
-
-<a id="q79"></a>
-
-## 79 Describe an incident involving repeated pod restarts.
-
-**Source-provided draft — specific role, team, and incident details require confirmation**
-
-> "At Truist Bank, we had a service where pods kept flip-flopping —
-> cycling between Running and CrashLoopBackOff instead of settling —
-> and it wasn't a scheduling problem, the pods were landing on nodes
-> fine. The liveness probe was configured with a timeout too tight for
-> the app's real behavior under load, so under normal traffic the pod
-> would occasionally miss the probe window, get killed as unhealthy,
-> restart, and repeat the cycle — Kubernetes was doing exactly what it
-> was told, the instruction itself was wrong. I compared probe timeout
-> and failure-threshold settings against the app's actual observed
-> response times under load rather than its response time at idle,
-> widened both to match reality, and separated the liveness probe from
-> the readiness probe so a slow response affected traffic routing
-> before it ever triggered a restart. That stopped the cycling
-> immediately, and it became a standard review item — check probe
-> settings against real load behavior, not development defaults —
-> before any service went to production."
-
-[Back to top](#top)
-
-<a id="q80"></a>
-
-## 80 Describe an Azure DevOps pipeline configuration incident.
-
-**Source-provided draft — specific role, team, and incident details require confirmation**
-
-> "At Truist Bank, a release through our Azure DevOps pipeline let a
-> build with an outdated configuration reach production because a
-> variable-group change meant for a lower environment got picked up by
-> the production stage too — the pipeline didn't fail, it just
-> deployed the wrong configuration cleanly. Once we traced it back to
-> that shared variable group, the immediate fix was rolling the
-> deployment back to the last known-good release and correcting the
-> variable scoping. The real fix was structural: I split variable
-> groups so production had its own isolated scope that nothing in a
-> lower environment could touch, and added an explicit
-> configuration-diff check as an approval gate before the production
-> stage could run, so a mismatch like that would block the pipeline
-> instead of deploying successfully. A pipeline that deploys without
-> error isn't the same as a pipeline that deployed the right thing —
-> that gap is what the added gate closed."
-
-[Back to top](#top)
-
-<a id="q81"></a>
-
-## 81 Describe Pending pods caused by an autoscaler capacity ceiling.
-
-**Source-provided draft — specific role, team, and incident details require confirmation**
-
-> "At Truist Bank, a scaled-up deployment left new pods stuck Pending
-> instead of coming up. `kubectl describe` on the stuck pods pointed
-> straight at it — 'Insufficient cpu' — the cluster didn't have room to
-> schedule them. That should have triggered the cluster autoscaler to
-> bring up a new worker node, but it hadn't; checking the autoscaler
-> showed the node pool was already pinned at its configured maximum, so
-> it had no headroom left to scale into even though it was correctly
-> detecting the unschedulable pods. I raised the max node count, let
-> the autoscaler add capacity, and the pods scheduled cleanly against
-> real headroom instead of a capacity ceiling nobody had revisited
-> since the pool was first sized. Afterward, I added alerting on
-> pending-pod count and on the autoscaler sitting at its max, so that
-> ceiling gets caught by a page instead of by a customer-facing
-> symptom the next time traffic grows past what the pool was sized
-> for."
-
-**Known gap on all four above**: built directly from the technical
-details provided in chat (GitOps via Argo CD, an Azure DevOps pipeline,
-pods flip-flopping, and a cluster autoscaler pinned at its configured
-max), and attributed to Truist Bank at your direction since it's the
-resume's Kubernetes-heaviest, Azure-DevOps-driven environment (dual
-EKS/AKS clusters) — but Argo CD/GitOps specifically isn't part of that
-resume's documented CI/CD stack (Azure DevOps, GitHub Actions, AWS
-CodePipeline), consistent with the note on
-[Adopting Argo CD](#q4) above. Each is written as a
-distinct, self-contained incident rather than one combined story. Still
-missing for all four: a real timeline and any actual metrics (how long
-before caught, blast radius, MTTR) — fill those in, or be ready to say
-plainly these are technically-grounded illustrative answers rather than
-verified past incidents if asked directly.
 
 [Back to top](#top)
 
