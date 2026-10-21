@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interview Copilot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: control rail on the left (transcript + background), the answer owns the main column. */
+:root {
+  --bg: #f3f4f7; --panel: #ffffff; --ink: #161b26; --muted: #5b6475; --line: #dde1e9;
+  --accent: #2f5bd3; --accent-soft: #e6ecfb; --live: #d33a3a; --live-soft: #fbe7e7; --ok: #1f8a5b;
+  --code-bg: #eef0f5;
+  --f-body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f131b; --panel: #171c27; --ink: #e8ebf2; --muted: #9aa3b5; --line: #283042;
+  --accent: #7d9cff; --accent-soft: #1d2640; --live: #ff6b6b; --live-soft: #3a1d22; --ok: #4cc38a;
+  --code-bg: #212839; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0f131b; --panel: #171c27; --ink: #e8ebf2; --muted: #9aa3b5; --line: #283042;
+  --accent: #7d9cff; --accent-soft: #1d2640; --live: #ff6b6b; --live-soft: #3a1d22; --ok: #4cc38a;
+  --code-bg: #212839; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--f-body); }
+button, input, select, textarea { font: inherit; color: inherit; }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 20px 16px 40px; display: grid; gap: 18px; }
+
+header { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+header h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
+.pill { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 999px;
+  font-size: 13px; font-weight: 600; background: var(--line); color: var(--muted); }
+.pill .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.pill.live { background: var(--live-soft); color: var(--live); }
+.pill.live .dot { animation: pulse 1.2s infinite; }
+.pill.think { background: var(--accent-soft); color: var(--accent); }
+@keyframes pulse { 50% { opacity: .25; } }
+.meta { margin-left: auto; font: 12px var(--f-mono); color: var(--muted); }
+
+.grid { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 18px; align-items: start; }
+.col { display: grid; gap: 18px; min-width: 0; }
+/* Phone: one column, with the answer right under the listening controls. */
+@media (max-width: 860px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .col { display: contents; }
+  #pListen { order: 1; } #pAnswer { order: 2; } #pAsk { order: 3; } #pHistory { order: 4; } #pProfile { order: 5; }
+  .wrap { padding-top: 12px; gap: 12px; }
+  .btn { padding: 11px 16px; }
+  .answer { font-size: 17px; }
+  .answer-card { padding: 16px; }
+  .meta { margin-left: 0; width: 100%; }
+}
+@media (hover: none) { kbd, .key-hint { display: none; } }
+.code-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.code-form input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); padding: 9px 10px; font: 16px var(--f-mono); letter-spacing: .1em; }
+.code-form p { width: 100%; margin: 0; font-size: 14px; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; min-width: 0; }
+.panel h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 10px; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 8px 14px; cursor: pointer; font-weight: 600; }
+.btn:hover { border-color: var(--muted); }
+.btn:focus-visible, textarea:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.stop { background: var(--live); border-color: var(--live); color: #fff; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+kbd { font: 11px var(--f-mono); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; color: var(--muted); }
+
+.transcript { min-height: 110px; max-height: 220px; overflow-y: auto; margin-top: 12px; padding: 10px 12px;
+  background: var(--bg); border-radius: 8px; font-size: 15px; }
+.transcript .interim { color: var(--muted); }
+.transcript .empty { color: var(--muted); font-style: italic; }
+
+.row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; font-size: 14px; color: var(--muted); }
+.row label { display: inline-flex; align-items: center; gap: 6px; }
+.row input[type=range] { width: 110px; }
+.row output { font: 12px var(--f-mono); }
+
+textarea { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); padding: 10px; resize: vertical; }
+#profile { min-height: 150px; font-size: 14px; }
+.ask { display: flex; gap: 8px; margin-top: 4px; }
+.ask input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); padding: 8px 10px; }
+.hint { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+
+.answer-card { padding: 22px; }
+.q { font-size: 14px; color: var(--muted); margin: 0 0 12px; }
+.q strong { color: var(--ink); font-weight: 600; }
+.answer { font-size: 19px; line-height: 1.6; max-width: 70ch; }
+.answer p { margin: 0 0 .7em; }
+.answer ul, .answer ol { margin: 0 0 .7em; padding-left: 1.3em; }
+.answer li { margin: .25em 0; }
+.answer code { font: .85em var(--f-mono); background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+.answer pre { background: var(--code-bg); padding: 12px; border-radius: 8px; overflow-x: auto; font-size: 14px; }
+.answer pre code { background: none; padding: 0; }
+.answer.empty { color: var(--muted); font-size: 16px; }
+.cursor::after { content: "▍"; color: var(--accent); animation: pulse 1s infinite; }
+
+.history { display: grid; gap: 10px; }
+.hist { border-top: 1px solid var(--line); padding-top: 10px; }
+.hist:first-child { border-top: 0; padding-top: 0; }
+.hist summary { cursor: pointer; font-weight: 600; }
+.hist .answer { font-size: 15px; margin-top: 8px; }
+.banner { border-radius: 10px; padding: 10px 14px; background: var(--live-soft); color: var(--ink); font-size: 14px; }
+.banner[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { .pill.live .dot, .cursor::after { animation: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Interview Copilot</h1>
+    <span id="status" class="pill"><span class="dot"></span><span id="statusText">Not listening</span></span>
+    <span id="meta" class="meta"></span>
+  </header>
+
+  <div id="warn" class="banner" hidden></div>
+
+  <form id="codeForm" class="panel code-form" hidden>
+    <p>Enter the access code shown in the window where you started the server.</p>
+    <input id="codeInput" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Access code" aria-label="Access code">
+    <button class="btn primary" type="submit">Unlock</button>
+  </form>
+
+  <div class="grid">
+    <div class="col">
+      <section class="panel" id="pListen">
+        <h2>Listening</h2>
+        <div class="controls">
+          <button id="listenBtn" class="btn primary">Start listening</button>
+          <button id="answerBtn" class="btn" title="Answer what was heard so far">Answer now <kbd>Space</kbd></button>
+          <button id="clearBtn" class="btn">Clear</button>
+        </div>
+        <div id="transcript" class="transcript" aria-live="polite"><span class="empty">The interviewer's words appear here.</span></div>
+        <div class="row">
+          <label><input id="auto" type="checkbox" checked> Auto-answer after a pause of</label>
+          <input id="pause" type="range" min="0.8" max="4" step="0.2" value="1.8" aria-label="Pause length in seconds">
+          <output id="pauseOut">1.8 s</output>
+        </div>
+        <div class="row">
+          <label>Language
+            <select id="lang">
+              <option value="en-US">English (US)</option>
+              <option value="en-GB">English (UK)</option>
+              <option value="en-IN">English (India)</option>
+              <option value="en-NG">English (Nigeria)</option>
+              <option value="fr-FR">French</option>
+              <option value="es-ES">Spanish</option>
+              <option value="de-DE">German</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="panel" id="pAsk">
+        <h2>Type a question instead</h2>
+        <form id="askForm" class="ask">
+          <input id="askInput" placeholder="e.g. Why do you want to work here?" autocomplete="off">
+          <button class="btn" type="submit">Ask</button>
+        </form>
+      </section>
+
+      <section class="panel" id="pProfile">
+        <h2>Your background</h2>
+        <textarea id="profile" placeholder="Paste your resume summary, the job title, the company and anything you want answers to draw on.
+Example:
+Role: Senior Data Analyst at Acme Bank
+Me: 5 years in SQL, Python, Power BI. Led a churn dashboard that cut reporting time 40%..."></textarea>
+        <p class="hint">Saved in this browser only. Sent with each question so answers sound like you.</p>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel answer-card" id="pAnswer">
+        <h2>Suggested answer</h2>
+        <p id="curQ" class="q" hidden></p>
+        <div id="answer" class="answer empty">Press <strong>Start listening</strong> and let the interviewer talk. When they pause, a suggested answer streams in here. Tap <strong>Answer now</strong><span class="key-hint"> (or press <kbd>Space</kbd>)</span> to answer immediately.</div>
+      </section>
+      <section class="panel" id="pHistory">
+        <h2>Earlier questions</h2>
+        <div id="history" class="history"><p class="hint" id="histEmpty">Questions and answers from this session collect here.</p></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+};
+
+// ---------- State ----------
+let listening = false, recog = null, finalText = "", interimText = "";
+let silenceTimer = null, controller = null;
+const history = []; // {q, a}
+
+// ---------- Settings ----------
+$("profile").value = store.get("ic.profile", "");
+$("profile").addEventListener("input", () => store.set("ic.profile", $("profile").value));
+$("lang").value = store.get("ic.lang", "en-US");
+$("lang").addEventListener("change", () => { store.set("ic.lang", $("lang").value); if (listening) { stopListening(); startListening(); } });
+$("pause").value = store.get("ic.pause", "1.8");
+$("auto").checked = store.get("ic.auto", "1") === "1";
+const showPause = () => $("pauseOut").textContent = Number($("pause").value).toFixed(1) + " s";
+showPause();
+$("pause").addEventListener("input", () => { showPause(); store.set("ic.pause", $("pause").value); });
+$("auto").addEventListener("change", () => store.set("ic.auto", $("auto").checked ? "1" : "0"));
+
+function setStatus(kind, text) {
+  $("status").className = "pill" + (kind ? " " + kind : "");
+  $("statusText").textContent = text;
+}
+function warn(msg) { $("warn").hidden = !msg; $("warn").textContent = msg || ""; }
+
+// ---------- Access code (only needed when the server sets ACCESS_CODE) ----------
+let accessCode = store.get("ic.code", "");
+const authHeaders = () => (accessCode ? { "X-Access-Code": accessCode } : {});
+function needCode(msg) {
+  $("codeForm").hidden = false;
+  if (msg) warn(msg);
+  $("codeInput").focus();
+}
+$("codeForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  accessCode = $("codeInput").value.trim();
+  store.set("ic.code", accessCode);
+  checkStatus();
+});
+
+function checkStatus() {
+  fetch("/status", { headers: authHeaders() }).then(async r => {
+    if (r.status === 401) { needCode(accessCode ? "That access code didn't work. Check it and try again." : ""); return; }
+    const s = await r.json();
+    $("codeForm").hidden = true;
+    warn("");
+    $("meta").textContent = s.model + " · effort " + s.effort;
+    if (!s.key_configured) warn("No API key found. Set ANTHROPIC_API_KEY before starting the server, then restart it.");
+    if (SR && !window.isSecureContext) warn("The microphone only works on https:// links or on the PC itself. Use the tunnel link from start-mobile.bat, or tap the keyboard's mic and dictate into “Type a question”.");
+  }).catch(() => warn("Can't reach the server. Make sure it's still running on your PC."));
+}
+
+// ---------- Keep the phone screen awake while listening ----------
+let wakeLock = null;
+async function keepAwake(on) {
+  try {
+    if (on && !wakeLock && "wakeLock" in navigator) {
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => { wakeLock = null; });
+    } else if (!on && wakeLock) { await wakeLock.release(); wakeLock = null; }
+  } catch {}
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && listening) keepAwake(true); });
+
+// ---------- Speech recognition ----------
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (!SR) {
+  $("listenBtn").disabled = true;
+  warn("This browser has no speech recognition. Open the page in Google Chrome or Microsoft Edge. You can still type questions.");
+}
+
+function renderTranscript() {
+  const t = $("transcript");
+  if (!finalText && !interimText) { t.innerHTML = '<span class="empty">The interviewer\'s words appear here.</span>'; return; }
+  t.textContent = finalText;
+  if (interimText) { const s = document.createElement("span"); s.className = "interim"; s.textContent = " " + interimText; t.appendChild(s); }
+  t.scrollTop = t.scrollHeight;
+}
+
+function startListening() {
+  if (!SR) return;
+  recog = new SR();
+  recog.continuous = true;
+  recog.interimResults = true;
+  recog.lang = $("lang").value;
+  recog.onresult = (e) => {
+    interimText = "";
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const r = e.results[i];
+      if (r.isFinal) finalText = (finalText + " " + r[0].transcript).trim();
+      else interimText += r[0].transcript;
+    }
+    renderTranscript();
+    // New speech while an answer streams = interviewer still talking; keep the answer, just restart the pause timer.
+    clearTimeout(silenceTimer);
+    if ($("auto").checked) silenceTimer = setTimeout(autoAnswer, Number($("pause").value) * 1000);
+  };
+  recog.onerror = (e) => {
+    if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+      warn("Microphone access was blocked. Allow the microphone for this page in the browser's address bar, then press Start listening.");
+      stopListening();
+    } else if (e.error === "network") {
+      warn("Speech recognition needs an internet connection (Chrome/Edge send audio to their speech service).");
+    }
+  };
+  recog.onend = () => { if (listening) { try { recog.start(); } catch {} } }; // browsers stop after silence; keep going
+  try { recog.start(); } catch {}
+  listening = true;
+  $("listenBtn").textContent = "Stop listening";
+  $("listenBtn").className = "btn stop";
+  setStatus("live", "Listening");
+  keepAwake(true);
+}
+
+function stopListening() {
+  listening = false;
+  clearTimeout(silenceTimer);
+  if (recog) { recog.onend = null; try { recog.stop(); } catch {} recog = null; }
+  $("listenBtn").textContent = "Start listening";
+  $("listenBtn").className = "btn primary";
+  setStatus("", "Not listening");
+  keepAwake(false);
+}
+
+$("listenBtn").addEventListener("click", () => listening ? stopListening() : startListening());
+$("clearBtn").addEventListener("click", () => { finalText = ""; interimText = ""; renderTranscript(); });
+
+function heardText() { return (finalText + " " + interimText).trim(); }
+function autoAnswer() {
+  const q = heardText();
+  if (q.split(/\s+/).length >= 3) answer(q);
+}
+$("answerBtn").addEventListener("click", () => { const q = heardText(); if (q) answer(q); });
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space" && !["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(document.activeElement.tagName)) {
+    e.preventDefault(); const q = heardText(); if (q) answer(q);
+  }
+});
+$("askForm").addEventListener("submit", (e) => {
+  e.preventDefault(); const q = $("askInput").value.trim(); if (q) { $("askInput").value = ""; answer(q); }
+});
+
+// ---------- Tiny Markdown renderer (escaped first, so model text can't inject HTML) ----------
+function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function inline(s) {
+  return s.replace(/`([^`]+)`/g, "<code>$1</code>")
+          .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+          .replace(/(^|[^*])\*([^*\s][^*]*)\*/g, "$1<em>$2</em>")
+          .replace(/(^|\W)_([^_]+)_(?=\W|$)/g, "$1<em>$2</em>");
+}
+function md(src) {
+  const out = []; let list = null; let code = null;
+  const close = () => { if (list) { out.push(`</${list}>`); list = null; } };
+  for (const raw of esc(src).split("\n")) {
+    if (raw.trim().startsWith("```")) {
+      if (code !== null) { out.push(`<pre><code>${code}</code></pre>`); code = null; } else { close(); code = ""; }
+      continue;
+    }
+    if (code !== null) { code += raw + "\n"; continue; }
+    const ul = raw.match(/^\s*[-*•]\s+(.*)/), ol = raw.match(/^\s*\d+[.)]\s+(.*)/);
+    if (ul || ol) {
+      const tag = ul ? "ul" : "ol";
+      if (list !== tag) { close(); out.push(`<${tag}>`); list = tag; }
+      out.push(`<li>${inline((ul || ol)[1])}</li>`);
+    } else if (raw.trim()) {
+      close(); out.push(`<p>${inline(raw.replace(/^#+\s*/, ""))}</p>`);
+    } else close();
+  }
+  if (code !== null) out.push(`<pre><code>${code}</code></pre>`);
+  close();
+  return out.join("");
+}
+
+// ---------- Ask Claude ----------
+function archiveCurrent() {
+  const q = $("curQ").dataset.q, a = $("answer").dataset.a;
+  if (!q || !a) return;
+  history.push({ q, a });
+  $("histEmpty")?.remove();
+  const d = document.createElement("details");
+  d.className = "hist";
+  const s = document.createElement("summary"); s.textContent = q;
+  const body = document.createElement("div"); body.className = "answer"; body.innerHTML = md(a);
+  d.append(s, body);
+  $("history").prepend(d);
+}
+
+async function answer(question) {
+  clearTimeout(silenceTimer);
+  if (controller) controller.abort();          // a newer question replaces an unfinished answer
+  else archiveCurrent();
+  finalText = ""; interimText = ""; renderTranscript();
+
+  controller = new AbortController();
+  const mine = controller;
+  $("curQ").hidden = false;
+  $("curQ").innerHTML = "<strong>Question:</strong> ";
+  $("curQ").append(question);
+  $("curQ").dataset.q = question;
+  const box = $("answer");
+  box.className = "answer cursor"; box.textContent = ""; box.dataset.a = "";
+  setStatus("think", "Writing answer…");
+
+  let text = "";
+  try {
+    const res = await fetch("/answer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders() },
+      body: JSON.stringify({ question, profile: $("profile").value, history: history.slice(-4) }),
+      signal: mine.signal,
+    });
+    if (res.status === 401) needCode();
+    if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(j.error || "Server error " + res.status); }
+    const reader = res.body.getReader(), dec = new TextDecoder();
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      text += dec.decode(value, { stream: true });
+      box.innerHTML = md(text); box.dataset.a = text;
+    }
+  } catch (err) {
+    if (err.name === "AbortError") return;
+    const msg = err instanceof TypeError ? "Can't reach the local server. Is `python server.py` still running?" : err.message;
+    text += (text ? "\n\n" : "") + "**Error:** " + msg;
+    box.innerHTML = md(text);
+  } finally {
+    if (controller === mine) {
+      controller = null;
+      box.className = "answer";
+      if (listening) setStatus("live", "Listening"); else setStatus("", "Not listening");
+    }
+  }
+}
+
+checkStatus();
+</script>
+</body>
+</html>
