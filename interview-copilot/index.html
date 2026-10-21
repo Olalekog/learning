@@ -84,6 +84,14 @@ kbd { font: 11px var(--f-mono); border: 1px solid var(--line); border-radius: 4p
 
 textarea { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); padding: 10px; resize: vertical; }
 #profile { min-height: 150px; font-size: 14px; }
+#role { min-height: 70px; font-size: 14px; }
+#stories { min-height: 240px; font: 13px/1.5 var(--f-mono); }
+.field { display: grid; gap: 8px; }
+.field + .field { margin-top: 16px; }
+.lbl { font-weight: 600; font-size: 14px; }
+.inline { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.inline select { flex: 1 1 180px; min-width: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); padding: 8px; }
+label.btn { display: inline-block; }
 .ask { display: flex; gap: 8px; margin-top: 4px; }
 .ask input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); padding: 8px 10px; }
 .hint { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
@@ -166,12 +174,29 @@ textarea { width: 100%; border: 1px solid var(--line); border-radius: 8px; backg
       </section>
 
       <section class="panel" id="pProfile">
-        <h2>Your background</h2>
-        <textarea id="profile" placeholder="Paste your resume summary, the job title, the company and anything you want answers to draw on.
-Example:
-Role: Senior Data Analyst at Acme Bank
-Me: 5 years in SQL, Python, Power BI. Led a churn dashboard that cut reporting time 40%..."></textarea>
-        <p class="hint">Saved in this browser only. Sent with each question so answers sound like you.</p>
+        <h2>Your resume &amp; stories</h2>
+        <div class="field">
+          <label class="lbl" for="resumePick">1. Resume</label>
+          <div class="inline">
+            <select id="resumePick" aria-label="Resume from your Resume folder"><option value="">Choose from your Resume folder…</option></select>
+            <button id="loadResume" class="btn" type="button">Load</button>
+            <label class="btn" for="resumeFile">Upload file</label>
+            <input type="file" id="resumeFile" accept=".docx,.pdf,.txt,.md" hidden>
+          </div>
+          <textarea id="profile" placeholder="Load or upload your resume, or paste it here."></textarea>
+          <p class="hint" id="resumeInfo">Answers only use facts from this resume.</p>
+        </div>
+        <div class="field">
+          <label class="lbl" for="role">2. Job you're interviewing for</label>
+          <textarea id="role" placeholder="Job title, company and the key parts of the job description. Used to pick the most relevant stories."></textarea>
+        </div>
+        <div class="field">
+          <label class="lbl" for="stories">3. STAR story bank</label>
+          <div class="inline"><button id="buildStories" class="btn primary" type="button">Build story bank from resume</button></div>
+          <textarea id="stories" placeholder="Your STAR stories appear here. Behavioral and leadership answers are built from them."></textarea>
+          <p class="hint" id="storyInfo">Read it once before the interview and replace any <strong>[fill in: …]</strong> with your real details. You can edit anything.</p>
+        </div>
+        <p class="hint">Everything here is saved in this browser only.</p>
       </section>
     </div>
 
@@ -202,8 +227,10 @@ let silenceTimer = null, controller = null;
 const history = []; // {q, a}
 
 // ---------- Settings ----------
-$("profile").value = store.get("ic.profile", "");
-$("profile").addEventListener("input", () => store.set("ic.profile", $("profile").value));
+for (const [id, key] of [["profile", "ic.profile"], ["role", "ic.role"], ["stories", "ic.stories"]]) {
+  $(id).value = store.get(key, "");
+  $(id).addEventListener("input", () => store.set(key, $(id).value));
+}
 $("lang").value = store.get("ic.lang", "en-US");
 $("lang").addEventListener("change", () => { store.set("ic.lang", $("lang").value); if (listening) { stopListening(); startListening(); } });
 $("pause").value = store.get("ic.pause", "1.8");
@@ -242,6 +269,8 @@ function checkStatus() {
     warn("");
     $("meta").textContent = s.model + " · effort " + s.effort;
     if (!s.key_configured) warn("No API key found. Set ANTHROPIC_API_KEY before starting the server, then restart it.");
+    else if (s.key_status === "rejected") warn("Claude rejected the API key the server was started with. Create a new key at console.anthropic.com (Settings → API Keys), copy all of it, then close the server window and start it again.");
+    loadResumeList();
     if (SR && !window.isSecureContext) warn("The microphone only works on https:// links or on the PC itself. Use the tunnel link from start-mobile.bat, or tap the keyboard's mic and dictate into “Type a question”.");
   }).catch(() => warn("Can't reach the server. Make sure it's still running on your PC."));
 }
@@ -402,7 +431,8 @@ async function answer(question) {
     const res = await fetch("/answer", {
       method: "POST",
       headers: { "Content-Type": "application/json", ...authHeaders() },
-      body: JSON.stringify({ question, profile: $("profile").value, history: history.slice(-4) }),
+      body: JSON.stringify({ question, profile: $("profile").value, role: $("role").value,
+                             stories: $("stories").value, history: history.slice(-4) }),
       signal: mine.signal,
     });
     if (res.status === 401) needCode();
@@ -427,6 +457,89 @@ async function answer(question) {
     }
   }
 }
+
+// ---------- Resume: pick from the Resume folder or upload ----------
+const words = (t) => t.trim().split(/\s+/).filter(Boolean).length.toLocaleString();
+function setResume(text, source) {
+  $("profile").value = text;
+  store.set("ic.profile", text);
+  $("resumeInfo").textContent = `Loaded ${source} (${words(text)} words).` +
+    ($("stories").value.trim() ? " Rebuild the story bank so it matches this resume." : " Next, build your story bank.");
+}
+async function loadResumeList() {
+  try {
+    const r = await fetch("/resumes", { headers: authHeaders() });
+    if (!r.ok) return;
+    const { files } = await r.json();
+    const pick = $("resumePick");
+    pick.length = 1;
+    for (const f of files) pick.add(new Option(f, f));
+    pick.options[0].text = files.length ? "Choose from your Resume folder…" : "No Resume folder found - upload instead";
+    const saved = store.get("ic.resumeName", "");
+    if (files.includes(saved)) pick.value = saved;
+  } catch {}
+}
+$("loadResume").addEventListener("click", async () => {
+  const name = $("resumePick").value;
+  if (!name) { $("resumeInfo").textContent = "Choose a resume from the list first."; return; }
+  store.set("ic.resumeName", name);
+  $("resumeInfo").textContent = "Loading…";
+  try {
+    const r = await fetch("/resume?name=" + encodeURIComponent(name), { headers: authHeaders() });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error);
+    setResume(j.text, name);
+  } catch (e) { $("resumeInfo").textContent = e.message || "Couldn't load that resume."; }
+});
+$("resumeFile").addEventListener("change", async () => {
+  const file = $("resumeFile").files[0];
+  if (!file) return;
+  $("resumeInfo").textContent = "Reading " + file.name + "…";
+  try {
+    const r = await fetch("/extract", { method: "POST", body: await file.arrayBuffer(),
+      headers: { "X-Filename": file.name, "Content-Type": "application/octet-stream", ...authHeaders() } });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error);
+    setResume(j.text, file.name);
+  } catch (e) { $("resumeInfo").textContent = e.message || "Couldn't read that file."; }
+  $("resumeFile").value = "";
+});
+
+// ---------- STAR story bank ----------
+let storyController = null;
+$("buildStories").addEventListener("click", async () => {
+  if (storyController) { storyController.abort(); return; }   // second click = stop
+  if (!$("profile").value.trim()) { $("storyInfo").textContent = "Add your resume first (step 1)."; return; }
+  storyController = new AbortController();
+  const btn = $("buildStories"), box = $("stories");
+  btn.textContent = "Stop";
+  $("storyInfo").textContent = "Writing your stories… this takes about a minute.";
+  box.value = "";
+  try {
+    const res = await fetch("/stories", {
+      method: "POST", signal: storyController.signal,
+      headers: { "Content-Type": "application/json", ...authHeaders() },
+      body: JSON.stringify({ profile: $("profile").value, role: $("role").value }),
+    });
+    if (res.status === 401) needCode();
+    if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(j.error || "Server error " + res.status); }
+    const reader = res.body.getReader(), dec = new TextDecoder();
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      box.value += dec.decode(value, { stream: true });
+      box.scrollTop = box.scrollHeight;
+    }
+    const gaps = (box.value.match(/\[fill in:/gi) || []).length;
+    $("storyInfo").innerHTML = "Done. " + (gaps ? `<strong>${gaps} [fill in: …]</strong> gaps to complete with your real details.` : "Read it through once before the interview.");
+  } catch (e) {
+    $("storyInfo").textContent = e.name === "AbortError" ? "Stopped." : (e instanceof TypeError ? "Can't reach the server." : e.message);
+  } finally {
+    store.set("ic.stories", box.value);
+    btn.textContent = "Build story bank from resume";
+    storyController = null;
+  }
+});
 
 checkStatus();
 </script>
