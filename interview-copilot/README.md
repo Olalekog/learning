@@ -29,6 +29,9 @@ The server still runs on your PC; your phone opens it through a secure link.
 3. Enter the **access code** shown in the window. The phone remembers it.
 
 Notes:
+- The phone and laptop stay in sync: a question asked on either one shows up, with its answer, on
+  every device that has the page open ("● Synced" at the top). History, resume, job and story bank
+  are shared too (saved in `data/profile.json` on your PC). **New interview** clears history everywhere.
 - The access code is created once and kept in `access-code.txt`. Delete that file to get a new code.
 - The link changes each time you run `start-mobile.bat`. Your PC must stay on and awake.
 - Phones only allow the microphone on `https://` pages, which is why the tunnel is used.
