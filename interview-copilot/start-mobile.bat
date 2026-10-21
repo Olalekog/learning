@@ -7,8 +7,9 @@ rem ---- 1. Python environment (first run only) ----
 if not exist ".venv\Scripts\python.exe" (
   echo Setting up for first run...
   python -m venv .venv
-  ".venv\Scripts\python.exe" -m pip install -q -r requirements.txt
 )
+rem keep libraries up to date (quick when nothing changed)
+".venv\Scripts\python.exe" -m pip install -q --disable-pip-version-check -r requirements.txt
 
 rem ---- 2. API key ----
 if "%ANTHROPIC_API_KEY%"=="" (
