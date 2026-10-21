@@ -85,6 +85,11 @@ kbd { font: 11px var(--f-mono); border: 1px solid var(--line); border-radius: 4p
 textarea { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); padding: 10px; resize: vertical; }
 #profile { min-height: 150px; font-size: 14px; }
 #role { min-height: 70px; font-size: 14px; }
+.sync { font-size: 12px; color: var(--muted); }
+.sync.on { color: var(--ok); }
+.hist-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.hist-head h2 { margin: 0; }
+.btn.small { padding: 4px 10px; font-size: 13px; }
 #stories { min-height: 240px; font: 13px/1.5 var(--f-mono); }
 .field { display: grid; gap: 8px; }
 .field + .field { margin-top: 16px; }
@@ -124,6 +129,7 @@ label.btn { display: inline-block; }
   <header>
     <h1>Interview Copilot</h1>
     <span id="status" class="pill"><span class="dot"></span><span id="statusText">Not listening</span></span>
+    <span id="sync" class="sync" title="Questions and answers appear on every device that has this page open">Connecting…</span>
     <span id="meta" class="meta"></span>
   </header>
 
@@ -196,7 +202,7 @@ label.btn { display: inline-block; }
           <textarea id="stories" placeholder="Your STAR stories appear here. Behavioral and leadership answers are built from them."></textarea>
           <p class="hint" id="storyInfo">Read it once before the interview and replace any <strong>[fill in: …]</strong> with your real details. You can edit anything.</p>
         </div>
-        <p class="hint">Everything here is saved in this browser only.</p>
+        <p class="hint">Saved on your PC and shared with every device you open this page on.</p>
       </section>
     </div>
 
@@ -207,8 +213,11 @@ label.btn { display: inline-block; }
         <div id="answer" class="answer empty">Press <strong>Start listening</strong> and let the interviewer talk. When they pause, a suggested answer streams in here. Tap <strong>Answer now</strong><span class="key-hint"> (or press <kbd>Space</kbd>)</span> to answer immediately.</div>
       </section>
       <section class="panel" id="pHistory">
-        <h2>Earlier questions</h2>
-        <div id="history" class="history"><p class="hint" id="histEmpty">Questions and answers from this session collect here.</p></div>
+        <div class="hist-head">
+          <h2>Earlier questions</h2>
+          <button id="resetBtn" class="btn small" type="button">New interview</button>
+        </div>
+        <div id="history" class="history"></div>
       </section>
     </div>
   </div>
@@ -223,14 +232,35 @@ const store = {
 
 // ---------- State ----------
 let listening = false, recog = null, finalText = "", interimText = "";
-let silenceTimer = null, controller = null;
-const history = []; // {q, a}
+let silenceTimer = null;
+const ORIGIN = Math.random().toString(36).slice(2, 10); // this device, so it can ignore its own edits
 
-// ---------- Settings ----------
-for (const [id, key] of [["profile", "ic.profile"], ["role", "ic.role"], ["stories", "ic.stories"]]) {
-  $(id).value = store.get(key, "");
-  $(id).addEventListener("input", () => store.set(key, $(id).value));
+// ---------- Resume, role and story bank: stored on the PC, shared by every device ----------
+const PFIELDS = ["profile", "role", "stories"];
+let saveTimer = null;
+function saveProfile(fields) {
+  fetch("/profile", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ ...fields, origin: ORIGIN }) }).catch(() => {});
 }
+for (const id of PFIELDS) {
+  $(id).addEventListener("input", () => {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveProfile(Object.fromEntries(PFIELDS.map(k => [k, $(k).value]))), 600);
+  });
+}
+async function loadProfile() {
+  try {
+    const r = await fetch("/profile", { headers: authHeaders() });
+    if (!r.ok) return;
+    const p = await r.json();
+    // One-time move: a resume saved in this browser by the older version goes to the PC.
+    const local = Object.fromEntries(PFIELDS.map(k => [k, store.get("ic." + k, "")]));
+    if (PFIELDS.every(k => !p[k]) && PFIELDS.some(k => local[k])) { saveProfile(local); Object.assign(p, local); }
+    for (const k of PFIELDS) if (document.activeElement !== $(k)) $(k).value = p[k] || "";
+  } catch {}
+}
+
+// ---------- Settings for this device ----------
 $("lang").value = store.get("ic.lang", "en-US");
 $("lang").addEventListener("change", () => { store.set("ic.lang", $("lang").value); if (listening) { stopListening(); startListening(); } });
 $("pause").value = store.get("ic.pause", "1.8");
@@ -271,6 +301,8 @@ function checkStatus() {
     if (!s.key_configured) warn("No API key found. Set ANTHROPIC_API_KEY before starting the server, then restart it.");
     else if (s.key_status === "rejected") warn("Claude rejected the API key the server was started with. Create a new key at console.anthropic.com (Settings → API Keys), copy all of it, then close the server window and start it again.");
     loadResumeList();
+    loadProfile();
+    connectEvents();
     if (SR && !window.isSecureContext) warn("The microphone only works on https:// links or on the PC itself. Use the tunnel link from start-mobile.bat, or tap the keyboard's mic and dictate into “Type a question”.");
   }).catch(() => warn("Can't reach the server. Make sure it's still running on your PC."));
 }
@@ -396,73 +428,114 @@ function md(src) {
   return out.join("");
 }
 
-// ---------- Ask Claude ----------
-function archiveCurrent() {
-  const q = $("curQ").dataset.q, a = $("answer").dataset.a;
-  if (!q || !a) return;
-  history.push({ q, a });
-  $("histEmpty")?.remove();
+// ---------- Questions and answers: written once on the PC, shown live on every device ----------
+const EMPTY_ANSWER = $("answer").innerHTML;
+let currentId = null;
+
+function histItem(q, a) {
   const d = document.createElement("details");
   d.className = "hist";
   const s = document.createElement("summary"); s.textContent = q;
   const body = document.createElement("div"); body.className = "answer"; body.innerHTML = md(a);
   d.append(s, body);
-  $("history").prepend(d);
+  return d;
+}
+function renderHistory(list) {
+  const h = $("history");
+  h.replaceChildren(...list.slice().reverse().map(it => histItem(it.q, it.a)));
+  if (!list.length) h.innerHTML = '<p class="hint" id="histEmpty">Questions and answers from this interview collect here, on every device.</p>';
+}
+function archiveDisplayed() {
+  const q = $("curQ").dataset.q, a = $("answer").dataset.a;
+  if (!q || !a || !currentId) return;
+  $("histEmpty")?.remove();
+  $("history").prepend(histItem(q, a));
+}
+function updateStatus(writing) {
+  if (writing) setStatus("think", "Writing answer…");
+  else if (listening) setStatus("live", "Listening");
+  else setStatus("", "Not listening");
+}
+function showCurrent(cur) {
+  const box = $("answer");
+  currentId = cur ? cur.id : null;
+  if (!cur) {
+    $("curQ").hidden = true; $("curQ").dataset.q = "";
+    box.className = "answer empty"; box.innerHTML = EMPTY_ANSWER; box.dataset.a = "";
+    updateStatus(false);
+    return;
+  }
+  $("curQ").hidden = false;
+  $("curQ").innerHTML = "<strong>Question:</strong> ";
+  $("curQ").append(cur.q);
+  $("curQ").dataset.q = cur.q;
+  box.dataset.a = cur.a;
+  box.innerHTML = md(cur.a);
+  box.className = "answer" + (cur.done ? "" : " cursor");
+  updateStatus(!cur.done);
+}
+
+function handleEvent(e) {
+  if (e.type === "snapshot") { renderHistory(e.history); showCurrent(e.current); }
+  else if (e.type === "question") { archiveDisplayed(); showCurrent({ id: e.id, q: e.q, a: "", done: false }); }
+  else if (e.type === "delta" && e.id === currentId) {
+    const box = $("answer");
+    box.dataset.a += e.text;
+    box.innerHTML = md(box.dataset.a);
+  }
+  else if (e.type === "done" && e.id === currentId) { $("answer").className = "answer"; updateStatus(false); }
+  else if (e.type === "reset") { renderHistory([]); showCurrent(null); }
+  else if (e.type === "profile" && e.origin !== ORIGIN) {
+    for (const k of PFIELDS) if (k in e && document.activeElement !== $(k)) $(k).value = e[k];
+  }
+}
+
+let events = null;
+function connectEvents() {
+  if (events) events.close();
+  events = new EventSource("/events" + (accessCode ? "?code=" + encodeURIComponent(accessCode) : ""));
+  events.onopen = () => { $("sync").textContent = "● Synced"; $("sync").className = "sync on"; };
+  events.onerror = () => { $("sync").textContent = "Reconnecting…"; $("sync").className = "sync"; }; // retries by itself
+  events.onmessage = (m) => { try { handleEvent(JSON.parse(m.data)); } catch {} };
 }
 
 async function answer(question) {
   clearTimeout(silenceTimer);
-  if (controller) controller.abort();          // a newer question replaces an unfinished answer
-  else archiveCurrent();
   finalText = ""; interimText = ""; renderTranscript();
-
-  controller = new AbortController();
-  const mine = controller;
-  $("curQ").hidden = false;
-  $("curQ").innerHTML = "<strong>Question:</strong> ";
-  $("curQ").append(question);
-  $("curQ").dataset.q = question;
-  const box = $("answer");
-  box.className = "answer cursor"; box.textContent = ""; box.dataset.a = "";
-  setStatus("think", "Writing answer…");
-
-  let text = "";
+  setStatus("think", "Sending…");
   try {
     const res = await fetch("/answer", {
       method: "POST",
       headers: { "Content-Type": "application/json", ...authHeaders() },
-      body: JSON.stringify({ question, profile: $("profile").value, role: $("role").value,
-                             stories: $("stories").value, history: history.slice(-4) }),
-      signal: mine.signal,
+      body: JSON.stringify({ question, origin: ORIGIN }),
     });
     if (res.status === 401) needCode();
     if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(j.error || "Server error " + res.status); }
-    const reader = res.body.getReader(), dec = new TextDecoder();
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      text += dec.decode(value, { stream: true });
-      box.innerHTML = md(text); box.dataset.a = text;
-    }
+    // The question and answer now arrive through the live feed, on this device and every other one.
   } catch (err) {
-    if (err.name === "AbortError") return;
-    const msg = err instanceof TypeError ? "Can't reach the local server. Is `python server.py` still running?" : err.message;
-    text += (text ? "\n\n" : "") + "**Error:** " + msg;
-    box.innerHTML = md(text);
-  } finally {
-    if (controller === mine) {
-      controller = null;
-      box.className = "answer";
-      if (listening) setStatus("live", "Listening"); else setStatus("", "Not listening");
-    }
+    const msg = err instanceof TypeError ? "Can't reach the server. Make sure it's still running on your PC." : err.message;
+    archiveDisplayed();
+    showCurrent({ id: null, q: question, a: "**Error:** " + msg, done: true });
   }
 }
+
+let resetArmed = null;
+$("resetBtn").addEventListener("click", async () => {
+  if (!resetArmed) {   // two taps, because this clears every device
+    $("resetBtn").textContent = "Tap again to clear on all devices";
+    resetArmed = setTimeout(() => { resetArmed = null; $("resetBtn").textContent = "New interview"; }, 3000);
+    return;
+  }
+  clearTimeout(resetArmed); resetArmed = null;
+  $("resetBtn").textContent = "New interview";
+  await fetch("/reset", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: "{}" }).catch(() => {});
+});
 
 // ---------- Resume: pick from the Resume folder or upload ----------
 const words = (t) => t.trim().split(/\s+/).filter(Boolean).length.toLocaleString();
 function setResume(text, source) {
   $("profile").value = text;
-  store.set("ic.profile", text);
+  saveProfile({ profile: text });
   $("resumeInfo").textContent = `Loaded ${source} (${words(text)} words).` +
     ($("stories").value.trim() ? " Rebuild the story bank so it matches this resume." : " Next, build your story bank.");
 }
@@ -535,7 +608,7 @@ $("buildStories").addEventListener("click", async () => {
   } catch (e) {
     $("storyInfo").textContent = e.name === "AbortError" ? "Stopped." : (e instanceof TypeError ? "Can't reach the server." : e.message);
   } finally {
-    store.set("ic.stories", box.value);
+    saveProfile({ stories: box.value });
     btn.textContent = "Build story bank from resume";
     storyController = null;
   }
