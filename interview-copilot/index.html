@@ -128,6 +128,11 @@ label.btn { display: inline-block; }
 .sources ul { margin: 4px 0 0; padding-left: 1.1em; }
 .sources li { margin: 2px 0; overflow-wrap: anywhere; }
 .sources .f { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.sources a { color: var(--accent); text-decoration: none; }
+.sources a:hover { text-decoration: underline; }
+.sources .host { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.answer .searching { color: var(--muted); font-style: italic; font-size: 16px; }
+.inline select.mode { flex: 0 1 auto; }
 .check { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; }
 .ans-meta { margin: 10px 0 0; font: 12px var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
 .hist .ans-meta { margin-top: 4px; }
@@ -240,6 +245,15 @@ label.btn { display: inline-block; }
             <button id="reindexBtn" class="btn small" type="button">Re-index</button>
           </div>
           <p class="hint" id="refStatus">Indexing your notes…</p>
+          <div class="inline">
+            <label for="docsMode" class="check">Official docs (AWS, Azure, Google Cloud, Linux)</label>
+            <select id="docsMode" class="mode">
+              <option value="auto">Only when my notes don't cover it</option>
+              <option value="always">Always check</option>
+              <option value="off">Off</option>
+            </select>
+          </div>
+          <p class="hint">Searching official docs adds a few seconds and about 1¢ per search.</p>
         </div>
         <p class="hint">Saved on your PC and shared with every device you open this page on.</p>
       </section>
@@ -251,6 +265,7 @@ label.btn { display: inline-block; }
         <p id="curQ" class="q" hidden></p>
         <div id="answer" class="answer empty">Press <strong>Start listening</strong> and let the interviewer talk. When they pause, a suggested answer streams in here. Tap <strong>Answer now</strong><span class="key-hint"> (or press <kbd>Space</kbd>)</span> to answer immediately.</div>
         <div id="ansSources" class="sources" hidden></div>
+        <div id="ansDocs" class="sources" hidden></div>
         <p id="ansMeta" class="ans-meta" hidden></p>
       </section>
       <section class="panel" id="pHistory">
@@ -523,6 +538,32 @@ function sourcesNode(list) {
   box.append(b, ul);
   return box;
 }
+function docsNode(list) {
+  const box = document.createElement("div");
+  box.className = "sources";
+  const b = document.createElement("b"); b.textContent = "From official docs";
+  const ul = document.createElement("ul");
+  for (const d of list) {
+    let host = "";
+    try { host = new URL(d.url).hostname.replace(/^www\./, ""); } catch { continue; }
+    if (!/^https?:/.test(d.url)) continue;
+    const li = document.createElement("li");
+    const a = document.createElement("a");
+    a.href = d.url; a.target = "_blank"; a.rel = "noopener noreferrer"; a.textContent = d.title || d.url;
+    const h = document.createElement("span"); h.className = "host"; h.textContent = " " + host;
+    li.append(a, h);
+    ul.append(li);
+  }
+  box.append(b, ul);
+  return box;
+}
+let currentDocs = null;
+function showDocs(list) {
+  currentDocs = list && list.length ? list : null;
+  const box = $("ansDocs");
+  box.hidden = !currentDocs;
+  box.replaceChildren(...(currentDocs ? docsNode(currentDocs).childNodes : []));
+}
 function showSources(list) {
   currentSources = list && list.length ? list : null;
   const box = $("ansSources");
@@ -531,26 +572,27 @@ function showSources(list) {
 }
 let currentSources = null;
 
-function histItem(q, a, usage, sources) {
+function histItem(q, a, usage, sources, docs) {
   const d = document.createElement("details");
   d.className = "hist";
   const s = document.createElement("summary"); s.textContent = q;
   const body = document.createElement("div"); body.className = "answer"; body.innerHTML = md(a);
   d.append(s, body);
   if (sources && sources.length) d.append(sourcesNode(sources));
+  if (docs && docs.length) d.append(docsNode(docs));
   if (usage) { const m = document.createElement("p"); m.className = "ans-meta"; m.textContent = usageLine(usage); d.append(m); }
   return d;
 }
 function renderHistory(list) {
   const h = $("history");
-  h.replaceChildren(...list.slice().reverse().map(it => histItem(it.q, it.a, it.usage, it.sources)));
+  h.replaceChildren(...list.slice().reverse().map(it => histItem(it.q, it.a, it.usage, it.sources, it.docs)));
   if (!list.length) h.innerHTML = '<p class="hint" id="histEmpty">Questions and answers from this interview collect here, on every device.</p>';
 }
 function archiveDisplayed() {
   const q = $("curQ").dataset.q, a = $("answer").dataset.a;
   if (!q || !a || !currentId) return;
   $("histEmpty")?.remove();
-  $("history").prepend(histItem(q, a, currentUsage, currentSources));
+  $("history").prepend(histItem(q, a, currentUsage, currentSources, currentDocs));
 }
 function updateStatus(writing) {
   if (writing) setStatus("think", "Writing answer…");
@@ -565,6 +607,7 @@ function showCurrent(cur) {
     box.className = "answer empty"; box.innerHTML = EMPTY_ANSWER; box.dataset.a = "";
     showUsage(null);
     showSources(null);
+    showDocs(null);
     updateStatus(false);
     return;
   }
@@ -577,6 +620,7 @@ function showCurrent(cur) {
   box.className = "answer" + (cur.done ? "" : " cursor");
   showUsage(cur.usage || null);
   showSources(cur.sources || null);
+  showDocs(cur.docs || null);
   updateStatus(!cur.done);
 }
 
@@ -585,12 +629,17 @@ function handleEvent(e) {
   else if (e.type === "refs") renderRefs(e.refs);
   else if (e.type === "stats") renderStats(e.stats);
   else if (e.type === "question") { archiveDisplayed(); showCurrent({ id: e.id, q: e.q, a: "", done: false, sources: e.sources }); }
+  else if (e.type === "searching" && e.id === currentId) {
+    setStatus("think", "Checking official docs…");
+    if (!$("answer").dataset.a) $("answer").innerHTML = '<p class="searching">Checking official docs…</p>';
+  }
   else if (e.type === "delta" && e.id === currentId) {
     const box = $("answer");
+    if (!box.dataset.a) setStatus("think", "Writing answer…");
     box.dataset.a += e.text;
     box.innerHTML = md(box.dataset.a);
   }
-  else if (e.type === "done" && e.id === currentId) { $("answer").className = "answer"; showUsage(e.usage); updateStatus(false); }
+  else if (e.type === "done" && e.id === currentId) { $("answer").className = "answer"; showUsage(e.usage); showDocs(e.docs); updateStatus(false); }
   else if (e.type === "reset") { renderHistory([]); showCurrent(null); }
   else if (e.type === "profile" && e.origin !== ORIGIN) {
     for (const k of PFIELDS) if (k in e && document.activeElement !== $(k)) $(k).value = e[k];
@@ -605,7 +654,8 @@ const fmtUsd = (x) => x == null ? "–" : x > 0 && x < 0.01 ? "$" + x.toFixed(4)
 const fmtSec = (x) => x == null ? "–" : x.toFixed(1) + " s";
 function usageLine(u) {
   const cache = u.cached ? ` (${fmtTok(u.cached)} from cache)` : u.written ? " (resume cached for next time)" : "";
-  return `${fmtTok(u.in)} in${cache} · ${fmtTok(u.out)} out · first words ${fmtSec(u.ttft)} · done ${fmtSec(u.total)} · ≈${fmtUsd(u.cost)}`;
+  const searches = u.searches ? ` · ${u.searches} doc search${u.searches > 1 ? "es" : ""}` : "";
+  return `${fmtTok(u.in)} in${cache} · ${fmtTok(u.out)} out${searches} · first words ${fmtSec(u.ttft)} · done ${fmtSec(u.total)} · ≈${fmtUsd(u.cost)}`;
 }
 function showUsage(u) {
   currentUsage = u;
@@ -617,6 +667,7 @@ function renderStats(s) {
   if (!s) return;
   STATS = s;
   if (typeof s.use_refs === "boolean") $("useRefs").checked = s.use_refs;
+  if (s.docs_mode && document.activeElement !== $("docsMode")) $("docsMode").value = s.docs_mode;
   for (const b of $("periodSeg").querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.p === period));
   const p = s.periods[period];
   $("uCost").textContent = fmtUsd(p.cost);
@@ -624,7 +675,10 @@ function renderStats(s) {
   $("uTokens").textContent = fmtTok(p.input + p.output);
   $("uTokensSub").textContent = `${fmtTok(p.input)} in · ${fmtTok(p.output)} out`;
   $("uAnswers").textContent = p.answers.toLocaleString();
-  $("uAnswersSub").textContent = p.stories ? `+ ${p.stories} story bank${p.stories > 1 ? "s" : ""}` : " ";
+  const extras = [];
+  if (p.stories) extras.push(`${p.stories} story bank${p.stories > 1 ? "s" : ""}`);
+  if (p.searches) extras.push(`${p.searches} doc search${p.searches > 1 ? "es" : ""}`);
+  $("uAnswersSub").textContent = extras.length ? "+ " + extras.join(" · ") : "\u00a0";
   $("uSpeed").textContent = fmtSec(p.avg_ttft);
   $("uSpeedSub").textContent = p.avg_total != null ? "full answer " + fmtSec(p.avg_total) : " ";
 
@@ -723,6 +777,10 @@ function renderRefs(r) {
 $("reindexBtn").addEventListener("click", () => {
   $("refStatus").textContent = "Indexing your notes…";
   fetch("/refs/reindex", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: "{}" }).catch(() => {});
+});
+$("docsMode").addEventListener("change", () => {
+  fetch("/settings", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ docs_mode: $("docsMode").value }) }).catch(() => {});
 });
 $("useRefs").addEventListener("change", () => {
   fetch("/settings", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },

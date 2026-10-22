@@ -81,6 +81,24 @@ each answer ("From your notes").
 - Use another folder with `REFERENCE_DIR=C:\path\to\notes`; skip extra folders with
   `REFERENCE_SKIP=Folder1,Folder2`.
 
+## Official documentation (AWS, Azure, Google Cloud, Linux)
+
+Claude can also search official documentation live, limited to these sites (subdomains included):
+`aws.amazon.com` (docs.aws.amazon.com), `learn.microsoft.com/en-us/azure`, `azure.microsoft.com`,
+`cloud.google.com`, `linux.org`, `kernel.org`, `man7.org` (Linux man pages) and `linuxfoundation.org`.
+The pages used are linked under the answer ("From official docs").
+
+Choose how often in **4. Reference notes → Official docs**:
+
+- **Only when my notes don't cover it** (default): answers your notes cover stay fast; others check the docs.
+- **Always check:** best for preparation, to confirm exact limits, defaults and recent changes.
+- **Off.**
+
+A search adds a few seconds before the answer starts and costs about 1¢ plus the tokens of the pages
+read (typically ≈$0.05 per searched answer). At most 2 searches per answer. If web search is turned off
+for your Anthropic organization, answers still work without it and say so. An admin can turn it on in
+the Anthropic Console. Change the sites with `OFFICIAL_DOCS_DOMAINS=site1.com,site2.com/path`.
+
 ## Usage and cost
 
 The **Usage** panel shows, for this interview, today, this month or all time:

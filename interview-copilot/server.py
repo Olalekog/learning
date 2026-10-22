@@ -41,6 +41,19 @@ RESUME_TYPES = (".docx", ".pdf", ".md", ".txt")
 REFERENCE_DIR = Path(os.environ.get("REFERENCE_DIR", HERE.parent))
 REFERENCE_SKIP = refs.DEFAULT_SKIP | {x.strip() for x in os.environ.get("REFERENCE_SKIP", "").split(",") if x.strip()}
 LIBRARY = refs.Library(REFERENCE_DIR, REFERENCE_SKIP)
+# Official documentation Claude may search live (subdomains included, e.g. docs.aws.amazon.com).
+OFFICIAL_DOCS = [d.strip() for d in os.environ.get("OFFICIAL_DOCS_DOMAINS", ",".join([
+    "aws.amazon.com",                    # AWS docs, whitepapers, FAQs
+    "learn.microsoft.com/en-us/azure",   # Azure docs
+    "azure.microsoft.com",
+    "cloud.google.com",                  # Google Cloud docs
+    "linux.org",                         # Linux
+    "kernel.org",                        # Linux kernel docs (docs.kernel.org)
+    "man7.org",                          # Linux man pages
+    "linuxfoundation.org",
+])).split(",") if d.strip()]
+SEARCH_PRICE = 0.01  # USD per web search ($10 per 1,000)
+DOCS_MODES = ("auto", "always", "off")
 # Resume, target role and story bank, shared by every device (kept out of git).
 PROFILE_FILE = HERE / "data" / "profile.json"
 PROFILE_FIELDS = ("profile", "role", "stories")
@@ -90,6 +103,13 @@ commands and the candidate's own phrasing and examples. Fill gaps with accurate 
 tightened for speaking.
 - If a note is wrong or outdated, give the correct answer instead.
 Ignore notes that don't fit. Never mention "notes", "documents" or "sources" in the spoken answer.
+
+## Official documentation search
+When the web_search tool is available, it searches only official AWS, Azure, Google Cloud and \
+Linux documentation. Use it for technical questions the notes don't cover well, or to confirm exact \
+limits, defaults, quotas, commands or recent changes. Search at most twice with short, specific \
+queries. Don't search for behavioral, personal or simple questions. Write nothing before searching. \
+Never read URLs aloud or mention searching in the spoken answer.
 
 ## All other questions
 - Start with a one-sentence direct answer, then 2-4 short bullets, grounded in the resume where relevant.
@@ -279,15 +299,11 @@ class Metrics:
             with self.lock:
                 self.limits, self.limits_at = found, time.time()
 
-    def record(self, kind, label, model, usage, ttft, total, status):
-        u = {
-            "input": getattr(usage, "input_tokens", 0) or 0,
-            "output": getattr(usage, "output_tokens", 0) or 0,
-            "cache_read": getattr(usage, "cache_read_input_tokens", 0) or 0,
-            "cache_write": getattr(usage, "cache_creation_input_tokens", 0) or 0,
-        }
+    def record(self, kind, label, model, u, ttft, total, status):
+        u = {k: u.get(k, 0) for k in ("input", "output", "cache_read", "cache_write", "searches")}
         p = price_for(model)
         cost = (u["input"] * p[0] + u["output"] * p[1] + u["cache_read"] * p[2] + u["cache_write"] * p[3]) / 1e6
+        cost += u["searches"] * SEARCH_PRICE
         rec = {"ts": round(time.time(), 1), "kind": kind, "label": label[:120], "model": model, **u,
                "cost": round(cost, 6), "saved": round(u["cache_read"] * (p[0] - p[2]) / 1e6, 6),
                "ttft": round(ttft, 2) if ttft is not None else None, "total": round(total, 2), "status": status}
@@ -317,6 +333,7 @@ class Metrics:
                 "stories": sum(1 for r in rs if r["kind"] == "stories"),
                 "input": tin, "output": sum(r["output"] for r in rs),
                 "cache_read": sum(r["cache_read"] for r in rs),
+                "searches": sum(r.get("searches", 0) for r in rs),
                 "cost": round(sum(r["cost"] for r in rs), 4),
                 "saved": round(sum(r.get("saved", 0) for r in rs), 4),
                 "avg_ttft": round(sum(ttfts) / len(ttfts), 2) if ttfts else None,
@@ -329,66 +346,129 @@ class Metrics:
         spent = periods["month"]["cost"]
         recent = [{"ts": r["ts"], "label": r["label"], "in": r["input"] + r["cache_read"] + r["cache_write"],
                    "out": r["output"], "cost": r["cost"], "ttft": r.get("ttft"), "total": r["total"],
-                   "kind": r["kind"], "status": r["status"]} for r in records[-20:]]
+                   "kind": r["kind"], "status": r["status"], "searches": r.get("searches", 0)}
+                  for r in records[-20:]]
         return {"periods": periods, "budget": budget, "month_spent": spent,
                 "budget_left": round(budget - spent, 4) if budget else None,
                 "limits": limits, "limits_at": limits_at, "recent": recent, "model": MODEL,
-                "use_refs": self.settings.get("use_refs", True)}
+                "use_refs": self.settings.get("use_refs", True),
+                "docs_mode": self.settings.get("docs_mode", "auto")}
 
 
 METRICS = Metrics()
 
 
+def usage_dict(usage):
+    stu = getattr(usage, "server_tool_use", None)
+    return {
+        "input": getattr(usage, "input_tokens", 0) or 0,
+        "output": getattr(usage, "output_tokens", 0) or 0,
+        "cache_read": getattr(usage, "cache_read_input_tokens", 0) or 0,
+        "cache_write": getattr(usage, "cache_creation_input_tokens", 0) or 0,
+        "searches": (getattr(stu, "web_search_requests", 0) or 0) if stu else 0,
+    }
+
+
+def add_usage(a, b):
+    return {k: a.get(k, 0) + b.get(k, 0) for k in set(a) | set(b)}
+
+
+def docs_tool():
+    """Server-side web search limited to official documentation sites."""
+    return {"type": "web_search_20260209", "name": "web_search", "max_uses": 2, "allowed_domains": OFFICIAL_DOCS}
+
+
+def doc_links(content):
+    """Pages the answer cited; if it cited none, the top search results."""
+    cited, found = [], []
+    for block in content:
+        btype = getattr(block, "type", "")
+        if btype == "text":
+            for c in getattr(block, "citations", None) or []:
+                url = getattr(c, "url", None)
+                if url:
+                    cited.append({"url": url, "title": getattr(c, "title", "") or url})
+        elif btype == "web_search_tool_result" and isinstance(getattr(block, "content", None), list):
+            for r in block.content:
+                url = getattr(r, "url", None)
+                if url:
+                    found.append({"url": url, "title": getattr(r, "title", "") or url})
+    out, seen = [], set()
+    for link in cited or found[:3]:
+        if link["url"] not in seen:
+            seen.add(link["url"])
+            out.append(link)
+    return out[:5]
+
+
 def stream_claude(system, messages, effort, max_tokens, emit, cancelled=lambda: False,
-                  kind="answer", label=""):
+                  kind="answer", label="", tools=None, on_search=None):
     """Stream Claude's text to emit(); errors are emitted as readable text.
-    Returns the usage record for this call (None if the call never ran)."""
-    started, first, usage, served, status = time.time(), None, None, MODEL, "ok"
+    Returns the usage record for this call (None if the call never ran); record["links"] lists doc pages used."""
+    started, first, total, served, status = time.time(), None, {}, MODEL, "ok"
+    links, convo = [], list(messages)
     try:
-        with get_client().beta.messages.stream(
-            model=MODEL,
-            max_tokens=max_tokens,
-            system=system,
-            output_config={"effort": effort},
-            betas=["server-side-fallback-2026-07-01"],
-            fallbacks="default",
-            messages=messages,
-        ) as stream:
-            try:
-                METRICS.update_limits(stream.response.headers)
-            except Exception:
-                pass
-            for text in stream.text_stream:
-                if cancelled():
-                    status = "cancelled"  # a newer question arrived; keep what was used so far
-                    try:
-                        usage = stream.current_message_snapshot.usage
-                    except Exception:
-                        pass
-                    break  # leaving the block closes the connection to the API
-                if first is None:
-                    first = time.time()
-                emit(text)
-            if status == "ok":
+        for _ in range(4):  # first request + up to 3 resumes if a search turn pauses
+            kw = dict(model=MODEL, max_tokens=max_tokens, system=system, output_config={"effort": effort},
+                      betas=["server-side-fallback-2026-07-01"], fallbacks="default", messages=convo)
+            if tools:
+                kw["tools"] = tools
+            with get_client().beta.messages.stream(**kw) as stream:
+                try:
+                    METRICS.update_limits(stream.response.headers)
+                except Exception:
+                    pass
+                for event in stream:
+                    if cancelled():
+                        status = "cancelled"  # a newer question arrived; keep what was used so far
+                        try:
+                            total = add_usage(total, usage_dict(stream.current_message_snapshot.usage))
+                        except Exception:
+                            pass
+                        break  # leaving the block closes the connection to the API
+                    if event.type == "content_block_start" and \
+                            getattr(event.content_block, "type", "") == "server_tool_use":
+                        if on_search:
+                            on_search()
+                    elif event.type == "text":
+                        if first is None:
+                            first = time.time()
+                        emit(event.text)
+                if status != "ok":
+                    break
                 final = stream.get_final_message()
-                usage, served = final.usage, final.model or MODEL
-                if final.stop_reason == "refusal":
-                    emit("\n\n_(Claude declined to answer this one.)_")
+            total = add_usage(total, usage_dict(final.usage))
+            served = final.model or MODEL
+            links += [l for l in doc_links(final.content) if l["url"] not in {x["url"] for x in links}]
+            if final.stop_reason == "pause_turn":  # long search turn: resume where it stopped
+                convo = convo + [{"role": "assistant", "content": final.content}]
+                continue
+            if final.stop_reason == "refusal":
+                emit("\n\n_(Claude declined to answer this one.)_")
+            break
     except anthropic.AuthenticationError:
         emit("**Error:** Claude rejected your API key. Create a new key at console.anthropic.com "
              "(Settings → API Keys), copy all of it, then close the server window and start it again.")
     except anthropic.RateLimitError as e:
         METRICS.update_limits(getattr(e.response, "headers", {}))
         emit("**Error:** rate limited by the API. Wait a few seconds and try again.")
+    except anthropic.BadRequestError as e:
+        if tools and first is None:
+            # e.g. web search is turned off for this Anthropic organization: answer without it
+            rec = stream_claude(system, messages, effort, max_tokens, emit, cancelled, kind, label)
+            emit("\n\n_(Official docs search isn't available for your API account, so this answer "
+                 "doesn't use it. An admin can turn on web search in the Anthropic Console.)_")
+            return rec
+        emit(f"**Error from the API ({e.status_code}):** {e.message}")
     except anthropic.APIStatusError as e:
         emit(f"**Error from the API ({e.status_code}):** {e.message}")
     except anthropic.APIConnectionError:
         emit("**Error:** could not reach the Claude API. Check your internet connection.")
-    if usage is None:
+    if not total:
         return None
-    return METRICS.record(kind, label, served, usage,
-                          (first - started) if first else None, time.time() - started, status)
-
+    rec = METRICS.record(kind, label, served, total,
+                         (first - started) if first else None, time.time() - started, status)
+    return {**rec, "links": links}
 
 class Session:
     """One shared interview: every open device sees the same questions, answers and resume."""
@@ -423,7 +503,8 @@ class Session:
             if self.current and self.current["a"].strip():
                 c = self.current
                 self.history = (self.history + [{"id": c["id"], "q": c["q"], "a": c["a"],
-                                                 "usage": c.get("usage"), "sources": c.get("sources")}])[-50:]
+                                                 "usage": c.get("usage"), "sources": c.get("sources"),
+                                                 "docs": c.get("docs")}])[-50:]
             earlier = [dict(h) for h in self.history[-4:]]
             notes = []
             if METRICS.settings.get("use_refs", True):
@@ -446,16 +527,21 @@ class Session:
             self.broadcast({"type": "delta", "id": item["id"], "text": text})
 
         system, messages = answer_request(item["q"], profile, earlier, notes)
-        rec = stream_claude(system, messages, EFFORT, 4000, emit, cancel.is_set, kind="answer", label=item["q"])
+        mode = METRICS.settings.get("docs_mode", "auto")
+        tools = [docs_tool()] if mode == "always" or (mode == "auto" and not notes) else None
+        rec = stream_claude(system, messages, EFFORT, 4000, emit, cancel.is_set, kind="answer", label=item["q"],
+                            tools=tools, on_search=lambda: self.broadcast({"type": "searching", "id": item["id"]}))
         summary = None
         if rec:
             summary = {"in": rec["input"] + rec["cache_read"] + rec["cache_write"], "cached": rec["cache_read"],
-                       "written": rec["cache_write"],
+                       "written": rec["cache_write"], "searches": rec["searches"],
                        "out": rec["output"], "cost": rec["cost"], "ttft": rec["ttft"], "total": rec["total"]}
+        docs = rec["links"] if rec else []
         with self.lock:
             item["done"] = True
             item["usage"] = summary
-        self.broadcast({"type": "done", "id": item["id"], "usage": summary})
+            item["docs"] = docs
+        self.broadcast({"type": "done", "id": item["id"], "usage": summary, "docs": docs})
         if rec:
             self.broadcast_stats()
 
@@ -646,6 +732,8 @@ class Handler(BaseHTTPRequestHandler):
                     METRICS.set_budget(data["budget"])
                 if "use_refs" in data:
                     METRICS.update_settings(use_refs=bool(data["use_refs"]))
+                if data.get("docs_mode") in DOCS_MODES:
+                    METRICS.update_settings(docs_mode=data["docs_mode"])
             except (TypeError, ValueError):
                 self._json(400, {"error": "Budget must be a number, e.g. 10"})
                 return
