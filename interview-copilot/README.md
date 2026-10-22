@@ -63,12 +63,30 @@ Use another folder of resumes with `RESUME_DIR=C:\path\to\folder`.
 - Press **Answer now** (or **Space** on a PC) to answer immediately, or type a question.
 - On a video call, the mic must hear the interviewer: use speakers, not headphones.
 
+## Usage and cost
+
+The **Usage** panel shows, for this interview, today, this month or all time:
+
+- **Cost (estimated)** and average cost per answer, from Anthropic's published prices.
+- **Tokens used** (input and output), number of answers and story banks built.
+- **Speed:** average time to the first words and to the full answer.
+- **Monthly budget:** set a limit and see how much is left (the bar turns amber at 80%, red when over).
+- **API rate limit left:** tokens and requests per minute Anthropic still allows, read from the latest answer.
+- **Cache:** how much of your resume/story bank was reused and the money it saved.
+- **Last 20 calls:** a bar chart of tokens per call (hover a bar for details).
+
+Each answer also shows its own line, e.g. `3,720 in (3,400 from cache) · 240 out · first words 0.6 s · ≈$0.0068`.
+
+Your exact credit balance isn't available to the app (the API doesn't expose it); check it at
+console.anthropic.com → Settings → Billing. Usage is saved in `data/usage.jsonl` on your PC.
+
 ## Settings (environment variables)
 
 - `COPILOT_MODEL` (default `claude-opus-5-5`). For faster, cheaper answers try `claude-sonnet-5-5` or `claude-haiku-5-5`.
 - `COPILOT_EFFORT` (default `low`, fastest). `medium` or `high` gives more careful answers but slower.
 - `COPILOT_STORY_EFFORT` (default `medium`) for building the story bank.
 - `RESUME_DIR` (default: the `Resume` folder next to this app).
+- `COPILOT_BUDGET_USD`: starting monthly budget (you can also set it in the Usage panel).
 - `ACCESS_CODE`: when set, the page asks for this code. `start-mobile.bat` sets it for you.
 - `HOST` (default `127.0.0.1`, this PC only). `0.0.0.0` makes it reachable on your Wi-Fi; always set `ACCESS_CODE` too.
 - `PORT` (default `8765`).

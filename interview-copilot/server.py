@@ -229,8 +229,132 @@ def load_profile():
         return {k: "" for k in PROFILE_FIELDS}
 
 
-def stream_claude(system, messages, effort, max_tokens, emit, cancelled=lambda: False):
-    """Stream Claude's text to emit(); errors are emitted as readable text."""
+# ---------------------------------------------------------------- usage metrics
+
+# Estimated USD per million tokens: input, output, cache read, cache write (5-minute cache).
+# Check https://www.anthropic.com/pricing if prices change.
+PRICES = {
+    "claude-opus-5-5": (4.00, 20.00, 0.20, 5.00),
+    "claude-sonnet-5-5": (2.00, 10.00, 0.20, 2.50),
+    "claude-haiku-5-5": (0.10, 0.50, 0.01, 0.125),
+    "claude-opus-5": (5.00, 25.00, 0.50, 6.25),
+    "claude-opus-4-8": (5.00, 25.00, 0.50, 6.25),
+    "claude-fable-5-1": (10.00, 50.00, 0.25, 12.50),
+}
+USAGE_FILE = HERE / "data" / "usage.jsonl"
+SETTINGS_FILE = HERE / "data" / "settings.json"
+
+
+def price_for(model):
+    if model in PRICES:
+        return PRICES[model]
+    for name in sorted(PRICES, key=len, reverse=True):
+        if model.startswith(name):
+            return PRICES[name]
+    return PRICES["claude-opus-5-5"]
+
+
+class Metrics:
+    """Token use, cost, speed and rate limits for every call, saved in data/usage.jsonl."""
+
+    def __init__(self):
+        self.lock = threading.Lock()
+        self.records = []
+        self.limits = {}      # latest rate-limit headers from the API
+        self.limits_at = None
+        try:
+            for line in USAGE_FILE.read_text(encoding="utf-8").splitlines():
+                if line.strip():
+                    self.records.append(json.loads(line))
+        except (OSError, ValueError):
+            pass
+        try:
+            self.settings = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            self.settings = {}
+        if "budget" not in self.settings:
+            self.settings["budget"] = float(os.environ.get("COPILOT_BUDGET_USD", "0") or 0)
+
+    def set_budget(self, budget):
+        with self.lock:
+            self.settings["budget"] = max(0.0, float(budget))
+            SETTINGS_FILE.parent.mkdir(exist_ok=True)
+            SETTINGS_FILE.write_text(json.dumps(self.settings), encoding="utf-8")
+
+    def update_limits(self, headers):
+        found = {}
+        for k, v in (headers or {}).items():
+            k = k.lower()
+            if k.startswith("anthropic-ratelimit-"):
+                found[k[len("anthropic-ratelimit-"):]] = v
+        if found:
+            with self.lock:
+                self.limits, self.limits_at = found, time.time()
+
+    def record(self, kind, label, model, usage, ttft, total, status):
+        u = {
+            "input": getattr(usage, "input_tokens", 0) or 0,
+            "output": getattr(usage, "output_tokens", 0) or 0,
+            "cache_read": getattr(usage, "cache_read_input_tokens", 0) or 0,
+            "cache_write": getattr(usage, "cache_creation_input_tokens", 0) or 0,
+        }
+        p = price_for(model)
+        cost = (u["input"] * p[0] + u["output"] * p[1] + u["cache_read"] * p[2] + u["cache_write"] * p[3]) / 1e6
+        rec = {"ts": round(time.time(), 1), "kind": kind, "label": label[:120], "model": model, **u,
+               "cost": round(cost, 6), "saved": round(u["cache_read"] * (p[0] - p[2]) / 1e6, 6),
+               "ttft": round(ttft, 2) if ttft is not None else None, "total": round(total, 2), "status": status}
+        with self.lock:
+            self.records.append(rec)
+            USAGE_FILE.parent.mkdir(exist_ok=True)
+            with USAGE_FILE.open("a", encoding="utf-8") as f:
+                f.write(json.dumps(rec) + "\n")
+        return rec
+
+    def stats(self, interview_start):
+        now = time.localtime()
+        today = time.mktime((now.tm_year, now.tm_mon, now.tm_mday, 0, 0, 0, 0, 0, -1))
+        month = time.mktime((now.tm_year, now.tm_mon, 1, 0, 0, 0, 0, 0, -1))
+        with self.lock:
+            records = list(self.records)
+            limits, limits_at, budget = dict(self.limits), self.limits_at, self.settings.get("budget", 0)
+
+        def summary(since):
+            rs = [r for r in records if r["ts"] >= since]
+            answers = [r for r in rs if r["kind"] == "answer"]
+            tin = sum(r["input"] + r["cache_read"] + r["cache_write"] for r in rs)
+            ttfts = [r["ttft"] for r in answers if r.get("ttft") is not None]
+            totals = [r["total"] for r in answers if r["status"] == "ok"]
+            return {
+                "answers": len(answers),
+                "stories": sum(1 for r in rs if r["kind"] == "stories"),
+                "input": tin, "output": sum(r["output"] for r in rs),
+                "cache_read": sum(r["cache_read"] for r in rs),
+                "cost": round(sum(r["cost"] for r in rs), 4),
+                "saved": round(sum(r.get("saved", 0) for r in rs), 4),
+                "avg_ttft": round(sum(ttfts) / len(ttfts), 2) if ttfts else None,
+                "avg_total": round(sum(totals) / len(totals), 2) if totals else None,
+                "avg_cost": round(sum(r["cost"] for r in answers) / len(answers), 5) if answers else None,
+            }
+
+        periods = {"interview": summary(interview_start), "today": summary(today),
+                   "month": summary(month), "all": summary(0)}
+        spent = periods["month"]["cost"]
+        recent = [{"ts": r["ts"], "label": r["label"], "in": r["input"] + r["cache_read"] + r["cache_write"],
+                   "out": r["output"], "cost": r["cost"], "ttft": r.get("ttft"), "total": r["total"],
+                   "kind": r["kind"], "status": r["status"]} for r in records[-20:]]
+        return {"periods": periods, "budget": budget, "month_spent": spent,
+                "budget_left": round(budget - spent, 4) if budget else None,
+                "limits": limits, "limits_at": limits_at, "recent": recent, "model": MODEL}
+
+
+METRICS = Metrics()
+
+
+def stream_claude(system, messages, effort, max_tokens, emit, cancelled=lambda: False,
+                  kind="answer", label=""):
+    """Stream Claude's text to emit(); errors are emitted as readable text.
+    Returns the usage record for this call (None if the call never ran)."""
+    started, first, usage, served, status = time.time(), None, None, MODEL, "ok"
     try:
         with get_client().beta.messages.stream(
             model=MODEL,
@@ -241,21 +365,40 @@ def stream_claude(system, messages, effort, max_tokens, emit, cancelled=lambda: 
             fallbacks="default",
             messages=messages,
         ) as stream:
+            try:
+                METRICS.update_limits(stream.response.headers)
+            except Exception:
+                pass
             for text in stream.text_stream:
                 if cancelled():
-                    return  # leaving the block closes the connection to the API
+                    status = "cancelled"  # a newer question arrived; keep what was used so far
+                    try:
+                        usage = stream.current_message_snapshot.usage
+                    except Exception:
+                        pass
+                    break  # leaving the block closes the connection to the API
+                if first is None:
+                    first = time.time()
                 emit(text)
-            if stream.get_final_message().stop_reason == "refusal":
-                emit("\n\n_(Claude declined to answer this one.)_")
+            if status == "ok":
+                final = stream.get_final_message()
+                usage, served = final.usage, final.model or MODEL
+                if final.stop_reason == "refusal":
+                    emit("\n\n_(Claude declined to answer this one.)_")
     except anthropic.AuthenticationError:
         emit("**Error:** Claude rejected your API key. Create a new key at console.anthropic.com "
              "(Settings → API Keys), copy all of it, then close the server window and start it again.")
-    except anthropic.RateLimitError:
+    except anthropic.RateLimitError as e:
+        METRICS.update_limits(getattr(e.response, "headers", {}))
         emit("**Error:** rate limited by the API. Wait a few seconds and try again.")
     except anthropic.APIStatusError as e:
         emit(f"**Error from the API ({e.status_code}):** {e.message}")
     except anthropic.APIConnectionError:
         emit("**Error:** could not reach the Claude API. Check your internet connection.")
+    if usage is None:
+        return None
+    return METRICS.record(kind, label, served, usage,
+                          (first - started) if first else None, time.time() - started, status)
 
 
 class Session:
@@ -268,6 +411,7 @@ class Session:
         self.cancel = None       # stops the answer being written when a newer question arrives
         self.subscribers = set()
         self.profile = load_profile()
+        self.started = time.time()  # start of this interview, for "This interview" stats
 
     def broadcast(self, event):
         with self.lock:
@@ -277,8 +421,10 @@ class Session:
 
     def snapshot(self):
         with self.lock:
-            return {"type": "snapshot", "history": [dict(h) for h in self.history[-30:]],
+            snap = {"type": "snapshot", "history": [dict(h) for h in self.history[-30:]],
                     "current": dict(self.current) if self.current else None}
+        snap["stats"] = METRICS.stats(self.started)
+        return snap
 
     def ask(self, question, origin):
         with self.lock:
@@ -286,7 +432,8 @@ class Session:
                 self.cancel.set()
             if self.current and self.current["a"].strip():
                 c = self.current
-                self.history = (self.history + [{"id": c["id"], "q": c["q"], "a": c["a"]}])[-50:]
+                self.history = (self.history + [{"id": c["id"], "q": c["q"], "a": c["a"],
+                                                 "usage": c.get("usage")}])[-50:]
             earlier = [dict(h) for h in self.history[-4:]]
             item = {"id": uuid.uuid4().hex[:12], "q": question, "a": "", "done": False}
             self.current, self.cancel = item, threading.Event()
@@ -302,17 +449,30 @@ class Session:
             self.broadcast({"type": "delta", "id": item["id"], "text": text})
 
         system, messages = answer_request(item["q"], profile, earlier)
-        stream_claude(system, messages, EFFORT, 4000, emit, cancel.is_set)
+        rec = stream_claude(system, messages, EFFORT, 4000, emit, cancel.is_set, kind="answer", label=item["q"])
+        summary = None
+        if rec:
+            summary = {"in": rec["input"] + rec["cache_read"] + rec["cache_write"], "cached": rec["cache_read"],
+                       "written": rec["cache_write"],
+                       "out": rec["output"], "cost": rec["cost"], "ttft": rec["ttft"], "total": rec["total"]}
         with self.lock:
             item["done"] = True
-        self.broadcast({"type": "done", "id": item["id"]})
+            item["usage"] = summary
+        self.broadcast({"type": "done", "id": item["id"], "usage": summary})
+        if rec:
+            self.broadcast_stats()
+
+    def broadcast_stats(self):
+        self.broadcast({"type": "stats", "stats": METRICS.stats(self.started)})
 
     def reset(self):
         with self.lock:
             if self.cancel:
                 self.cancel.set()
             self.history, self.current, self.cancel = [], None, None
+            self.started = time.time()
         self.broadcast({"type": "reset"})
+        self.broadcast_stats()
 
     def save_profile(self, fields, origin):
         with self.lock:
@@ -380,6 +540,8 @@ class Handler(BaseHTTPRequestHandler):
         elif url.path == "/profile":
             with SESSION.lock:
                 self._json(200, dict(SESSION.profile))
+        elif url.path == "/stats":
+            self._json(200, METRICS.stats(SESSION.started))
         elif url.path == "/resumes":
             self._json(200, {"folder": str(RESUME_DIR), "files": list_resumes()})
         elif url.path == "/resume":
@@ -425,7 +587,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = urlsplit(self.path).path
-        if path not in ("/answer", "/stories", "/extract", "/profile", "/reset"):
+        if path not in ("/answer", "/stories", "/extract", "/profile", "/reset", "/settings"):
             self._json(404, {"error": "Not found"})
             return
         if not self._authorized():
@@ -464,6 +626,15 @@ class Handler(BaseHTTPRequestHandler):
             SESSION.reset()
             self._json(200, {"ok": True})
             return
+        if path == "/settings":
+            try:
+                METRICS.set_budget(data.get("budget", 0))
+            except (TypeError, ValueError):
+                self._json(400, {"error": "Budget must be a number, e.g. 10"})
+                return
+            SESSION.broadcast_stats()
+            self._json(200, {"ok": True})
+            return
 
         if not have_key():
             self._json(500, {"error": "No API key set. Set ANTHROPIC_API_KEY and restart the server."})
@@ -488,11 +659,23 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-cache")
         self.send_header("Transfer-Encoding", "chunked")
         self.end_headers()
-        try:
-            stream_claude(system, messages, STORY_EFFORT, 16000, self._chunk)
-            self.wfile.write(b"0\r\n\r\n")
-        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
-            pass  # the page stopped it
+        stopped = threading.Event()
+
+        def send(text):
+            try:
+                self._chunk(text)
+            except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+                stopped.set()  # the page pressed Stop
+
+        rec = stream_claude(system, messages, STORY_EFFORT, 16000, send, stopped.is_set,
+                            kind="stories", label="Story bank")
+        if rec:
+            SESSION.broadcast_stats()
+        if not stopped.is_set():
+            try:
+                self.wfile.write(b"0\r\n\r\n")
+            except OSError:
+                pass
 
     def _chunk(self, text):
         b = text.encode("utf-8")

@@ -11,18 +11,18 @@
 :root {
   --bg: #f3f4f7; --panel: #ffffff; --ink: #161b26; --muted: #5b6475; --line: #dde1e9;
   --accent: #2f5bd3; --accent-soft: #e6ecfb; --live: #d33a3a; --live-soft: #fbe7e7; --ok: #1f8a5b;
-  --code-bg: #eef0f5;
+  --code-bg: #eef0f5; --warn: #b26a00; --bar-out: #8fa6e8;
   --f-body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
   --f-mono: "JetBrains Mono", Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #0f131b; --panel: #171c27; --ink: #e8ebf2; --muted: #9aa3b5; --line: #283042;
   --accent: #7d9cff; --accent-soft: #1d2640; --live: #ff6b6b; --live-soft: #3a1d22; --ok: #4cc38a;
-  --code-bg: #212839; color-scheme: dark; } }
+  --code-bg: #212839; --warn: #f0b04a; --bar-out: #4a5d99; color-scheme: dark; } }
 :root[data-theme="dark"] {
   --bg: #0f131b; --panel: #171c27; --ink: #e8ebf2; --muted: #9aa3b5; --line: #283042;
   --accent: #7d9cff; --accent-soft: #1d2640; --live: #ff6b6b; --live-soft: #3a1d22; --ok: #4cc38a;
-  --code-bg: #212839; color-scheme: dark; }
+  --code-bg: #212839; --warn: #f0b04a; --bar-out: #4a5d99; color-scheme: dark; }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -48,7 +48,7 @@ header h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
 @media (max-width: 860px) {
   .grid { grid-template-columns: minmax(0, 1fr); }
   .col { display: contents; }
-  #pListen { order: 1; } #pAnswer { order: 2; } #pAsk { order: 3; } #pHistory { order: 4; } #pProfile { order: 5; }
+  #pListen { order: 1; } #pAnswer { order: 2; } #pAsk { order: 3; } #pHistory { order: 4; } #pProfile { order: 5; } #pUsage { order: 6; }
   .wrap { padding-top: 12px; gap: 12px; }
   .btn { padding: 11px 16px; }
   .answer { font-size: 17px; }
@@ -121,6 +121,31 @@ label.btn { display: inline-block; }
 .hist .answer { font-size: 15px; margin-top: 8px; }
 .banner { border-radius: 10px; padding: 10px 14px; background: var(--live-soft); color: var(--ink); font-size: 14px; }
 .banner[hidden] { display: none; }
+
+/* Usage panel */
+.ans-meta { margin: 10px 0 0; font: 12px var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.hist .ans-meta { margin-top: 4px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; flex-wrap: wrap; }
+.seg button { border: 0; background: none; padding: 4px 10px; font-size: 13px; cursor: pointer; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 1100px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tile { background: var(--bg); border-radius: 8px; padding: 10px 12px; min-width: 0; }
+.tile .k { font-size: 12px; color: var(--muted); }
+.tile .v { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.tile .s { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ublock { margin-top: 14px; display: grid; gap: 6px; font-size: 14px; min-width: 0; overflow-wrap: anywhere; }
+.limit-line { font-variant-numeric: tabular-nums; }
+.ublock .lbl { font-size: 13px; }
+.meter { height: 8px; background: var(--bg); border-radius: 99px; overflow: hidden; }
+.meter > span { display: block; height: 100%; width: 0; background: var(--ok); border-radius: 99px; transition: width .3s; }
+.meter.warn > span { background: var(--warn); } .meter.over > span { background: var(--live); }
+.budget-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; color: var(--muted); font-size: 13px; }
+.budget-form input { width: 90px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); padding: 5px 8px; font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+#uChart svg { width: 100%; height: 70px; display: block; }
+.legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
 @media (prefers-reduced-motion: reduce) { .pill.live .dot, .cursor::after { animation: none; } }
 </style>
 </head>
@@ -211,6 +236,7 @@ label.btn { display: inline-block; }
         <h2>Suggested answer</h2>
         <p id="curQ" class="q" hidden></p>
         <div id="answer" class="answer empty">Press <strong>Start listening</strong> and let the interviewer talk. When they pause, a suggested answer streams in here. Tap <strong>Answer now</strong><span class="key-hint"> (or press <kbd>Space</kbd>)</span> to answer immediately.</div>
+        <p id="ansMeta" class="ans-meta" hidden></p>
       </section>
       <section class="panel" id="pHistory">
         <div class="hist-head">
@@ -218,6 +244,42 @@ label.btn { display: inline-block; }
           <button id="resetBtn" class="btn small" type="button">New interview</button>
         </div>
         <div id="history" class="history"></div>
+      </section>
+      <section class="panel" id="pUsage">
+        <div class="hist-head">
+          <h2>Usage</h2>
+          <div class="seg" id="periodSeg">
+            <button type="button" data-p="interview">This interview</button><button type="button" data-p="today">Today</button><button type="button" data-p="month">This month</button><button type="button" data-p="all">All time</button>
+          </div>
+        </div>
+        <div class="tiles">
+          <div class="tile"><div class="k">Cost (estimated)</div><div class="v" id="uCost">$0.00</div><div class="s" id="uCostSub">&nbsp;</div></div>
+          <div class="tile"><div class="k">Tokens used</div><div class="v" id="uTokens">0</div><div class="s" id="uTokensSub">&nbsp;</div></div>
+          <div class="tile"><div class="k">Answers</div><div class="v" id="uAnswers">0</div><div class="s" id="uAnswersSub">&nbsp;</div></div>
+          <div class="tile"><div class="k">First words after</div><div class="v" id="uSpeed">–</div><div class="s" id="uSpeedSub">&nbsp;</div></div>
+        </div>
+        <div class="ublock">
+          <div class="lbl"><strong>Monthly budget</strong> <span id="uBudgetText" class="muted"></span></div>
+          <div class="meter" id="uMeter"><span></span></div>
+          <form class="budget-form" id="budgetForm">
+            <label for="budgetInput">Monthly limit $</label>
+            <input id="budgetInput" inputmode="decimal" placeholder="e.g. 10">
+            <button class="btn small" type="submit">Save</button>
+          </form>
+        </div>
+        <div class="ublock">
+          <div class="lbl"><strong>API rate limit left</strong> <span class="muted">(per minute, from Anthropic)</span></div>
+          <div id="uLimits" class="muted">Shown after the first answer.</div>
+        </div>
+        <div class="ublock">
+          <div class="lbl"><strong>Cache</strong></div>
+          <div id="uCache" class="muted">Your resume and stories are reused between questions. Savings show here.</div>
+        </div>
+        <div class="ublock">
+          <div class="lbl"><strong>Last 20 calls</strong> <span class="legend"><span><i style="background:var(--accent)"></i>input</span><span><i style="background:var(--bar-out)"></i>output</span></span></div>
+          <div id="uChart" class="muted">No calls yet.</div>
+        </div>
+        <p class="hint">Costs are estimates from Anthropic's published prices. Your exact credit balance is at console.anthropic.com → Settings → Billing.</p>
       </section>
     </div>
   </div>
@@ -432,24 +494,25 @@ function md(src) {
 const EMPTY_ANSWER = $("answer").innerHTML;
 let currentId = null;
 
-function histItem(q, a) {
+function histItem(q, a, usage) {
   const d = document.createElement("details");
   d.className = "hist";
   const s = document.createElement("summary"); s.textContent = q;
   const body = document.createElement("div"); body.className = "answer"; body.innerHTML = md(a);
   d.append(s, body);
+  if (usage) { const m = document.createElement("p"); m.className = "ans-meta"; m.textContent = usageLine(usage); d.append(m); }
   return d;
 }
 function renderHistory(list) {
   const h = $("history");
-  h.replaceChildren(...list.slice().reverse().map(it => histItem(it.q, it.a)));
+  h.replaceChildren(...list.slice().reverse().map(it => histItem(it.q, it.a, it.usage)));
   if (!list.length) h.innerHTML = '<p class="hint" id="histEmpty">Questions and answers from this interview collect here, on every device.</p>';
 }
 function archiveDisplayed() {
   const q = $("curQ").dataset.q, a = $("answer").dataset.a;
   if (!q || !a || !currentId) return;
   $("histEmpty")?.remove();
-  $("history").prepend(histItem(q, a));
+  $("history").prepend(histItem(q, a, currentUsage));
 }
 function updateStatus(writing) {
   if (writing) setStatus("think", "Writing answer…");
@@ -462,6 +525,7 @@ function showCurrent(cur) {
   if (!cur) {
     $("curQ").hidden = true; $("curQ").dataset.q = "";
     box.className = "answer empty"; box.innerHTML = EMPTY_ANSWER; box.dataset.a = "";
+    showUsage(null);
     updateStatus(false);
     return;
   }
@@ -472,23 +536,135 @@ function showCurrent(cur) {
   box.dataset.a = cur.a;
   box.innerHTML = md(cur.a);
   box.className = "answer" + (cur.done ? "" : " cursor");
+  showUsage(cur.usage || null);
   updateStatus(!cur.done);
 }
 
 function handleEvent(e) {
-  if (e.type === "snapshot") { renderHistory(e.history); showCurrent(e.current); }
+  if (e.type === "snapshot") { renderHistory(e.history); showCurrent(e.current); renderStats(e.stats); }
+  else if (e.type === "stats") renderStats(e.stats);
   else if (e.type === "question") { archiveDisplayed(); showCurrent({ id: e.id, q: e.q, a: "", done: false }); }
   else if (e.type === "delta" && e.id === currentId) {
     const box = $("answer");
     box.dataset.a += e.text;
     box.innerHTML = md(box.dataset.a);
   }
-  else if (e.type === "done" && e.id === currentId) { $("answer").className = "answer"; updateStatus(false); }
+  else if (e.type === "done" && e.id === currentId) { $("answer").className = "answer"; showUsage(e.usage); updateStatus(false); }
   else if (e.type === "reset") { renderHistory([]); showCurrent(null); }
   else if (e.type === "profile" && e.origin !== ORIGIN) {
     for (const k of PFIELDS) if (k in e && document.activeElement !== $(k)) $(k).value = e[k];
   }
 }
+
+// ---------- Usage: tokens, cost, budget, rate limits, speed ----------
+let STATS = null, currentUsage = null;
+let period = store.get("ic.period", "interview");
+const fmtTok = (n) => n >= 1e6 ? (n / 1e6).toFixed(2) + "M" : n >= 1e4 ? Math.round(n / 1e3) + "k" : (n || 0).toLocaleString();
+const fmtUsd = (x) => x == null ? "–" : x > 0 && x < 0.01 ? "$" + x.toFixed(4) : "$" + x.toFixed(2);
+const fmtSec = (x) => x == null ? "–" : x.toFixed(1) + " s";
+function usageLine(u) {
+  const cache = u.cached ? ` (${fmtTok(u.cached)} from cache)` : u.written ? " (resume cached for next time)" : "";
+  return `${fmtTok(u.in)} in${cache} · ${fmtTok(u.out)} out · first words ${fmtSec(u.ttft)} · done ${fmtSec(u.total)} · ≈${fmtUsd(u.cost)}`;
+}
+function showUsage(u) {
+  currentUsage = u;
+  $("ansMeta").hidden = !u;
+  $("ansMeta").textContent = u ? usageLine(u) : "";
+}
+
+function renderStats(s) {
+  if (!s) return;
+  STATS = s;
+  for (const b of $("periodSeg").querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.p === period));
+  const p = s.periods[period];
+  $("uCost").textContent = fmtUsd(p.cost);
+  $("uCostSub").textContent = p.avg_cost != null ? "≈" + fmtUsd(p.avg_cost) + " per answer" : "No answers yet";
+  $("uTokens").textContent = fmtTok(p.input + p.output);
+  $("uTokensSub").textContent = `${fmtTok(p.input)} in · ${fmtTok(p.output)} out`;
+  $("uAnswers").textContent = p.answers.toLocaleString();
+  $("uAnswersSub").textContent = p.stories ? `+ ${p.stories} story bank${p.stories > 1 ? "s" : ""}` : " ";
+  $("uSpeed").textContent = fmtSec(p.avg_ttft);
+  $("uSpeedSub").textContent = p.avg_total != null ? "full answer " + fmtSec(p.avg_total) : " ";
+
+  // Budget: what's left this month
+  const meter = $("uMeter");
+  if (s.budget > 0) {
+    const pct = s.month_spent / s.budget;
+    meter.querySelector("span").style.width = Math.min(100, pct * 100).toFixed(1) + "%";
+    meter.className = "meter" + (pct >= 1 ? " over" : pct >= 0.8 ? " warn" : "");
+    $("uBudgetText").textContent = `${fmtUsd(s.month_spent)} of ${fmtUsd(s.budget)} used this month · ` +
+      (s.budget_left >= 0 ? `${fmtUsd(s.budget_left)} left` : `${fmtUsd(-s.budget_left)} over`);
+  } else {
+    meter.querySelector("span").style.width = "0";
+    meter.className = "meter";
+    $("uBudgetText").textContent = `${fmtUsd(s.month_spent)} used this month. Set a limit to track what's left.`;
+  }
+  if (document.activeElement !== $("budgetInput")) $("budgetInput").value = s.budget ? s.budget : "";
+
+  // Rate limits reported by the API on the latest call
+  const L = s.limits || {}, parts = [];
+  for (const [key, name] of [["input-tokens", "input tokens"], ["output-tokens", "output tokens"], ["tokens", "tokens"], ["requests", "requests"]]) {
+    const rem = L[key + "-remaining"], lim = L[key + "-limit"];
+    if (rem != null && lim != null) parts.push(`${fmtTok(+rem)} of ${fmtTok(+lim)} ${name}`);
+  }
+  if (parts.length) {
+    if (s.limits_at) parts.push(`Checked ${new Date(s.limits_at * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`);
+    $("uLimits").replaceChildren(...parts.map(t => Object.assign(document.createElement("div"), { className: "limit-line", textContent: t })));
+  } else $("uLimits").textContent = "Shown after the first answer.";
+
+  // Cache savings
+  $("uCache").textContent = p.input
+    ? `${Math.round(100 * p.cache_read / p.input)}% of input tokens came from the cache (your resume and stories), saving about ${fmtUsd(p.saved)}.`
+    : "Your resume and stories are reused between questions. Savings show here.";
+
+  drawChart(s.recent || []);
+}
+
+function drawChart(recent) {
+  const box = $("uChart");
+  if (!recent.length) { box.textContent = "No calls yet."; return; }
+  const W = 400, H = 70, gap = 3, n = 20, bw = (W - gap * (n - 1)) / n;
+  const max = Math.max(...recent.map(r => r.in + r.out), 1);
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("preserveAspectRatio", "none");
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", "Tokens per call for the last calls");
+  recent.forEach((r, i) => {
+    const x = (n - recent.length + i) * (bw + gap);
+    const hin = (r.in / max) * (H - 2), hout = (r.out / max) * (H - 2);
+    const g = document.createElementNS(ns, "g");
+    const t = document.createElementNS(ns, "title");
+    t.textContent = `${r.kind === "stories" ? "Story bank" : r.label}\n${fmtTok(r.in)} in · ${fmtTok(r.out)} out · ${fmtUsd(r.cost)}` +
+      (r.ttft != null ? ` · first words ${fmtSec(r.ttft)}` : "") + (r.status !== "ok" ? ` · ${r.status}` : "");
+    const a = document.createElementNS(ns, "rect");
+    a.setAttribute("x", x); a.setAttribute("width", bw); a.setAttribute("y", H - hin); a.setAttribute("height", Math.max(hin, 1));
+    a.setAttribute("fill", "var(--accent)"); a.setAttribute("rx", 1.5);
+    const b = document.createElementNS(ns, "rect");
+    b.setAttribute("x", x); b.setAttribute("width", bw); b.setAttribute("y", H - hin - hout); b.setAttribute("height", hout);
+    b.setAttribute("fill", "var(--bar-out)"); b.setAttribute("rx", 1.5);
+    g.append(t, a, b);
+    svg.append(g);
+  });
+  box.replaceChildren(svg);
+}
+
+$("periodSeg").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-p]");
+  if (!b) return;
+  period = b.dataset.p;
+  store.set("ic.period", period);
+  renderStats(STATS);
+});
+$("budgetForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const v = parseFloat($("budgetInput").value.replace(/[$,]/g, ""));
+  const budget = isNaN(v) ? 0 : v;
+  $("budgetInput").blur();
+  await fetch("/settings", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ budget }) }).catch(() => {});
+});
 
 let events = null;
 function connectEvents() {
