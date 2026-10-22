@@ -123,6 +123,12 @@ label.btn { display: inline-block; }
 .banner[hidden] { display: none; }
 
 /* Usage panel */
+.sources { margin: 12px 0 0; padding: 8px 10px; border-radius: 8px; background: var(--bg); font-size: 13px; }
+.sources b { font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+.sources ul { margin: 4px 0 0; padding-left: 1.1em; }
+.sources li { margin: 2px 0; overflow-wrap: anywhere; }
+.sources .f { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.check { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; }
 .ans-meta { margin: 10px 0 0; font: 12px var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
 .hist .ans-meta { margin-top: 4px; }
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; flex-wrap: wrap; }
@@ -227,6 +233,14 @@ label.btn { display: inline-block; }
           <textarea id="stories" placeholder="Your STAR stories appear here. Behavioral and leadership answers are built from them."></textarea>
           <p class="hint" id="storyInfo">Read it once before the interview and replace any <strong>[fill in: …]</strong> with your real details. You can edit anything.</p>
         </div>
+        <div class="field">
+          <label class="lbl" for="useRefs">4. Reference notes</label>
+          <div class="inline">
+            <label class="check"><input type="checkbox" id="useRefs" checked> Use my notes for technical answers</label>
+            <button id="reindexBtn" class="btn small" type="button">Re-index</button>
+          </div>
+          <p class="hint" id="refStatus">Indexing your notes…</p>
+        </div>
         <p class="hint">Saved on your PC and shared with every device you open this page on.</p>
       </section>
     </div>
@@ -236,6 +250,7 @@ label.btn { display: inline-block; }
         <h2>Suggested answer</h2>
         <p id="curQ" class="q" hidden></p>
         <div id="answer" class="answer empty">Press <strong>Start listening</strong> and let the interviewer talk. When they pause, a suggested answer streams in here. Tap <strong>Answer now</strong><span class="key-hint"> (or press <kbd>Space</kbd>)</span> to answer immediately.</div>
+        <div id="ansSources" class="sources" hidden></div>
         <p id="ansMeta" class="ans-meta" hidden></p>
       </section>
       <section class="panel" id="pHistory">
@@ -494,25 +509,48 @@ function md(src) {
 const EMPTY_ANSWER = $("answer").innerHTML;
 let currentId = null;
 
-function histItem(q, a, usage) {
+function sourcesNode(list) {
+  const box = document.createElement("div");
+  box.className = "sources";
+  const b = document.createElement("b"); b.textContent = "From your notes";
+  const ul = document.createElement("ul");
+  for (const src of list) {
+    const li = document.createElement("li");
+    const f = document.createElement("span"); f.className = "f"; f.textContent = src.file;
+    li.append(src.label + " ", f);
+    ul.append(li);
+  }
+  box.append(b, ul);
+  return box;
+}
+function showSources(list) {
+  currentSources = list && list.length ? list : null;
+  const box = $("ansSources");
+  box.hidden = !currentSources;
+  box.replaceChildren(...(currentSources ? sourcesNode(currentSources).childNodes : []));
+}
+let currentSources = null;
+
+function histItem(q, a, usage, sources) {
   const d = document.createElement("details");
   d.className = "hist";
   const s = document.createElement("summary"); s.textContent = q;
   const body = document.createElement("div"); body.className = "answer"; body.innerHTML = md(a);
   d.append(s, body);
+  if (sources && sources.length) d.append(sourcesNode(sources));
   if (usage) { const m = document.createElement("p"); m.className = "ans-meta"; m.textContent = usageLine(usage); d.append(m); }
   return d;
 }
 function renderHistory(list) {
   const h = $("history");
-  h.replaceChildren(...list.slice().reverse().map(it => histItem(it.q, it.a, it.usage)));
+  h.replaceChildren(...list.slice().reverse().map(it => histItem(it.q, it.a, it.usage, it.sources)));
   if (!list.length) h.innerHTML = '<p class="hint" id="histEmpty">Questions and answers from this interview collect here, on every device.</p>';
 }
 function archiveDisplayed() {
   const q = $("curQ").dataset.q, a = $("answer").dataset.a;
   if (!q || !a || !currentId) return;
   $("histEmpty")?.remove();
-  $("history").prepend(histItem(q, a, currentUsage));
+  $("history").prepend(histItem(q, a, currentUsage, currentSources));
 }
 function updateStatus(writing) {
   if (writing) setStatus("think", "Writing answer…");
@@ -526,6 +564,7 @@ function showCurrent(cur) {
     $("curQ").hidden = true; $("curQ").dataset.q = "";
     box.className = "answer empty"; box.innerHTML = EMPTY_ANSWER; box.dataset.a = "";
     showUsage(null);
+    showSources(null);
     updateStatus(false);
     return;
   }
@@ -537,13 +576,15 @@ function showCurrent(cur) {
   box.innerHTML = md(cur.a);
   box.className = "answer" + (cur.done ? "" : " cursor");
   showUsage(cur.usage || null);
+  showSources(cur.sources || null);
   updateStatus(!cur.done);
 }
 
 function handleEvent(e) {
-  if (e.type === "snapshot") { renderHistory(e.history); showCurrent(e.current); renderStats(e.stats); }
+  if (e.type === "snapshot") { renderHistory(e.history); showCurrent(e.current); renderStats(e.stats); renderRefs(e.refs); }
+  else if (e.type === "refs") renderRefs(e.refs);
   else if (e.type === "stats") renderStats(e.stats);
-  else if (e.type === "question") { archiveDisplayed(); showCurrent({ id: e.id, q: e.q, a: "", done: false }); }
+  else if (e.type === "question") { archiveDisplayed(); showCurrent({ id: e.id, q: e.q, a: "", done: false, sources: e.sources }); }
   else if (e.type === "delta" && e.id === currentId) {
     const box = $("answer");
     box.dataset.a += e.text;
@@ -575,6 +616,7 @@ function showUsage(u) {
 function renderStats(s) {
   if (!s) return;
   STATS = s;
+  if (typeof s.use_refs === "boolean") $("useRefs").checked = s.use_refs;
   for (const b of $("periodSeg").querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.p === period));
   const p = s.periods[period];
   $("uCost").textContent = fmtUsd(p.cost);
@@ -664,6 +706,27 @@ $("budgetForm").addEventListener("submit", async (e) => {
   $("budgetInput").blur();
   await fetch("/settings", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ budget }) }).catch(() => {});
+});
+
+// ---------- Reference notes (study documents searched for technical answers) ----------
+function renderRefs(r) {
+  if (!r) return;
+  const when = r.built_at ? new Date(r.built_at * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "";
+  $("reindexBtn").disabled = !!r.building;
+  $("refStatus").textContent = r.building
+    ? "Indexing your notes…"
+    : r.files
+      ? `${r.files.toLocaleString()} documents (${r.sections.toLocaleString()} sections) from ${r.folder}, indexed ${when}.` +
+        (r.errors ? ` ${r.errors} file${r.errors > 1 ? "s" : ""} couldn't be read.` : "")
+      : `No .md, .pdf, .docx or .txt notes found in ${r.folder}.`;
+}
+$("reindexBtn").addEventListener("click", () => {
+  $("refStatus").textContent = "Indexing your notes…";
+  fetch("/refs/reindex", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: "{}" }).catch(() => {});
+});
+$("useRefs").addEventListener("change", () => {
+  fetch("/settings", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ use_refs: $("useRefs").checked }) }).catch(() => {});
 });
 
 let events = null;

@@ -24,6 +24,8 @@ from urllib.parse import parse_qs, unquote, urlsplit
 
 import anthropic
 
+import refs
+
 PORT = int(os.environ.get("PORT", "8765"))
 HOST = os.environ.get("HOST", "127.0.0.1")  # 0.0.0.0 = reachable from other devices on your Wi-Fi
 ACCESS_CODE = os.environ.get("ACCESS_CODE", "").strip()
@@ -35,6 +37,10 @@ HERE = Path(__file__).parent
 # Folder of resumes the page can load from. Default: the "Resume" folder next to this app's folder.
 RESUME_DIR = Path(os.environ.get("RESUME_DIR", HERE.parent / "Resume"))
 RESUME_TYPES = (".docx", ".pdf", ".md", ".txt")
+# Study notes searched for technical answers. Default: the folder this app sits in (your learning folder).
+REFERENCE_DIR = Path(os.environ.get("REFERENCE_DIR", HERE.parent))
+REFERENCE_SKIP = refs.DEFAULT_SKIP | {x.strip() for x in os.environ.get("REFERENCE_SKIP", "").split(",") if x.strip()}
+LIBRARY = refs.Library(REFERENCE_DIR, REFERENCE_SKIP)
 # Resume, target role and story bank, shared by every device (kept out of git).
 PROFILE_FILE = HERE / "data" / "profile.json"
 PROFILE_FIELDS = ("profile", "role", "stories")
@@ -70,9 +76,23 @@ story bank. Never invent them. If a detail is missing, leave a visible placehold
 [fill in: who disagreed] so the candidate can supply it. If no story truly fits, start with \
 **Closest story:** instead of **Story:** and use the nearest one. Aim for about 180 words.
 
+## Technical, architecture and scenario questions
+Start with a one-sentence direct answer, then 3-5 short bullets: how it works or how I would do it, \
+the key trade-off or best practice, and a real example from my resume or notes when one fits. \
+Include a tiny code or CLI snippet only if it helps. Aim for about 170 words.
+
+## Reference notes
+The candidate's own study notes may be attached as <reference_notes>. They were picked by keyword \
+search, so some may not fit the question. When a note is relevant:
+- Build the answer from it first: reuse its facts, numbers, service names, design patterns, \
+commands and the candidate's own phrasing and examples. Fill gaps with accurate general knowledge.
+- If a note holds a prepared answer to this same question, keep its structure and key points, \
+tightened for speaking.
+- If a note is wrong or outdated, give the correct answer instead.
+Ignore notes that don't fit. Never mention "notes", "documents" or "sources" in the spoken answer.
+
 ## All other questions
 - Start with a one-sentence direct answer, then 2-4 short bullets, grounded in the resume where relevant.
-- Technical questions: give the correct answer clearly; include a tiny code snippet only if it helps.
 - "Tell me about yourself": a 4-5 sentence pitch from the resume, ending with why this target role.
 - If the speech is not a question (small talk, instructions), reply with one short line suggesting how to respond.
 - Keep it under about 150 words unless the question truly needs more.
@@ -143,45 +163,7 @@ def get_client():
     return client
 
 
-def extract_resume_text(filename, data):
-    """Plain text from a .docx, .pdf, .txt or .md file."""
-    name = filename.lower()
-    if name.endswith(".docx"):
-        import docx
-        doc = docx.Document(io.BytesIO(data))
-        lines = [p.text for p in doc.paragraphs]
-        for table in doc.tables:  # many resume templates put content in tables
-            for row in table.rows:
-                cells = []
-                for cell in row.cells:
-                    if cell.text.strip() and cell.text not in cells:
-                        cells.append(cell.text)
-                lines.append(" | ".join(cells))
-        text = "\n".join(lines)
-    elif name.endswith(".pdf"):
-        import pypdf
-        reader = pypdf.PdfReader(io.BytesIO(data))
-        text = "\n".join(page.extract_text() or "" for page in reader.pages)
-    elif name.endswith((".txt", ".md")):
-        text = data.decode("utf-8", errors="replace")
-    else:
-        raise ValueError("Please upload a .docx, .pdf or .txt file.")
-    # tidy blank lines
-    out, blank = [], False
-    for line in text.splitlines():
-        line = line.rstrip()
-        if not line.strip():
-            if not blank:
-                out.append("")
-            blank = True
-        else:
-            out.append(line)
-            blank = False
-    text = "\n".join(out).strip()
-    if not text:
-        raise ValueError("No text found in that file. If it's a scanned PDF, upload the .docx instead.")
-    return text
-
+extract_resume_text = refs.extract_text  # .docx / .pdf / .txt / .md -> text
 
 def list_resumes():
     """Resume files in RESUME_DIR (skips Word's ~$ lock files)."""
@@ -202,7 +184,7 @@ def candidate_context(profile, role, stories):
     return "\n\n".join(parts) or "<resume>\n(The candidate has not added a resume yet.)\n</resume>"
 
 
-def answer_request(question, profile, history):
+def answer_request(question, profile, history, notes=None):
     """System prompt + candidate context (cached between questions), then the live question."""
     system = [
         {"type": "text", "text": ANSWER_PROMPT},
@@ -217,6 +199,9 @@ def answer_request(question, profile, history):
     if history:
         lines = [f"Q: {h['q']}\nA: {h['a']}" for h in history[-4:]]
         context.append("<earlier_in_this_interview>\n" + "\n\n".join(lines) + "\n</earlier_in_this_interview>")
+    if notes:
+        body = "\n\n".join(f'<note source="{n["file"]} › {n["label"]}">\n{n["text"]}\n</note>' for n in notes)
+        context.append(f"<reference_notes>\n{body}\n</reference_notes>")
     context.append(f"<interviewer_said>\n{question.strip()}\n</interviewer_said>")
     return system, [{"role": "user", "content": "\n\n".join(context)}]
 
@@ -276,8 +261,11 @@ class Metrics:
             self.settings["budget"] = float(os.environ.get("COPILOT_BUDGET_USD", "0") or 0)
 
     def set_budget(self, budget):
+        self.update_settings(budget=max(0.0, float(budget)))
+
+    def update_settings(self, **changes):
         with self.lock:
-            self.settings["budget"] = max(0.0, float(budget))
+            self.settings.update(changes)
             SETTINGS_FILE.parent.mkdir(exist_ok=True)
             SETTINGS_FILE.write_text(json.dumps(self.settings), encoding="utf-8")
 
@@ -344,7 +332,8 @@ class Metrics:
                    "kind": r["kind"], "status": r["status"]} for r in records[-20:]]
         return {"periods": periods, "budget": budget, "month_spent": spent,
                 "budget_left": round(budget - spent, 4) if budget else None,
-                "limits": limits, "limits_at": limits_at, "recent": recent, "model": MODEL}
+                "limits": limits, "limits_at": limits_at, "recent": recent, "model": MODEL,
+                "use_refs": self.settings.get("use_refs", True)}
 
 
 METRICS = Metrics()
@@ -424,6 +413,7 @@ class Session:
             snap = {"type": "snapshot", "history": [dict(h) for h in self.history[-30:]],
                     "current": dict(self.current) if self.current else None}
         snap["stats"] = METRICS.stats(self.started)
+        snap["refs"] = LIBRARY.status()
         return snap
 
     def ask(self, question, origin):
@@ -433,22 +423,29 @@ class Session:
             if self.current and self.current["a"].strip():
                 c = self.current
                 self.history = (self.history + [{"id": c["id"], "q": c["q"], "a": c["a"],
-                                                 "usage": c.get("usage")}])[-50:]
+                                                 "usage": c.get("usage"), "sources": c.get("sources")}])[-50:]
             earlier = [dict(h) for h in self.history[-4:]]
-            item = {"id": uuid.uuid4().hex[:12], "q": question, "a": "", "done": False}
+            notes = []
+            if METRICS.settings.get("use_refs", True):
+                notes = LIBRARY.search(question)
+                if not notes and earlier and len(question.split()) < 7:
+                    # vague follow-up ("why is that?"): borrow the topic of the last question
+                    notes = LIBRARY.search(question + " " + earlier[-1]["q"])
+            sources = [{"file": n["file"], "label": n["label"]} for n in notes]
+            item = {"id": uuid.uuid4().hex[:12], "q": question, "a": "", "done": False, "sources": sources}
             self.current, self.cancel = item, threading.Event()
             cancel, profile = self.cancel, dict(self.profile)
-        self.broadcast({"type": "question", "id": item["id"], "q": question, "origin": origin})
-        threading.Thread(target=self._write_answer, args=(item, cancel, profile, earlier), daemon=True).start()
+        self.broadcast({"type": "question", "id": item["id"], "q": question, "origin": origin, "sources": sources})
+        threading.Thread(target=self._write_answer, args=(item, cancel, profile, earlier, notes), daemon=True).start()
         return item["id"]
 
-    def _write_answer(self, item, cancel, profile, earlier):
+    def _write_answer(self, item, cancel, profile, earlier, notes):
         def emit(text):
             with self.lock:
                 item["a"] += text
             self.broadcast({"type": "delta", "id": item["id"], "text": text})
 
-        system, messages = answer_request(item["q"], profile, earlier)
+        system, messages = answer_request(item["q"], profile, earlier, notes)
         rec = stream_claude(system, messages, EFFORT, 4000, emit, cancel.is_set, kind="answer", label=item["q"])
         summary = None
         if rec:
@@ -488,6 +485,17 @@ class Session:
 
 
 SESSION = Session()
+
+
+def reindex_library():
+    def run():
+        SESSION.broadcast({"type": "refs", "refs": {**LIBRARY.status(), "building": True}})
+        LIBRARY.build()
+        st = LIBRARY.status()
+        print(f"Reference notes: {st['files']} documents, {st['sections']} sections indexed "
+              f"in {st['build_seconds']} s from {st['folder']}", flush=True)
+        SESSION.broadcast({"type": "refs", "refs": st})
+    threading.Thread(target=run, daemon=True).start()
 
 
 def story_request(data):
@@ -542,6 +550,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(200, dict(SESSION.profile))
         elif url.path == "/stats":
             self._json(200, METRICS.stats(SESSION.started))
+        elif url.path == "/refs":
+            self._json(200, LIBRARY.status())
         elif url.path == "/resumes":
             self._json(200, {"folder": str(RESUME_DIR), "files": list_resumes()})
         elif url.path == "/resume":
@@ -587,7 +597,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = urlsplit(self.path).path
-        if path not in ("/answer", "/stories", "/extract", "/profile", "/reset", "/settings"):
+        if path not in ("/answer", "/stories", "/extract", "/profile", "/reset", "/settings", "/refs/reindex"):
             self._json(404, {"error": "Not found"})
             return
         if not self._authorized():
@@ -626,9 +636,16 @@ class Handler(BaseHTTPRequestHandler):
             SESSION.reset()
             self._json(200, {"ok": True})
             return
+        if path == "/refs/reindex":
+            reindex_library()
+            self._json(202, {"ok": True})
+            return
         if path == "/settings":
             try:
-                METRICS.set_budget(data.get("budget", 0))
+                if "budget" in data:
+                    METRICS.set_budget(data["budget"])
+                if "use_refs" in data:
+                    METRICS.update_settings(use_refs=bool(data["use_refs"]))
             except (TypeError, ValueError):
                 self._json(400, {"error": "Budget must be a number, e.g. 10"})
                 return
@@ -718,4 +735,6 @@ if __name__ == "__main__":
     print(f"Interview Copilot running at http://localhost:{PORT}  (model: {MODEL}, effort: {EFFORT})")
     if ACCESS_CODE:
         print(f"Access code: {ACCESS_CODE}")
+    print(f"Indexing reference notes in {REFERENCE_DIR} ...")
+    reindex_library()
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()

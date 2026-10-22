@@ -63,6 +63,24 @@ Use another folder of resumes with `RESUME_DIR=C:\path\to\folder`.
 - Press **Answer now** (or **Space** on a PC) to answer immediately, or type a question.
 - On a video call, the mic must hear the interviewer: use speakers, not headphones.
 
+## Technical answers from your own notes
+
+The app indexes your study notes (`.md`, `.pdf`, `.docx`, `.txt`) in the folder it sits in, your
+`learning` folder, when the server starts. It skips hidden folders such as `.git` and `.trunk`,
+plus `Resume`, `coverage`, `node_modules` and this app.
+
+For every question it finds the best-matching sections in a few milliseconds and sends them with the
+question. Technical answers then follow your notes: your service names, numbers, architectures,
+commands and prepared answers, with general knowledge filling any gaps. The files used are listed under
+each answer ("From your notes").
+
+- **4. Reference notes** in the resume panel shows how many documents are indexed, has a switch to turn
+  this off, and a **Re-index** button for after you add or edit notes.
+- Short follow-ups ("Why is that better?") reuse the previous question's topic.
+- Only the few matching sections are sent, never whole folders.
+- Use another folder with `REFERENCE_DIR=C:\path\to\notes`; skip extra folders with
+  `REFERENCE_SKIP=Folder1,Folder2`.
+
 ## Usage and cost
 
 The **Usage** panel shows, for this interview, today, this month or all time:
