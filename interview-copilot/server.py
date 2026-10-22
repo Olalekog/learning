@@ -14,6 +14,7 @@ import io
 import json
 import os
 import queue
+import re
 import sys
 import threading
 import time
@@ -299,14 +300,15 @@ class Metrics:
             with self.lock:
                 self.limits, self.limits_at = found, time.time()
 
-    def record(self, kind, label, model, u, ttft, total, status):
+    def record(self, kind, label, model, u, ttft, total, status, interview=None):
         u = {k: u.get(k, 0) for k in ("input", "output", "cache_read", "cache_write", "searches")}
         p = price_for(model)
         cost = (u["input"] * p[0] + u["output"] * p[1] + u["cache_read"] * p[2] + u["cache_write"] * p[3]) / 1e6
         cost += u["searches"] * SEARCH_PRICE
         rec = {"ts": round(time.time(), 1), "kind": kind, "label": label[:120], "model": model, **u,
                "cost": round(cost, 6), "saved": round(u["cache_read"] * (p[0] - p[2]) / 1e6, 6),
-               "ttft": round(ttft, 2) if ttft is not None else None, "total": round(total, 2), "status": status}
+               "ttft": round(ttft, 2) if ttft is not None else None, "total": round(total, 2), "status": status,
+               "interview": interview}
         with self.lock:
             self.records.append(rec)
             USAGE_FILE.parent.mkdir(exist_ok=True)
@@ -314,7 +316,7 @@ class Metrics:
                 f.write(json.dumps(rec) + "\n")
         return rec
 
-    def stats(self, interview_start):
+    def stats(self, interview_id):
         now = time.localtime()
         today = time.mktime((now.tm_year, now.tm_mon, now.tm_mday, 0, 0, 0, 0, 0, -1))
         month = time.mktime((now.tm_year, now.tm_mon, 1, 0, 0, 0, 0, 0, -1))
@@ -322,8 +324,8 @@ class Metrics:
             records = list(self.records)
             limits, limits_at, budget = dict(self.limits), self.limits_at, self.settings.get("budget", 0)
 
-        def summary(since):
-            rs = [r for r in records if r["ts"] >= since]
+        def summary(since=0, interview=None):
+            rs = [r for r in records if r["ts"] >= since and (interview is None or r.get("interview") == interview)]
             answers = [r for r in rs if r["kind"] == "answer"]
             tin = sum(r["input"] + r["cache_read"] + r["cache_write"] for r in rs)
             ttfts = [r["ttft"] for r in answers if r.get("ttft") is not None]
@@ -341,7 +343,7 @@ class Metrics:
                 "avg_cost": round(sum(r["cost"] for r in answers) / len(answers), 5) if answers else None,
             }
 
-        periods = {"interview": summary(interview_start), "today": summary(today),
+        periods = {"interview": summary(interview=interview_id or "-"), "today": summary(today),
                    "month": summary(month), "all": summary(0)}
         spent = periods["month"]["cost"]
         recent = [{"ts": r["ts"], "label": r["label"], "in": r["input"] + r["cache_read"] + r["cache_write"],
@@ -402,7 +404,7 @@ def doc_links(content):
 
 
 def stream_claude(system, messages, effort, max_tokens, emit, cancelled=lambda: False,
-                  kind="answer", label="", tools=None, on_search=None):
+                  kind="answer", label="", tools=None, on_search=None, interview=None):
     """Stream Claude's text to emit(); errors are emitted as readable text.
     Returns the usage record for this call (None if the call never ran); record["links"] lists doc pages used."""
     started, first, total, served, status = time.time(), None, {}, MODEL, "ok"
@@ -455,7 +457,8 @@ def stream_claude(system, messages, effort, max_tokens, emit, cancelled=lambda: 
     except anthropic.BadRequestError as e:
         if tools and first is None:
             # e.g. web search is turned off for this Anthropic organization: answer without it
-            rec = stream_claude(system, messages, effort, max_tokens, emit, cancelled, kind, label)
+            rec = stream_claude(system, messages, effort, max_tokens, emit, cancelled, kind, label,
+                                interview=interview)
             emit("\n\n_(Official docs search isn't available for your API account, so this answer "
                  "doesn't use it. An admin can turn on web search in the Anthropic Console.)_")
             return rec
@@ -467,45 +470,275 @@ def stream_claude(system, messages, effort, max_tokens, emit, cancelled=lambda: 
     if not total:
         return None
     rec = METRICS.record(kind, label, served, total,
-                         (first - started) if first else None, time.time() - started, status)
+                         (first - started) if first else None, time.time() - started, status, interview)
     return {**rec, "links": links}
 
+INTERVIEWS_DIR = HERE / "data" / "interviews"
+RECORDINGS_DIR = HERE / "data" / "recordings"   # screen recordings, one folder per interview
+
+
+def interview_markdown(iv):
+    """A saved interview as a readable Markdown document."""
+    def when(ts):
+        return time.strftime("%a %d %b %Y, %H:%M", time.localtime(ts)) if ts else "-"
+
+    lines = [f"# {iv['name']}", ""]
+    lines.append(f"- **Started:** {when(iv.get('started_at'))}")
+    lines.append(f"- **Ended:** {when(iv.get('stopped_at'))}")
+    if iv.get("started_at") and iv.get("stopped_at"):
+        lines.append(f"- **Length:** {round((iv['stopped_at'] - iv['started_at']) / 60)} min")
+    items = [it for it in iv["items"] if it.get("a")]
+    cost = sum((it.get("usage") or {}).get("cost", 0) for it in items)
+    lines.append(f"- **Questions:** {len(items)}  ·  **Estimated cost:** ${cost:.2f}")
+    lines.append("")
+    for n, it in enumerate(items, 1):
+        lines += ["---", "", f"## Q{n}. {it['q']}", ""]
+        if it.get("ts"):
+            lines += [f"_{time.strftime('%H:%M', time.localtime(it['ts']))}_", ""]
+        lines += [it["a"].strip(), ""]
+        if it.get("sources"):
+            lines.append("**From your notes:** " + "; ".join(f"{s['label']} (`{s['file']}`)" for s in it["sources"]))
+            lines.append("")
+        if it.get("docs"):
+            lines.append("**From official docs:** " + "; ".join(f"[{d['title']}]({d['url']})" for d in it["docs"]))
+            lines.append("")
+    return "\n".join(lines)
+
+
 class Session:
-    """One shared interview: every open device sees the same questions, answers and resume."""
+    """Saved interviews (one tab each). One interview is live at a time; every device sees the same data."""
 
     def __init__(self):
         self.lock = threading.RLock()
-        self.history = []        # finished [{id, q, a}], oldest first
-        self.current = None      # {id, q, a, done}
-        self.cancel = None       # stops the answer being written when a newer question arrives
         self.subscribers = set()
         self.profile = load_profile()
-        self.started = time.time()  # start of this interview, for "This interview" stats
+        self.interviews = {}     # id -> {id, name, status: ready|live|ended, created, started_at, stopped_at, items}
+        self.cancel = None       # stops the answer being written when a newer question arrives
+        self.writing = None      # (interview id, item) being written
+        INTERVIEWS_DIR.mkdir(parents=True, exist_ok=True)
+        for f in INTERVIEWS_DIR.glob("*.json"):
+            try:
+                iv = json.loads(f.read_text(encoding="utf-8"))
+                for it in iv["items"]:
+                    it["done"] = True  # anything unfinished when the server stopped is final now
+                for rec in iv.get("recordings", []):
+                    if rec["status"] == "recording":
+                        rec["status"] = "saved"  # the server stopped mid-recording; keep what arrived
+                self.interviews[iv["id"]] = iv
+            except (OSError, ValueError, KeyError):
+                pass
+        live = sorted((iv for iv in self.interviews.values() if iv["status"] == "live"),
+                      key=lambda iv: iv.get("started_at") or 0)
+        for iv in live[:-1]:  # only one can be live
+            iv["status"] = "ended"
+        self.active = live[-1]["id"] if live else None
 
+    # ------------------------------------------------------------ helpers
     def broadcast(self, event):
         with self.lock:
             subs = list(self.subscribers)
         for q in subs:
             q.put(event)
 
-    def snapshot(self):
+    def _save(self, iv):
+        tmp = INTERVIEWS_DIR / f"{iv['id']}.tmp"
+        tmp.write_text(json.dumps(iv, ensure_ascii=False, indent=1), encoding="utf-8")
+        tmp.replace(INTERVIEWS_DIR / f"{iv['id']}.json")
+
+    def _meta(self, iv):
+        done = [it for it in iv["items"] if it.get("a")]
+        return {"id": iv["id"], "name": iv["name"], "status": iv["status"], "created": iv["created"],
+                "started_at": iv.get("started_at"), "stopped_at": iv.get("stopped_at"), "count": len(done),
+                "cost": round(sum((it.get("usage") or {}).get("cost", 0) for it in done), 4),
+                "recordings": [dict(r) for r in iv.get("recordings", [])]}
+
+    def list_meta(self):
         with self.lock:
-            snap = {"type": "snapshot", "history": [dict(h) for h in self.history[-30:]],
-                    "current": dict(self.current) if self.current else None}
-        snap["stats"] = METRICS.stats(self.started)
+            return sorted((self._meta(iv) for iv in self.interviews.values()), key=lambda m: -m["created"])
+
+    def _announce(self):
+        self.broadcast({"type": "interviews", "list": self.list_meta(), "active": self.active})
+
+    def stats_focus(self):
+        """Interview the usage panel's "This interview" refers to: the live one, else the newest."""
+        with self.lock:
+            if self.active:
+                return self.active
+            newest = max(self.interviews.values(), key=lambda iv: iv["created"], default=None)
+            return newest["id"] if newest else None
+
+    def get(self, iid):
+        with self.lock:
+            iv = self.interviews.get(iid)
+            return json.loads(json.dumps(iv)) if iv else None  # a copy
+
+    def snapshot(self):
+        snap = {"type": "snapshot", "list": self.list_meta(), "active": self.active}
+        snap["stats"] = METRICS.stats(self.stats_focus())
         snap["refs"] = LIBRARY.status()
         return snap
 
-    def ask(self, question, origin):
+    # ------------------------------------------------------------ interview lifecycle
+    def create(self, name=""):
+        with self.lock:
+            now = time.time()
+            iv = {"id": uuid.uuid4().hex[:10],
+                  "name": (name or "").strip()[:80] or "Interview " + time.strftime("%d %b %H:%M", time.localtime(now)),
+                  "status": "ready", "created": now, "started_at": None, "stopped_at": None, "items": []}
+            self.interviews[iv["id"]] = iv
+            self._save(iv)
+        self._announce()
+        return iv["id"]
+
+    def _stop_locked(self, iv):
+        if self.writing and self.writing[0] == iv["id"] and self.cancel:
+            self.cancel.set()
+        iv["status"], iv["stopped_at"] = "ended", time.time()
+        if self.active == iv["id"]:
+            self.active = None
+        self._save(iv)
+
+    def start(self, iid):
+        with self.lock:
+            iv = self.interviews.get(iid)
+            if not iv:
+                return False
+            for other in self.interviews.values():
+                if other["status"] == "live" and other["id"] != iid:
+                    self._stop_locked(other)
+            iv["status"] = "live"
+            iv["started_at"] = iv.get("started_at") or time.time()
+            iv["stopped_at"] = None
+            self.active = iid
+            self._save(iv)
+        self._announce()
+        self.broadcast_stats()
+        return True
+
+    def stop(self, iid):
+        with self.lock:
+            iv = self.interviews.get(iid)
+            if not iv:
+                return False
+            if iv["status"] == "live":
+                self._stop_locked(iv)
+        self.broadcast({"type": "stopped", "interview": iid})
+        self._announce()
+        return True
+
+    def rename(self, iid, name):
+        with self.lock:
+            iv = self.interviews.get(iid)
+            if not iv or not name.strip():
+                return False
+            iv["name"] = name.strip()[:80]
+            self._save(iv)
+        self._announce()
+        return True
+
+    def delete(self, iid):
+        with self.lock:
+            iv = self.interviews.pop(iid, None)
+            if not iv:
+                return False
+            if self.writing and self.writing[0] == iid and self.cancel:
+                self.cancel.set()
+            if self.active == iid:
+                self.active = None
+            try:
+                (INTERVIEWS_DIR / f"{iid}.json").unlink()
+            except OSError:
+                pass
+            folder = RECORDINGS_DIR / iid
+            for f in folder.glob("*.webm") if folder.is_dir() else []:
+                try:
+                    f.unlink()
+                except OSError:
+                    pass
+            try:
+                folder.rmdir()
+            except OSError:
+                pass
+        self._announce()
+        return True
+
+    # ------------------------------------------------------------ screen recordings
+    def recording_path(self, iid, rid):
+        if not (iid.isalnum() and rid.isalnum()):
+            return None  # ids are generated by us; anything else is not a file we made
+        return RECORDINGS_DIR / iid / f"{rid}.webm"
+
+    def find_recording(self, iid, rid):
+        iv = self.interviews.get(iid)
+        return next((r for r in iv.get("recordings", []) if r["id"] == rid), None) if iv else None
+
+    def start_recording(self, iid, mime):
+        with self.lock:
+            iv = self.interviews.get(iid)
+            if not iv:
+                return None
+            rid = uuid.uuid4().hex[:10]
+            path = self.recording_path(iid, rid)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b"")
+            iv.setdefault("recordings", []).append({
+                "id": rid, "status": "recording", "started": time.time(), "ended": None,
+                "seconds": 0, "bytes": 0, "mime": mime[:60] or "video/webm"})
+            self._save(iv)
+        self._announce()
+        return rid
+
+    def add_chunk(self, iid, rid, data):
+        with self.lock:
+            rec = self.find_recording(iid, rid)
+            path = self.recording_path(iid, rid)
+            if not rec or not path or rec["status"] != "recording":
+                return False
+            with path.open("ab") as f:
+                f.write(data)
+            rec["bytes"] += len(data)
+            rec["seconds"] = round(time.time() - rec["started"])
+        return True
+
+    def finish_recording(self, iid, rid):
+        with self.lock:
+            rec = self.find_recording(iid, rid)
+            if not rec:
+                return False
+            rec["status"], rec["ended"] = "saved", time.time()
+            rec["seconds"] = round(rec["ended"] - rec["started"])
+            self._save(self.interviews[iid])
+        self._announce()
+        return True
+
+    def delete_recording(self, iid, rid):
+        with self.lock:
+            iv = self.interviews.get(iid)
+            rec = self.find_recording(iid, rid)
+            if not rec:
+                return False
+            iv["recordings"].remove(rec)
+            try:
+                self.recording_path(iid, rid).unlink()
+            except OSError:
+                pass
+            self._save(iv)
+        self._announce()
+        return True
+
+    # ------------------------------------------------------------ questions and answers
+    def ask(self, question, origin, iid):
+        """Answer in interview iid (started automatically if it isn't live)."""
+        with self.lock:
+            iv = self.interviews.get(iid)
+        if not iv:
+            return None
+        if iv["status"] != "live":
+            self.start(iid)
         with self.lock:
             if self.cancel:
                 self.cancel.set()
-            if self.current and self.current["a"].strip():
-                c = self.current
-                self.history = (self.history + [{"id": c["id"], "q": c["q"], "a": c["a"],
-                                                 "usage": c.get("usage"), "sources": c.get("sources"),
-                                                 "docs": c.get("docs")}])[-50:]
-            earlier = [dict(h) for h in self.history[-4:]]
+            earlier = [{"q": it["q"], "a": it["a"]} for it in iv["items"] if it.get("a")][-4:]
             notes = []
             if METRICS.settings.get("use_refs", True):
                 notes = LIBRARY.search(question)
@@ -513,24 +746,31 @@ class Session:
                     # vague follow-up ("why is that?"): borrow the topic of the last question
                     notes = LIBRARY.search(question + " " + earlier[-1]["q"])
             sources = [{"file": n["file"], "label": n["label"]} for n in notes]
-            item = {"id": uuid.uuid4().hex[:12], "q": question, "a": "", "done": False, "sources": sources}
-            self.current, self.cancel = item, threading.Event()
+            item = {"id": uuid.uuid4().hex[:12], "q": question, "a": "", "done": False, "ts": time.time(),
+                    "sources": sources}
+            iv["items"].append(item)
+            self.cancel, self.writing = threading.Event(), (iid, item)
             cancel, profile = self.cancel, dict(self.profile)
-        self.broadcast({"type": "question", "id": item["id"], "q": question, "origin": origin, "sources": sources})
-        threading.Thread(target=self._write_answer, args=(item, cancel, profile, earlier, notes), daemon=True).start()
+        self.broadcast({"type": "question", "interview": iid, "id": item["id"], "q": question,
+                        "origin": origin, "sources": sources})
+        threading.Thread(target=self._write_answer, args=(iv, item, cancel, profile, earlier, notes),
+                         daemon=True).start()
         return item["id"]
 
-    def _write_answer(self, item, cancel, profile, earlier, notes):
+    def _write_answer(self, iv, item, cancel, profile, earlier, notes):
+        iid = iv["id"]
+
         def emit(text):
             with self.lock:
                 item["a"] += text
-            self.broadcast({"type": "delta", "id": item["id"], "text": text})
+            self.broadcast({"type": "delta", "interview": iid, "id": item["id"], "text": text})
 
         system, messages = answer_request(item["q"], profile, earlier, notes)
         mode = METRICS.settings.get("docs_mode", "auto")
         tools = [docs_tool()] if mode == "always" or (mode == "auto" and not notes) else None
         rec = stream_claude(system, messages, EFFORT, 4000, emit, cancel.is_set, kind="answer", label=item["q"],
-                            tools=tools, on_search=lambda: self.broadcast({"type": "searching", "id": item["id"]}))
+                            tools=tools, interview=iid,
+                            on_search=lambda: self.broadcast({"type": "searching", "interview": iid, "id": item["id"]}))
         summary = None
         if rec:
             summary = {"in": rec["input"] + rec["cache_read"] + rec["cache_write"], "cached": rec["cache_read"],
@@ -538,24 +778,22 @@ class Session:
                        "out": rec["output"], "cost": rec["cost"], "ttft": rec["ttft"], "total": rec["total"]}
         docs = rec["links"] if rec else []
         with self.lock:
-            item["done"] = True
-            item["usage"] = summary
-            item["docs"] = docs
-        self.broadcast({"type": "done", "id": item["id"], "usage": summary, "docs": docs})
+            item.update(done=True, usage=summary, docs=docs)
+            if not item["a"].strip() and item in iv["items"]:
+                iv["items"].remove(item)  # cancelled before any words: nothing worth keeping
+            if self.writing and self.writing[1] is item:
+                self.writing = None
+            if iid in self.interviews:
+                self._save(iv)  # saved after every answer
+        # full text included so a device that joined mid-answer ends up with exactly the saved answer
+        self.broadcast({"type": "done", "interview": iid, "id": item["id"], "a": item["a"],
+                        "usage": summary, "docs": docs})
+        self._announce()
         if rec:
             self.broadcast_stats()
 
     def broadcast_stats(self):
-        self.broadcast({"type": "stats", "stats": METRICS.stats(self.started)})
-
-    def reset(self):
-        with self.lock:
-            if self.cancel:
-                self.cancel.set()
-            self.history, self.current, self.cancel = [], None, None
-            self.started = time.time()
-        self.broadcast({"type": "reset"})
-        self.broadcast_stats()
+        self.broadcast({"type": "stats", "stats": METRICS.stats(self.stats_focus())})
 
     def save_profile(self, fields, origin):
         with self.lock:
@@ -635,7 +873,27 @@ class Handler(BaseHTTPRequestHandler):
             with SESSION.lock:
                 self._json(200, dict(SESSION.profile))
         elif url.path == "/stats":
-            self._json(200, METRICS.stats(SESSION.started))
+            self._json(200, METRICS.stats(SESSION.stats_focus()))
+        elif url.path == "/interviews":
+            self._json(200, {"list": SESSION.list_meta(), "active": SESSION.active})
+        elif url.path.startswith("/interviews/"):
+            parts = url.path.split("/")  # ['', 'interviews', id] or [..., id, 'export']
+            iv = SESSION.get(parts[2]) if len(parts) >= 3 else None
+            if not iv:
+                self._json(404, {"error": "That interview doesn't exist any more."})
+            elif len(parts) == 4 and parts[3] == "export":
+                self._download(interview_markdown(iv), iv["name"])
+            elif len(parts) == 5 and parts[3] == "recordings":
+                rec = next((r for r in iv.get("recordings", []) if r["id"] == parts[4]), None)
+                path = SESSION.recording_path(iv["id"], parts[4])
+                if not rec or not path or not path.is_file():
+                    self._json(404, {"error": "Recording not found."})
+                else:
+                    stamp = time.strftime("%Y-%m-%d %H%M", time.localtime(rec["started"]))
+                    self._send_file(path, rec.get("mime", "video/webm").split(";")[0],
+                                    f"{iv['name']} {stamp}.webm" if "download" in url.query else None)
+            else:
+                self._json(200, iv)
         elif url.path == "/refs":
             self._json(200, LIBRARY.status())
         elif url.path == "/resumes":
@@ -683,7 +941,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = urlsplit(self.path).path
-        if path not in ("/answer", "/stories", "/extract", "/profile", "/reset", "/settings", "/refs/reindex"):
+        if path not in ("/answer", "/stories", "/extract", "/profile", "/settings", "/refs/reindex", "/interviews") \
+                and not path.startswith("/interviews/"):
             self._json(404, {"error": "Not found"})
             return
         if not self._authorized():
@@ -694,6 +953,14 @@ class Handler(BaseHTTPRequestHandler):
             self._json(413, {"error": "That file is too big (5 MB max)."})
             return
         raw = self.rfile.read(length)
+
+        parts = path.split("/")
+        if len(parts) == 6 and parts[1] == "interviews" and parts[3] == "recordings" and parts[5] == "chunk":
+            if SESSION.add_chunk(parts[2], parts[4], raw):
+                self._json(200, {"ok": True})
+            else:
+                self._json(409, {"error": "This recording has already finished."})
+            return
 
         if path == "/extract":
             try:
@@ -718,9 +985,37 @@ class Handler(BaseHTTPRequestHandler):
             SESSION.save_profile({k: data[k] for k in PROFILE_FIELDS if k in data}, origin)
             self._json(200, {"ok": True})
             return
-        if path == "/reset":
-            SESSION.reset()
-            self._json(200, {"ok": True})
+        if path == "/interviews":
+            self._json(200, {"id": SESSION.create(str(data.get("name", "")))})
+            return
+        if path.startswith("/interviews/") and "/recordings" in path:
+            parts = path.split("/")  # ['', 'interviews', iid, 'recordings'(, rid, action)]
+            iid = parts[2]
+            if len(parts) == 4:
+                rid = SESSION.start_recording(iid, str(data.get("mime", "")))
+                self._json(200, {"id": rid}) if rid else self._json(404, {"error": "That interview doesn't exist any more."})
+                return
+            if len(parts) == 6 and parts[5] in ("finish", "delete"):
+                ok = (SESSION.finish_recording if parts[5] == "finish" else SESSION.delete_recording)(iid, parts[4])
+                self._json(200, {"ok": True}) if ok else self._json(404, {"error": "Recording not found."})
+                return
+            self._json(404, {"error": "Not found"})
+            return
+        if path.startswith("/interviews/"):
+            parts = path.split("/")
+            if len(parts) != 4:
+                self._json(404, {"error": "Not found"})
+                return
+            iid, action = parts[2], parts[3]
+            actions = {"start": lambda: SESSION.start(iid), "stop": lambda: SESSION.stop(iid),
+                       "rename": lambda: SESSION.rename(iid, str(data.get("name", ""))),
+                       "delete": lambda: SESSION.delete(iid)}
+            if action not in actions:
+                self._json(404, {"error": "Not found"})
+            elif actions[action]():
+                self._json(200, {"ok": True})
+            else:
+                self._json(404, {"error": "That interview doesn't exist any more."})
             return
         if path == "/refs/reindex":
             reindex_library()
@@ -750,7 +1045,12 @@ class Handler(BaseHTTPRequestHandler):
             if not question:
                 self._json(400, {"error": "No question was sent."})
                 return
-            self._json(202, {"id": SESSION.ask(question, origin)})  # the answer arrives on /events
+            iid = str(data.get("interview", "")) or SESSION.active or SESSION.create()
+            item_id = SESSION.ask(question, origin, iid)
+            if item_id is None:
+                self._json(404, {"error": "That interview doesn't exist any more. Pick another tab."})
+                return
+            self._json(202, {"id": item_id, "interview": iid})  # the answer arrives on /events
             return
 
         # /stories: streamed back to the device that asked
@@ -787,6 +1087,60 @@ class Handler(BaseHTTPRequestHandler):
         if b:
             self.wfile.write(f"{len(b):X}\r\n".encode() + b + b"\r\n")
             self.wfile.flush()
+
+    def _send_file(self, path, mime, download_name=None):
+        size = path.stat().st_size
+        start, end = 0, size - 1
+        rng = self.headers.get("Range", "")
+        m = re.match(r"bytes=(\d*)-(\d*)", rng)
+        if m and size:
+            if m.group(1):
+                start = int(m.group(1))
+                end = int(m.group(2)) if m.group(2) else end
+            elif m.group(2):  # last N bytes
+                start = max(0, size - int(m.group(2)))
+            end = min(end, size - 1)
+            if start > end:
+                self.send_response(416)
+                self.send_header("Content-Range", f"bytes */{size}")
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return
+            self.send_response(206)
+            self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+        else:
+            self.send_response(200)
+        self.send_header("Content-Type", mime)
+        self.send_header("Accept-Ranges", "bytes")
+        self.send_header("Content-Length", str(end - start + 1 if size else 0))
+        if download_name:
+            safe = "".join(ch if ch.isalnum() or ch in " -_." else "_" for ch in download_name)
+            self.send_header("Content-Disposition", f'attachment; filename="{safe}"')
+        self.end_headers()
+        if not size:
+            return
+        try:
+            with path.open("rb") as f:
+                f.seek(start)
+                left = end - start + 1
+                while left > 0:
+                    block = f.read(min(1024 * 1024, left))
+                    if not block:
+                        break
+                    self.wfile.write(block)
+                    left -= len(block)
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+            pass  # the player stopped reading (seek or close)
+
+    def _download(self, text, name):
+        safe = "".join(ch if ch.isalnum() or ch in " -_" else "_" for ch in name).strip() or "interview"
+        body = text.encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "text/markdown; charset=utf-8")
+        self.send_header("Content-Disposition", f'attachment; filename="{safe}.md"')
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
 
     def _json(self, code, obj):
         body = json.dumps(obj).encode()

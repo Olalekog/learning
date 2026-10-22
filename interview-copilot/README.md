@@ -39,6 +39,39 @@ Notes:
 - iPhone listening is less reliable than Android; tap **Answer now** if auto-answer doesn't fire.
 - In a real interview: keep the call on your laptop and put the phone near the laptop speaker.
 
+## Interview sessions (tabs)
+
+Each interview gets its own tab at the top of the page, with a dot showing its state (red = live,
+grey = ended) and its number of questions.
+
+- **+ New interview** makes a tab. Click its name to rename it, e.g. "Capital One – Cloud Engineer".
+- **Start interview** makes it live and turns on listening on that device. **Stop interview** ends it on
+  every device. Only one interview is live at a time: starting another ends the current one.
+  An ended interview can be resumed.
+- Every question and answer is **saved on your PC** as it happens (`data/interviews/`), with the notes
+  and official docs used and its cost, so nothing is lost if the server restarts.
+- Click any tab to read a past interview. **Export (.md)** downloads it as a Markdown document.
+  **Delete** (tap twice) removes it.
+- Asking a question in a tab that isn't live starts it. Phone and laptop follow the live interview
+  automatically, and the Usage panel's "This interview" is the live one (or the newest).
+
+## Screen recording
+
+Each interview tab has **● Record screen** (desktop Chrome or Edge; phone browsers can't record the screen).
+
+- When the browser asks what to share, pick the meeting tab or your whole screen and tick
+  **Share tab audio** / **Share system audio**, so the interviewer's voice is recorded. Your microphone is
+  mixed in automatically. If the shared audio is missing, the app tells you.
+- Tick **Record when I start the interview** to start recording with **Start interview**.
+  **Stop interview** (or "Stop sharing" in the browser bar) ends the recording.
+- The video is sent to your PC every 4 seconds into `data/recordings/` (not in git), so a crash loses
+  at most a few seconds. About 7–8 MB per minute (≈ 300–350 MB for 45 minutes).
+- Recordings are listed under their interview with **Play**, **Download** (.webm, plays in Chrome, Edge
+  or VLC) and **Delete**. Deleting an interview deletes its recordings.
+
+**Get permission first.** Recording a call usually needs everyone's consent (required by law in some
+places), and some employers don't allow it. The app reminds you before your first recording.
+
 ## Before the interview: resume and STAR stories
 
 In the **Your resume & stories** panel:

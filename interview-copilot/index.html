@@ -48,7 +48,7 @@ header h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
 @media (max-width: 860px) {
   .grid { grid-template-columns: minmax(0, 1fr); }
   .col { display: contents; }
-  #pListen { order: 1; } #pAnswer { order: 2; } #pAsk { order: 3; } #pHistory { order: 4; } #pProfile { order: 5; } #pUsage { order: 6; }
+  #pSessions { order: 0; } #pListen { order: 1; } #pAnswer { order: 2; } #pAsk { order: 3; } #pHistory { order: 4; } #pProfile { order: 5; } #pUsage { order: 6; }
   .wrap { padding-top: 12px; gap: 12px; }
   .btn { padding: 11px 16px; }
   .answer { font-size: 17px; }
@@ -133,6 +133,37 @@ label.btn { display: inline-block; }
 .sources .host { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
 .answer .searching { color: var(--muted); font-style: italic; font-size: 16px; }
 .inline select.mode { flex: 0 1 auto; }
+/* Interview tabs */
+.tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 12px; border-bottom: 1px solid var(--line); scrollbar-width: thin; }
+.tab { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; max-width: 240px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 13px; }
+.tab[aria-selected="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.tab.add { color: var(--accent); background: none; border-style: dashed; }
+.tname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tcount { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--muted); background: var(--panel); border-radius: 99px; padding: 0 6px; }
+.tdot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; background: var(--line); }
+.tdot.live { background: var(--live); animation: pulse 1.2s infinite; }
+.tdot.ended { background: var(--muted); }
+.iv-bar { display: grid; gap: 10px; }
+.iv-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.iv-name { flex: 1 1 220px; min-width: 0; font: 600 18px var(--f-body); color: var(--ink); background: transparent; border: 1px solid transparent; border-radius: 8px; padding: 4px 6px; margin-left: -6px; }
+.iv-name:hover { border-color: var(--line); }
+.iv-name:focus { border-color: var(--accent); background: var(--bg); }
+.iv-info { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.iv-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+/* Screen recording */
+.rec-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; padding-top: 10px; border-top: 1px solid var(--line); }
+.rec-live { color: var(--live); font-weight: 600; font-size: 13px; font-variant-numeric: tabular-nums; }
+.rec-live::before { content: "● "; animation: pulse 1.2s infinite; }
+.btn.rec { border-color: var(--live); color: var(--live); }
+.rec-note { font-size: 13px; color: var(--warn); margin: 0; }
+.consent { border: 1px solid var(--warn); border-radius: 8px; padding: 10px 12px; font-size: 14px; display: grid; gap: 8px; }
+.consent p { margin: 0; }
+.recordings { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.recordings li { display: grid; gap: 6px; font-size: 13px; }
+.recordings .rline { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-variant-numeric: tabular-nums; }
+.recordings .rinfo { color: var(--muted); }
+.recordings video { width: 100%; max-height: 360px; border-radius: 8px; background: #000; }
+a.btn { text-decoration: none; color: inherit; display: inline-block; }
 .check { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; }
 .ans-meta { margin: 10px 0 0; font: 12px var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
 .hist .ans-meta { margin-top: 4px; }
@@ -260,6 +291,40 @@ label.btn { display: inline-block; }
     </div>
 
     <div class="col">
+      <section class="panel" id="pSessions">
+        <div class="tabs" id="tabs" role="tablist" aria-label="Interviews"></div>
+        <p id="ivEmpty" class="hint">No interviews yet. Press <strong>+ New interview</strong> to start one.</p>
+        <div id="ivBar" class="iv-bar" hidden>
+          <div class="iv-top">
+            <input id="ivName" class="iv-name" aria-label="Interview name" maxlength="80" autocomplete="off">
+            <span id="ivState" class="pill"><span class="dot"></span><span id="ivStateText">Not started</span></span>
+          </div>
+          <div class="iv-info"><span id="ivTime"></span><span id="ivCount"></span></div>
+          <div class="iv-actions">
+            <button id="ivStart" class="btn primary" type="button">Start interview</button>
+            <button id="ivStop" class="btn stop" type="button" hidden>Stop interview</button>
+            <a id="ivExport" class="btn small" href="#" download>Export (.md)</a>
+            <button id="ivDelete" class="btn small" type="button">Delete</button>
+          </div>
+          <div class="rec-row" id="recRow">
+            <button id="recBtn" class="btn small rec" type="button">● Record screen</button>
+            <span id="recLive" class="rec-live" hidden></span>
+            <label class="check" id="recAutoLabel"><input type="checkbox" id="recAuto"> Record when I start the interview</label>
+          </div>
+          <div id="recConsent" class="consent" hidden>
+            <p><strong>Before you record:</strong> recording a call usually needs the other people's permission
+            (in some places by law), and some employers don't allow it. Only record if everyone has agreed.</p>
+            <p class="hint">When the browser asks what to share, choose the meeting tab or your screen and tick
+            <strong>Share tab audio</strong> / <strong>Share system audio</strong> so the interviewer is recorded too.</p>
+            <div class="iv-actions">
+              <button id="recConsentYes" class="btn small primary" type="button">Everyone agreed – start recording</button>
+              <button id="recConsentNo" class="btn small" type="button">Cancel</button>
+            </div>
+          </div>
+          <p id="recNote" class="rec-note" hidden></p>
+          <ul id="recList" class="recordings"></ul>
+        </div>
+      </section>
       <section class="panel answer-card" id="pAnswer">
         <h2>Suggested answer</h2>
         <p id="curQ" class="q" hidden></p>
@@ -270,8 +335,7 @@ label.btn { display: inline-block; }
       </section>
       <section class="panel" id="pHistory">
         <div class="hist-head">
-          <h2>Earlier questions</h2>
-          <button id="resetBtn" class="btn small" type="button">New interview</button>
+          <h2>Earlier questions in this interview</h2>
         </div>
         <div id="history" class="history"></div>
       </section>
@@ -586,7 +650,7 @@ function histItem(q, a, usage, sources, docs) {
 function renderHistory(list) {
   const h = $("history");
   h.replaceChildren(...list.slice().reverse().map(it => histItem(it.q, it.a, it.usage, it.sources, it.docs)));
-  if (!list.length) h.innerHTML = '<p class="hint" id="histEmpty">Questions and answers from this interview collect here, on every device.</p>';
+  if (!list.length) h.innerHTML = '<p class="hint" id="histEmpty">Earlier questions in this interview collect here, on every device.</p>';
 }
 function archiveDisplayed() {
   const q = $("curQ").dataset.q, a = $("answer").dataset.a;
@@ -624,23 +688,317 @@ function showCurrent(cur) {
   updateStatus(!cur.done);
 }
 
+// ---------- Interview tabs: every interview is saved on the PC ----------
+let IV_LIST = [], ACTIVE = null, IV = null, SELECTED = store.get("ic.tab", "");
+const ivUrl = (id, rest = "") => "/interviews/" + encodeURIComponent(id) + rest;
+function fmtDur(sec) {
+  sec = Math.max(0, Math.round(sec));
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), r = sec % 60;
+  return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(r).padStart(2, "0");
+}
+async function post(path, body = {}) {
+  try {
+    const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify(body) });
+    if (r.status === 401) needCode();
+    return await r.json().catch(() => ({}));
+  } catch { warn("Can't reach the server. Make sure it's still running on your PC."); return {}; }
+}
+function renderTabs() {
+  const tabs = IV_LIST.map(m => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "tab"; b.setAttribute("role", "tab");
+    b.setAttribute("aria-selected", String(m.id === SELECTED));
+    b.title = (m.status === "live" ? "Live now" : m.status === "ended" ? "Ended" : "Not started") + ` · ${m.count} question${m.count === 1 ? "" : "s"}`;
+    const dot = document.createElement("span"); dot.className = "tdot " + m.status;
+    const name = document.createElement("span"); name.className = "tname"; name.textContent = m.name;
+    const c = document.createElement("span"); c.className = "tcount"; c.textContent = m.count;
+    b.append(dot, name, c);
+    b.addEventListener("click", () => selectInterview(m.id));
+    return b;
+  });
+  const add = document.createElement("button");
+  add.type = "button"; add.className = "tab add"; add.textContent = "+ New interview";
+  add.addEventListener("click", newInterview);
+  $("tabs").replaceChildren(...tabs, add);
+  $("tabs").querySelector('[aria-selected="true"]')?.scrollIntoView({ block: "nearest", inline: "nearest" });
+}
+function tickTimer() {
+  if (!IV || !IV.started_at) { $("ivTime").textContent = IV ? "Not started yet" : ""; return; }
+  const end = IV.status === "live" ? Date.now() / 1000 : (IV.stopped_at || IV.started_at);
+  const started = new Date(IV.started_at * 1000).toLocaleString([], { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+  $("ivTime").textContent = `${started} · ${fmtDur(end - IV.started_at)}`;
+}
+setInterval(tickTimer, 1000);
+function renderBar() {
+  $("ivBar").hidden = !IV;
+  $("ivEmpty").hidden = !!IV || IV_LIST.length > 0;
+  if (!IV) return;
+  if (document.activeElement !== $("ivName")) $("ivName").value = IV.name;
+  $("ivState").className = "pill" + (IV.status === "live" ? " live" : "");
+  $("ivStateText").textContent = IV.status === "live" ? "Live" : IV.status === "ended" ? "Ended" : "Not started";
+  $("ivStart").hidden = IV.status === "live";
+  $("ivStart").textContent = IV.status === "ended" ? "Resume interview" : "Start interview";
+  $("ivStop").hidden = IV.status !== "live";
+  const done = IV.items.filter(it => it.a);
+  const cost = done.reduce((sum, it) => sum + ((it.usage && it.usage.cost) || 0), 0);
+  $("ivCount").textContent = `${done.length} question${done.length === 1 ? "" : "s"} · ≈${fmtUsd(cost)}`;
+  $("ivExport").href = ivUrl(IV.id, "/export") + (accessCode ? "?code=" + encodeURIComponent(accessCode) : "");
+  tickTimer();
+  renderRec();
+}
+function renderInterview() {
+  renderBar();
+  const items = IV ? IV.items : [];
+  renderHistory(items.slice(0, -1));
+  showCurrent(items.length ? items[items.length - 1] : null);
+}
+async function selectInterview(id) {
+  SELECTED = id || "";
+  store.set("ic.tab", SELECTED);
+  renderTabs();
+  if (!SELECTED) { IV = null; renderInterview(); return; }
+  try {
+    const r = await fetch(ivUrl(SELECTED), { headers: authHeaders() });
+    if (!r.ok) throw new Error();
+    const iv = await r.json();
+    if (iv.id !== SELECTED) return;   // another tab was picked meanwhile
+    IV = iv;
+  } catch { IV = null; }
+  renderInterview();
+}
+async function newInterview() {
+  const j = await post("/interviews", {});
+  if (!j.id) return;
+  await selectInterview(j.id);
+  $("ivName").focus(); $("ivName").select();
+}
+function pickDefaultTab() {
+  return IV_LIST.some(m => m.id === SELECTED) ? SELECTED : (ACTIVE || (IV_LIST[0] && IV_LIST[0].id) || "");
+}
+$("ivName").addEventListener("keydown", (e) => { if (e.key === "Enter") $("ivName").blur(); });
+$("ivName").addEventListener("change", () => {
+  const name = $("ivName").value.trim();
+  if (IV && name && name !== IV.name) post(ivUrl(IV.id, "/rename"), { name });
+});
+$("ivStart").addEventListener("click", async () => {
+  if (!IV) return;
+  if ($("recAuto").checked && CAN_RECORD && !REC) startRecording();   // must start from the click itself
+  await post(ivUrl(IV.id, "/start"));
+  if (SR && !listening) startListening();   // this device starts listening; others just follow along
+});
+$("ivStop").addEventListener("click", async () => {
+  if (!IV) return;
+  stopRecording();
+  await post(ivUrl(IV.id, "/stop"));
+  if (listening) stopListening();
+});
+let deleteArmed = null;
+$("ivDelete").addEventListener("click", async () => {
+  if (!IV) return;
+  if (!deleteArmed) {   // two taps, because this removes the saved interview on every device
+    $("ivDelete").textContent = "Tap again to delete";
+    deleteArmed = setTimeout(() => { deleteArmed = null; $("ivDelete").textContent = "Delete"; }, 3000);
+    return;
+  }
+  clearTimeout(deleteArmed); deleteArmed = null;
+  $("ivDelete").textContent = "Delete";
+  if (REC && REC.iid === IV.id) stopRecording();
+  await post(ivUrl(IV.id, "/delete"));
+});
+
+// ---------- Screen recording (desktop Chrome / Edge) ----------
+const CAN_RECORD = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia && window.MediaRecorder);
+let REC = null;   // the recording this device is making: {iid, rid, recorder, display, mic, ctx, started, bytes, chain}
+const fmtMB = (b) => b >= 1e9 ? (b / 1e9).toFixed(2) + " GB" : Math.max(0.1, b / 1e6).toFixed(1) + " MB";
+const withCode = (url, extra = {}) => {
+  const q = new URLSearchParams(extra);
+  if (accessCode) q.set("code", accessCode);
+  const qs = q.toString();
+  return qs ? url + "?" + qs : url;
+};
+function recNote(msg) { $("recNote").hidden = !msg; $("recNote").textContent = msg || ""; }
+
+async function startRecording() {
+  if (!IV || REC || !CAN_RECORD) return;
+  if (store.get("ic.recConsent", "") !== "1") { $("recConsent").hidden = false; return; }
+  const iid = IV.id;
+  let display;
+  try {
+    display = await navigator.mediaDevices.getDisplayMedia({
+      video: { frameRate: 15 }, audio: true, systemAudio: "include", selfBrowserSurface: "exclude" });
+  } catch { recNote("Screen sharing was cancelled, so nothing is being recorded."); return; }
+  let mic = null;
+  try { mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); } catch {}
+  // mix the interviewer (shared tab/system audio) with your microphone into one track
+  const ctx = new AudioContext(), dest = ctx.createMediaStreamDestination();
+  const shared = display.getAudioTracks();
+  if (shared.length) ctx.createMediaStreamSource(new MediaStream(shared)).connect(dest);
+  if (mic) ctx.createMediaStreamSource(mic).connect(dest);
+  const tracks = [...display.getVideoTracks(), ...(shared.length || mic ? dest.stream.getAudioTracks() : [])];
+  const mime = ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"].find(m => MediaRecorder.isTypeSupported(m)) || "";
+  const j = await post(ivUrl(iid, "/recordings"), { mime });
+  if (!j.id) {
+    display.getTracks().forEach(t => t.stop()); mic?.getTracks().forEach(t => t.stop()); ctx.close().catch(() => {});
+    recNote("Couldn't start the recording on your PC. Is the server running?");
+    return;
+  }
+  const recorder = new MediaRecorder(new MediaStream(tracks),
+    { ...(mime ? { mimeType: mime } : {}), videoBitsPerSecond: 1_000_000, audioBitsPerSecond: 96_000 });
+  REC = { iid, rid: j.id, recorder, display, mic, ctx, started: Date.now(), bytes: 0, chain: Promise.resolve() };
+  recorder.ondataavailable = (ev) => { if (ev.data && ev.data.size) uploadChunk(REC, ev.data); };
+  recorder.onstop = finishRecording;
+  display.getVideoTracks()[0]?.addEventListener("ended", stopRecording);   // "Stop sharing" in the browser bar
+  recorder.start(4000);   // a piece every 4 seconds, saved to the PC straight away
+  recNote(shared.length ? "" : (mic
+    ? "Recording your screen and microphone, but not the interviewer's audio. To include it, stop and share again with “Share tab audio” / “Share system audio” ticked."
+    : "Recording the screen only: no audio was shared and the microphone isn't available."));
+  renderRec();
+}
+function uploadChunk(r, blob) {
+  if (!r) return;
+  r.chain = r.chain.then(async () => {   // one at a time, in order
+    for (let attempt = 0; attempt < 4; attempt++) {
+      try {
+        const res = await fetch(ivUrl(r.iid, `/recordings/${r.rid}/chunk`),
+          { method: "POST", headers: { "Content-Type": "application/octet-stream", ...authHeaders() }, body: blob });
+        if (res.ok) { r.bytes += blob.size; return; }
+        if (res.status === 409 || res.status === 404) return;
+      } catch {}
+      await new Promise(ok => setTimeout(ok, 1000 * (attempt + 1)));
+    }
+    recNote("Part of the recording couldn't be saved. Check the server window is still open.");
+  });
+}
+function stopRecording() {
+  if (REC && REC.recorder.state !== "inactive") REC.recorder.stop();
+}
+async function finishRecording() {
+  const r = REC;
+  if (!r) return;
+  r.display.getTracks().forEach(t => t.stop());
+  r.mic?.getTracks().forEach(t => t.stop());
+  r.ctx.close().catch(() => {});
+  await r.chain;   // let the last pieces finish uploading
+  await post(ivUrl(r.iid, `/recordings/${r.rid}/finish`));
+  REC = null;
+  renderRec();
+}
+window.addEventListener("beforeunload", (e) => { if (REC) { e.preventDefault(); e.returnValue = ""; } });
+
+function renderRec() {
+  $("recRow").hidden = !CAN_RECORD;
+  const mine = REC && IV && REC.iid === IV.id;
+  $("recBtn").textContent = mine ? "■ Stop recording" : "● Record screen";
+  $("recBtn").disabled = !!REC && !mine;
+  $("recBtn").title = REC && !mine ? "This device is already recording another interview" : "";
+  $("recLive").hidden = !mine;
+  if (mine) $("recLive").textContent = `REC ${fmtDur((Date.now() - REC.started) / 1000)} · ${fmtMB(REC.bytes)}`;
+  const list = (IV && IV.recordings) || [];
+  const open = new Set([...$("recList").querySelectorAll("li[data-open]")].map(li => li.dataset.id));
+  $("recList").replaceChildren(...list.map((r, i) => {
+    const li = document.createElement("li");
+    li.dataset.id = r.id;
+    const line = document.createElement("div"); line.className = "rline";
+    const when = new Date(r.started * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    const info = document.createElement("span"); info.className = "rinfo";
+    info.textContent = `Recording ${i + 1} · ${when} · ` +
+      (r.status === "recording" ? "recording now…" : `${fmtDur(r.seconds || 0)} · ${fmtMB(r.bytes || 0)}`);
+    line.append(info);
+    if (r.status !== "recording") {
+      const src = ivUrl(IV.id, `/recordings/${r.id}`);
+      const play = document.createElement("button"); play.type = "button"; play.className = "btn small";
+      play.textContent = open.has(r.id) ? "Hide" : "Play";
+      play.addEventListener("click", () => {
+        const v = li.querySelector("video");
+        if (v) { v.pause(); v.remove(); delete li.dataset.open; play.textContent = "Play"; return; }
+        const video = document.createElement("video");
+        video.controls = true; video.preload = "metadata"; video.src = withCode(src);
+        li.append(video); li.dataset.open = "1"; play.textContent = "Hide";
+      });
+      const dl = document.createElement("a"); dl.className = "btn small"; dl.textContent = "Download";
+      dl.href = withCode(src, { download: "1" });
+      const del = document.createElement("button"); del.type = "button"; del.className = "btn small"; del.textContent = "Delete";
+      let armed = null;
+      del.addEventListener("click", async () => {
+        if (!armed) { del.textContent = "Tap again to delete"; armed = setTimeout(() => { armed = null; del.textContent = "Delete"; }, 3000); return; }
+        clearTimeout(armed);
+        await post(ivUrl(IV.id, `/recordings/${r.id}/delete`));
+      });
+      line.append(play, dl, del);
+      if (open.has(r.id)) {   // keep an open player open across refreshes
+        const video = document.createElement("video");
+        video.controls = true; video.preload = "metadata"; video.src = withCode(src);
+        li.append(line, video); li.dataset.open = "1";
+        return li;
+      }
+    }
+    li.append(line);
+    return li;
+  }));
+}
+setInterval(() => { if (REC) renderRec(); }, 1000);
+$("recBtn").addEventListener("click", () => {
+  if (REC && IV && REC.iid === IV.id) stopRecording(); else startRecording();
+});
+$("recAuto").checked = store.get("ic.recAuto", "") === "1";
+$("recAuto").addEventListener("change", () => store.set("ic.recAuto", $("recAuto").checked ? "1" : ""));
+$("recConsentYes").addEventListener("click", () => {
+  store.set("ic.recConsent", "1");
+  $("recConsent").hidden = true;
+  startRecording();
+});
+$("recConsentNo").addEventListener("click", () => { $("recConsent").hidden = true; });
+
+function itemById(id) { return IV ? IV.items.find(x => x.id === id) : null; }
+
 function handleEvent(e) {
-  if (e.type === "snapshot") { renderHistory(e.history); showCurrent(e.current); renderStats(e.stats); renderRefs(e.refs); }
+  if (e.type === "snapshot") {
+    IV_LIST = e.list || []; ACTIVE = e.active;
+    renderStats(e.stats); renderRefs(e.refs);
+    selectInterview(pickDefaultTab());
+  }
+  else if (e.type === "interviews") {
+    IV_LIST = e.list || []; ACTIVE = e.active;
+    const m = IV_LIST.find(x => x.id === SELECTED);
+    if (!m) { selectInterview(pickDefaultTab()); return; }
+    if (IV && IV.id === m.id) Object.assign(IV, { name: m.name, status: m.status, started_at: m.started_at, stopped_at: m.stopped_at,
+                                                  recordings: m.recordings || [] });
+    renderTabs(); renderBar();
+  }
+  else if (e.type === "stopped") {
+    if (listening && e.interview === SELECTED) stopListening();
+    if (REC && REC.iid === e.interview) stopRecording();   // the interview ended on some device
+  }
   else if (e.type === "refs") renderRefs(e.refs);
   else if (e.type === "stats") renderStats(e.stats);
-  else if (e.type === "question") { archiveDisplayed(); showCurrent({ id: e.id, q: e.q, a: "", done: false, sources: e.sources }); }
+  else if (e.type === "question") {
+    if (e.interview !== SELECTED || !IV) { selectInterview(e.interview); return; }  // follow the live interview
+    const item = { id: e.id, q: e.q, a: "", done: false, sources: e.sources, ts: Date.now() / 1000 };
+    IV.items.push(item);
+    archiveDisplayed();
+    showCurrent(item);
+  }
   else if (e.type === "searching" && e.id === currentId) {
     setStatus("think", "Checking official docs…");
     if (!$("answer").dataset.a) $("answer").innerHTML = '<p class="searching">Checking official docs…</p>';
   }
   else if (e.type === "delta" && e.id === currentId) {
-    const box = $("answer");
+    const box = $("answer"), it = itemById(e.id);
     if (!box.dataset.a) setStatus("think", "Writing answer…");
     box.dataset.a += e.text;
+    if (it) it.a = box.dataset.a;
     box.innerHTML = md(box.dataset.a);
   }
-  else if (e.type === "done" && e.id === currentId) { $("answer").className = "answer"; showUsage(e.usage); showDocs(e.docs); updateStatus(false); }
-  else if (e.type === "reset") { renderHistory([]); showCurrent(null); }
+  else if (e.type === "done" && e.interview === SELECTED) {
+    const it = itemById(e.id);
+    if (it) Object.assign(it, { a: e.a, usage: e.usage, docs: e.docs, done: true });
+    if (e.id === currentId) {
+      const box = $("answer");
+      box.dataset.a = e.a; box.innerHTML = md(e.a); box.className = "answer";
+      showUsage(e.usage); showDocs(e.docs); updateStatus(false);
+    }
+    renderBar();
+  }
   else if (e.type === "profile" && e.origin !== ORIGIN) {
     for (const k of PFIELDS) if (k in e && document.activeElement !== $(k)) $(k).value = e[k];
   }
@@ -804,10 +1162,12 @@ async function answer(question) {
     const res = await fetch("/answer", {
       method: "POST",
       headers: { "Content-Type": "application/json", ...authHeaders() },
-      body: JSON.stringify({ question, origin: ORIGIN }),
+      body: JSON.stringify({ question, origin: ORIGIN, interview: SELECTED }),
     });
     if (res.status === 401) needCode();
-    if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(j.error || "Server error " + res.status); }
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(j.error || "Server error " + res.status);
+    if (j.interview && j.interview !== SELECTED) selectInterview(j.interview);  // a new interview was created
     // The question and answer now arrive through the live feed, on this device and every other one.
   } catch (err) {
     const msg = err instanceof TypeError ? "Can't reach the server. Make sure it's still running on your PC." : err.message;
@@ -816,17 +1176,6 @@ async function answer(question) {
   }
 }
 
-let resetArmed = null;
-$("resetBtn").addEventListener("click", async () => {
-  if (!resetArmed) {   // two taps, because this clears every device
-    $("resetBtn").textContent = "Tap again to clear on all devices";
-    resetArmed = setTimeout(() => { resetArmed = null; $("resetBtn").textContent = "New interview"; }, 3000);
-    return;
-  }
-  clearTimeout(resetArmed); resetArmed = null;
-  $("resetBtn").textContent = "New interview";
-  await fetch("/reset", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: "{}" }).catch(() => {});
-});
 
 // ---------- Resume: pick from the Resume folder or upload ----------
 const words = (t) => t.trim().split(/\s+/).filter(Boolean).length.toLocaleString();
