@@ -11,18 +11,18 @@
 :root {
   --bg: #f3f4f7; --panel: #ffffff; --ink: #161b26; --muted: #5b6475; --line: #dde1e9;
   --accent: #2f5bd3; --accent-soft: #e6ecfb; --live: #d33a3a; --live-soft: #fbe7e7; --ok: #1f8a5b;
-  --code-bg: #eef0f5;
+  --code-bg: #eef0f5; --warn: #b26a00; --bar-out: #8fa6e8;
   --f-body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
   --f-mono: "JetBrains Mono", Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #0f131b; --panel: #171c27; --ink: #e8ebf2; --muted: #9aa3b5; --line: #283042;
   --accent: #7d9cff; --accent-soft: #1d2640; --live: #ff6b6b; --live-soft: #3a1d22; --ok: #4cc38a;
-  --code-bg: #212839; color-scheme: dark; } }
+  --code-bg: #212839; --warn: #f0b04a; --bar-out: #4a5d99; color-scheme: dark; } }
 :root[data-theme="dark"] {
   --bg: #0f131b; --panel: #171c27; --ink: #e8ebf2; --muted: #9aa3b5; --line: #283042;
   --accent: #7d9cff; --accent-soft: #1d2640; --live: #ff6b6b; --live-soft: #3a1d22; --ok: #4cc38a;
-  --code-bg: #212839; color-scheme: dark; }
+  --code-bg: #212839; --warn: #f0b04a; --bar-out: #4a5d99; color-scheme: dark; }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -48,12 +48,13 @@ header h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
 @media (max-width: 860px) {
   .grid { grid-template-columns: minmax(0, 1fr); }
   .col { display: contents; }
-  #pListen { order: 1; } #pAnswer { order: 2; } #pAsk { order: 3; } #pHistory { order: 4; } #pProfile { order: 5; }
+  #pSessions { order: 0; } #pListen { order: 1; } #pAnswer { order: 2; } #pAsk { order: 3; } #pHistory { order: 4; } #pProfile { order: 5; } #pUsage { order: 6; }
   .wrap { padding-top: 12px; gap: 12px; }
   .btn { padding: 11px 16px; }
   .answer { font-size: 17px; }
   .answer-card { padding: 16px; }
   .meta { margin-left: 0; width: 100%; }
+  .views { order: 5; }
 }
 @media (hover: none) { kbd, .key-hint { display: none; } }
 .code-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
@@ -121,6 +122,99 @@ label.btn { display: inline-block; }
 .hist .answer { font-size: 15px; margin-top: 8px; }
 .banner { border-radius: 10px; padding: 10px 14px; background: var(--live-soft); color: var(--ink); font-size: 14px; }
 .banner[hidden] { display: none; }
+
+/* Usage panel */
+.sources { margin: 12px 0 0; padding: 8px 10px; border-radius: 8px; background: var(--bg); font-size: 13px; }
+.sources b { font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+.sources ul { margin: 4px 0 0; padding-left: 1.1em; }
+.sources li { margin: 2px 0; overflow-wrap: anywhere; }
+.sources .f { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.sources a { color: var(--accent); text-decoration: none; }
+.sources a:hover { text-decoration: underline; }
+.sources .host { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.answer .searching { color: var(--muted); font-style: italic; font-size: 16px; }
+.inline select.mode { flex: 0 1 auto; }
+/* Interview tabs */
+.tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 12px; border-bottom: 1px solid var(--line); scrollbar-width: thin; }
+.tab { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; max-width: 240px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 13px; }
+.tab[aria-selected="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.tab.add { color: var(--accent); background: none; border-style: dashed; }
+.tname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tcount { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--muted); background: var(--panel); border-radius: 99px; padding: 0 6px; }
+.tdot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; background: var(--line); }
+.tdot.live { background: var(--live); animation: pulse 1.2s infinite; }
+.tdot.ended { background: var(--muted); }
+.iv-bar { display: grid; gap: 10px; }
+.iv-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.iv-name { flex: 1 1 220px; min-width: 0; font: 600 18px var(--f-body); color: var(--ink); background: transparent; border: 1px solid transparent; border-radius: 8px; padding: 4px 6px; margin-left: -6px; }
+.iv-name:hover { border-color: var(--line); }
+.iv-name:focus { border-color: var(--accent); background: var(--bg); }
+.iv-info { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.iv-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+/* Screen recording */
+.rec-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; padding-top: 10px; border-top: 1px solid var(--line); }
+.rec-live { color: var(--live); font-weight: 600; font-size: 13px; font-variant-numeric: tabular-nums; }
+.rec-live::before { content: "● "; animation: pulse 1.2s infinite; }
+.btn.rec { border-color: var(--live); color: var(--live); }
+.rec-note { font-size: 13px; color: var(--warn); margin: 0; }
+.consent { border: 1px solid var(--warn); border-radius: 8px; padding: 10px 12px; font-size: 14px; display: grid; gap: 8px; }
+.consent p { margin: 0; }
+.recordings { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.recordings li { display: grid; gap: 6px; font-size: 13px; }
+.recordings .rline { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-variant-numeric: tabular-nums; }
+.recordings .rinfo { color: var(--muted); }
+.recordings video { width: 100%; max-height: 360px; border-radius: 8px; background: #000; }
+/* View switch + question bank */
+.views { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.views button { border: 0; background: var(--panel); color: var(--muted); padding: 6px 12px; font-weight: 600; cursor: pointer; font-size: 13px; }
+.views button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.bank { display: grid; gap: 12px; }
+.bank-tools { display: grid; gap: 10px; }
+.bank-tools input[type=search], .bank-add input { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); padding: 10px 12px; font-size: 16px; }
+.bank-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.bank-filters select { border: 1px solid var(--line); border-radius: 8px; background: var(--bg); padding: 6px 8px; max-width: 100%; }
+.bank-add { display: grid; gap: 8px; border-top: 1px solid var(--line); padding-top: 10px; }
+.bank-add textarea { min-height: 120px; }
+.bank-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.bitem { padding: 12px 14px; display: grid; gap: 6px; }
+.bhead { display: flex; gap: 10px; align-items: flex-start; }
+.bq { flex: 1; min-width: 0; text-align: left; background: none; border: 0; padding: 0; font: 600 15px/1.4 var(--f-body); color: var(--ink); cursor: pointer; }
+.bq:hover { color: var(--accent); }
+.bstar { background: none; border: 0; font-size: 18px; line-height: 1; cursor: pointer; color: var(--line); padding: 0 2px; }
+.bstar[aria-pressed="true"] { color: var(--warn); }
+.bmeta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 12px; color: var(--muted); }
+.chip { background: var(--accent-soft); color: var(--accent); border-radius: 99px; padding: 1px 8px; font-weight: 600; }
+.chip.src { background: var(--bg); color: var(--muted); font-weight: 500; overflow-wrap: anywhere; min-width: 0; }
+.bitem, .bank-list, .bbody, .bbody .answer { min-width: 0; overflow-wrap: anywhere; }
+.bbody { display: grid; gap: 8px; padding-top: 6px; border-top: 1px dashed var(--line); }
+.bbody .answer { font-size: 15px; }
+.bbody textarea { min-height: 200px; font-size: 14px; }
+.bactions { display: flex; gap: 8px; flex-wrap: wrap; }
+a.btn { text-decoration: none; color: inherit; display: inline-block; }
+.check { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; }
+.ans-meta { margin: 10px 0 0; font: 12px var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.hist .ans-meta { margin-top: 4px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; flex-wrap: wrap; }
+.seg button { border: 0; background: none; padding: 4px 10px; font-size: 13px; cursor: pointer; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 1100px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tile { background: var(--bg); border-radius: 8px; padding: 10px 12px; min-width: 0; }
+.tile .k { font-size: 12px; color: var(--muted); }
+.tile .v { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.tile .s { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ublock { margin-top: 14px; display: grid; gap: 6px; font-size: 14px; min-width: 0; overflow-wrap: anywhere; }
+.limit-line { font-variant-numeric: tabular-nums; }
+.ublock .lbl { font-size: 13px; }
+.meter { height: 8px; background: var(--bg); border-radius: 99px; overflow: hidden; }
+.meter > span { display: block; height: 100%; width: 0; background: var(--ok); border-radius: 99px; transition: width .3s; }
+.meter.warn > span { background: var(--warn); } .meter.over > span { background: var(--live); }
+.budget-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; color: var(--muted); font-size: 13px; }
+.budget-form input { width: 90px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); padding: 5px 8px; font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+#uChart svg { width: 100%; height: 70px; display: block; }
+.legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
 @media (prefers-reduced-motion: reduce) { .pill.live .dot, .cursor::after { animation: none; } }
 </style>
 </head>
@@ -130,6 +224,9 @@ label.btn { display: inline-block; }
     <h1>Interview Copilot</h1>
     <span id="status" class="pill"><span class="dot"></span><span id="statusText">Not listening</span></span>
     <span id="sync" class="sync" title="Questions and answers appear on every device that has this page open">Connecting…</span>
+    <nav class="views" aria-label="View">
+      <button type="button" data-view="live" aria-pressed="true">Interview</button><button type="button" data-view="bank" aria-pressed="false">Question bank</button>
+    </nav>
     <span id="meta" class="meta"></span>
   </header>
 
@@ -202,25 +299,139 @@ label.btn { display: inline-block; }
           <textarea id="stories" placeholder="Your STAR stories appear here. Behavioral and leadership answers are built from them."></textarea>
           <p class="hint" id="storyInfo">Read it once before the interview and replace any <strong>[fill in: …]</strong> with your real details. You can edit anything.</p>
         </div>
+        <div class="field">
+          <label class="lbl" for="useRefs">4. Reference notes</label>
+          <div class="inline">
+            <label class="check"><input type="checkbox" id="useRefs" checked> Use my notes for technical answers</label>
+            <button id="reindexBtn" class="btn small" type="button">Re-index</button>
+          </div>
+          <p class="hint" id="refStatus">Indexing your notes…</p>
+          <div class="inline">
+            <label for="docsMode" class="check">Official docs (AWS, Azure, Google Cloud, Linux)</label>
+            <select id="docsMode" class="mode">
+              <option value="auto">Only when my notes don't cover it</option>
+              <option value="always">Always check</option>
+              <option value="off">Off</option>
+            </select>
+          </div>
+          <p class="hint">Searching official docs adds a few seconds and about 1¢ per search.</p>
+        </div>
         <p class="hint">Saved on your PC and shared with every device you open this page on.</p>
       </section>
     </div>
 
     <div class="col">
+      <section class="panel" id="pSessions">
+        <div class="tabs" id="tabs" role="tablist" aria-label="Interviews"></div>
+        <p id="ivEmpty" class="hint">No interviews yet. Press <strong>+ New interview</strong> to start one.</p>
+        <div id="ivBar" class="iv-bar" hidden>
+          <div class="iv-top">
+            <input id="ivName" class="iv-name" aria-label="Interview name" maxlength="80" autocomplete="off">
+            <span id="ivState" class="pill"><span class="dot"></span><span id="ivStateText">Not started</span></span>
+          </div>
+          <div class="iv-info"><span id="ivTime"></span><span id="ivCount"></span></div>
+          <div class="iv-actions">
+            <button id="ivStart" class="btn primary" type="button">Start interview</button>
+            <button id="ivStop" class="btn stop" type="button" hidden>Stop interview</button>
+            <a id="ivExport" class="btn small" href="#" download>Export (.md)</a>
+            <button id="ivDelete" class="btn small" type="button">Delete</button>
+          </div>
+          <div class="rec-row" id="recRow">
+            <button id="recBtn" class="btn small rec" type="button">● Record screen</button>
+            <span id="recLive" class="rec-live" hidden></span>
+            <label class="check" id="recAutoLabel"><input type="checkbox" id="recAuto"> Record when I start the interview</label>
+          </div>
+          <div id="recConsent" class="consent" hidden>
+            <p><strong>Before you record:</strong> recording a call usually needs the other people's permission
+            (in some places by law), and some employers don't allow it. Only record if everyone has agreed.</p>
+            <p class="hint">When the browser asks what to share, choose the meeting tab or your screen and tick
+            <strong>Share tab audio</strong> / <strong>Share system audio</strong> so the interviewer is recorded too.</p>
+            <div class="iv-actions">
+              <button id="recConsentYes" class="btn small primary" type="button">Everyone agreed – start recording</button>
+              <button id="recConsentNo" class="btn small" type="button">Cancel</button>
+            </div>
+          </div>
+          <p id="recNote" class="rec-note" hidden></p>
+          <ul id="recList" class="recordings"></ul>
+        </div>
+      </section>
       <section class="panel answer-card" id="pAnswer">
         <h2>Suggested answer</h2>
         <p id="curQ" class="q" hidden></p>
         <div id="answer" class="answer empty">Press <strong>Start listening</strong> and let the interviewer talk. When they pause, a suggested answer streams in here. Tap <strong>Answer now</strong><span class="key-hint"> (or press <kbd>Space</kbd>)</span> to answer immediately.</div>
+        <div id="ansSources" class="sources" hidden></div>
+        <div id="ansDocs" class="sources" hidden></div>
+        <p id="ansMeta" class="ans-meta" hidden></p>
       </section>
       <section class="panel" id="pHistory">
         <div class="hist-head">
-          <h2>Earlier questions</h2>
-          <button id="resetBtn" class="btn small" type="button">New interview</button>
+          <h2>Earlier questions in this interview</h2>
         </div>
         <div id="history" class="history"></div>
       </section>
+      <section class="panel" id="pUsage">
+        <div class="hist-head">
+          <h2>Usage</h2>
+          <div class="seg" id="periodSeg">
+            <button type="button" data-p="interview">This interview</button><button type="button" data-p="today">Today</button><button type="button" data-p="month">This month</button><button type="button" data-p="all">All time</button>
+          </div>
+        </div>
+        <div class="tiles">
+          <div class="tile"><div class="k">Cost (estimated)</div><div class="v" id="uCost">$0.00</div><div class="s" id="uCostSub">&nbsp;</div></div>
+          <div class="tile"><div class="k">Tokens used</div><div class="v" id="uTokens">0</div><div class="s" id="uTokensSub">&nbsp;</div></div>
+          <div class="tile"><div class="k">Answers</div><div class="v" id="uAnswers">0</div><div class="s" id="uAnswersSub">&nbsp;</div></div>
+          <div class="tile"><div class="k">First words after</div><div class="v" id="uSpeed">–</div><div class="s" id="uSpeedSub">&nbsp;</div></div>
+        </div>
+        <div class="ublock">
+          <div class="lbl"><strong>Monthly budget</strong> <span id="uBudgetText" class="muted"></span></div>
+          <div class="meter" id="uMeter"><span></span></div>
+          <form class="budget-form" id="budgetForm">
+            <label for="budgetInput">Monthly limit $</label>
+            <input id="budgetInput" inputmode="decimal" placeholder="e.g. 10">
+            <button class="btn small" type="submit">Save</button>
+          </form>
+        </div>
+        <div class="ublock">
+          <div class="lbl"><strong>API rate limit left</strong> <span class="muted">(per minute, from Anthropic)</span></div>
+          <div id="uLimits" class="muted">Shown after the first answer.</div>
+        </div>
+        <div class="ublock">
+          <div class="lbl"><strong>Cache</strong></div>
+          <div id="uCache" class="muted">Your resume and stories are reused between questions. Savings show here.</div>
+        </div>
+        <div class="ublock">
+          <div class="lbl"><strong>Last 20 calls</strong> <span class="legend"><span><i style="background:var(--accent)"></i>input</span><span><i style="background:var(--bar-out)"></i>output</span></span></div>
+          <div id="uChart" class="muted">No calls yet.</div>
+        </div>
+        <p class="hint">Costs are estimates from Anthropic's published prices. Your exact credit balance is at console.anthropic.com → Settings → Billing.</p>
+      </section>
     </div>
   </div>
+
+  <section id="bankView" class="bank" hidden>
+    <div class="panel bank-tools">
+      <input id="bq" type="search" placeholder="Search questions and answers, e.g. “S3 encryption”, “conflict”, “Capital One”" autocomplete="off" aria-label="Search the question bank">
+      <div class="bank-filters">
+        <select id="bCat" aria-label="Category"><option value="">All categories</option></select>
+        <div class="seg" id="bSrc">
+          <button type="button" data-s="">All</button><button type="button" data-s="asked">Asked in interviews</button><button type="button" data-s="notes">From my notes</button><button type="button" data-s="mine">Added by me</button>
+        </div>
+        <label class="check"><input type="checkbox" id="bStar"> ★ Starred</label>
+        <select id="bIv" aria-label="Interview"><option value="">Any interview</option></select>
+        <button id="bAdd" class="btn small" type="button">+ Add question</button>
+        <a id="bExport" class="btn small" href="/bank/export" download>Export (.md)</a>
+      </div>
+      <form id="bAddForm" class="bank-add" hidden>
+        <input id="bNewQ" placeholder="Question, e.g. Why do you want to leave your current role?" maxlength="300" autocomplete="off">
+        <select id="bNewCat" aria-label="Category"><option value="">Category: decide for me</option></select>
+        <textarea id="bNewA" placeholder="Your answer (Markdown works: **bold**, - bullets)"></textarea>
+        <div class="bactions"><button class="btn primary small" type="submit">Save to bank</button><button id="bAddCancel" class="btn small" type="button">Cancel</button></div>
+      </form>
+      <p id="bCount" class="hint">Loading your question bank…</p>
+    </div>
+    <ul id="bList" class="bank-list"></ul>
+    <button id="bMore" class="btn" type="button" hidden>Show more</button>
+  </section>
 </div>
 
 <script>
@@ -303,6 +514,7 @@ function checkStatus() {
     loadResumeList();
     loadProfile();
     connectEvents();
+    if (VIEW === "bank") loadBank(true);
     if (SR && !window.isSecureContext) warn("The microphone only works on https:// links or on the PC itself. Use the tunnel link from start-mobile.bat, or tap the keyboard's mic and dictate into “Type a question”.");
   }).catch(() => warn("Can't reach the server. Make sure it's still running on your PC."));
 }
@@ -432,24 +644,75 @@ function md(src) {
 const EMPTY_ANSWER = $("answer").innerHTML;
 let currentId = null;
 
-function histItem(q, a) {
+function sourcesNode(list) {
+  const box = document.createElement("div");
+  box.className = "sources";
+  const b = document.createElement("b"); b.textContent = "From your notes";
+  const ul = document.createElement("ul");
+  for (const src of list) {
+    const li = document.createElement("li");
+    const f = document.createElement("span"); f.className = "f"; f.textContent = src.file;
+    li.append(src.label + " ", f);
+    ul.append(li);
+  }
+  box.append(b, ul);
+  return box;
+}
+function docsNode(list) {
+  const box = document.createElement("div");
+  box.className = "sources";
+  const b = document.createElement("b"); b.textContent = "From official docs";
+  const ul = document.createElement("ul");
+  for (const d of list) {
+    let host = "";
+    try { host = new URL(d.url).hostname.replace(/^www\./, ""); } catch { continue; }
+    if (!/^https?:/.test(d.url)) continue;
+    const li = document.createElement("li");
+    const a = document.createElement("a");
+    a.href = d.url; a.target = "_blank"; a.rel = "noopener noreferrer"; a.textContent = d.title || d.url;
+    const h = document.createElement("span"); h.className = "host"; h.textContent = " " + host;
+    li.append(a, h);
+    ul.append(li);
+  }
+  box.append(b, ul);
+  return box;
+}
+let currentDocs = null;
+function showDocs(list) {
+  currentDocs = list && list.length ? list : null;
+  const box = $("ansDocs");
+  box.hidden = !currentDocs;
+  box.replaceChildren(...(currentDocs ? docsNode(currentDocs).childNodes : []));
+}
+function showSources(list) {
+  currentSources = list && list.length ? list : null;
+  const box = $("ansSources");
+  box.hidden = !currentSources;
+  box.replaceChildren(...(currentSources ? sourcesNode(currentSources).childNodes : []));
+}
+let currentSources = null;
+
+function histItem(q, a, usage, sources, docs) {
   const d = document.createElement("details");
   d.className = "hist";
   const s = document.createElement("summary"); s.textContent = q;
   const body = document.createElement("div"); body.className = "answer"; body.innerHTML = md(a);
   d.append(s, body);
+  if (sources && sources.length) d.append(sourcesNode(sources));
+  if (docs && docs.length) d.append(docsNode(docs));
+  if (usage) { const m = document.createElement("p"); m.className = "ans-meta"; m.textContent = usageLine(usage); d.append(m); }
   return d;
 }
 function renderHistory(list) {
   const h = $("history");
-  h.replaceChildren(...list.slice().reverse().map(it => histItem(it.q, it.a)));
-  if (!list.length) h.innerHTML = '<p class="hint" id="histEmpty">Questions and answers from this interview collect here, on every device.</p>';
+  h.replaceChildren(...list.slice().reverse().map(it => histItem(it.q, it.a, it.usage, it.sources, it.docs)));
+  if (!list.length) h.innerHTML = '<p class="hint" id="histEmpty">Earlier questions in this interview collect here, on every device.</p>';
 }
 function archiveDisplayed() {
   const q = $("curQ").dataset.q, a = $("answer").dataset.a;
   if (!q || !a || !currentId) return;
   $("histEmpty")?.remove();
-  $("history").prepend(histItem(q, a));
+  $("history").prepend(histItem(q, a, currentUsage, currentSources, currentDocs));
 }
 function updateStatus(writing) {
   if (writing) setStatus("think", "Writing answer…");
@@ -462,6 +725,9 @@ function showCurrent(cur) {
   if (!cur) {
     $("curQ").hidden = true; $("curQ").dataset.q = "";
     box.className = "answer empty"; box.innerHTML = EMPTY_ANSWER; box.dataset.a = "";
+    showUsage(null);
+    showSources(null);
+    showDocs(null);
     updateStatus(false);
     return;
   }
@@ -472,23 +738,662 @@ function showCurrent(cur) {
   box.dataset.a = cur.a;
   box.innerHTML = md(cur.a);
   box.className = "answer" + (cur.done ? "" : " cursor");
+  showUsage(cur.usage || null);
+  showSources(cur.sources || null);
+  showDocs(cur.docs || null);
   updateStatus(!cur.done);
 }
 
+// ---------- Interview tabs: every interview is saved on the PC ----------
+let IV_LIST = [], ACTIVE = null, IV = null, SELECTED = store.get("ic.tab", "");
+const ivUrl = (id, rest = "") => "/interviews/" + encodeURIComponent(id) + rest;
+function fmtDur(sec) {
+  sec = Math.max(0, Math.round(sec));
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), r = sec % 60;
+  return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(r).padStart(2, "0");
+}
+async function post(path, body = {}) {
+  try {
+    const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify(body) });
+    if (r.status === 401) needCode();
+    return await r.json().catch(() => ({}));
+  } catch { warn("Can't reach the server. Make sure it's still running on your PC."); return {}; }
+}
+function renderTabs() {
+  const tabs = IV_LIST.map(m => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "tab"; b.setAttribute("role", "tab");
+    b.setAttribute("aria-selected", String(m.id === SELECTED));
+    b.title = (m.status === "live" ? "Live now" : m.status === "ended" ? "Ended" : "Not started") + ` · ${m.count} question${m.count === 1 ? "" : "s"}`;
+    const dot = document.createElement("span"); dot.className = "tdot " + m.status;
+    const name = document.createElement("span"); name.className = "tname"; name.textContent = m.name;
+    const c = document.createElement("span"); c.className = "tcount"; c.textContent = m.count;
+    b.append(dot, name, c);
+    b.addEventListener("click", () => selectInterview(m.id));
+    return b;
+  });
+  const add = document.createElement("button");
+  add.type = "button"; add.className = "tab add"; add.textContent = "+ New interview";
+  add.addEventListener("click", newInterview);
+  $("tabs").replaceChildren(...tabs, add);
+  $("tabs").querySelector('[aria-selected="true"]')?.scrollIntoView({ block: "nearest", inline: "nearest" });
+}
+function tickTimer() {
+  if (!IV || !IV.started_at) { $("ivTime").textContent = IV ? "Not started yet" : ""; return; }
+  const end = IV.status === "live" ? Date.now() / 1000 : (IV.stopped_at || IV.started_at);
+  const started = new Date(IV.started_at * 1000).toLocaleString([], { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+  $("ivTime").textContent = `${started} · ${fmtDur(end - IV.started_at)}`;
+}
+setInterval(tickTimer, 1000);
+function renderBar() {
+  $("ivBar").hidden = !IV;
+  $("ivEmpty").hidden = !!IV || IV_LIST.length > 0;
+  if (!IV) return;
+  if (document.activeElement !== $("ivName")) $("ivName").value = IV.name;
+  $("ivState").className = "pill" + (IV.status === "live" ? " live" : "");
+  $("ivStateText").textContent = IV.status === "live" ? "Live" : IV.status === "ended" ? "Ended" : "Not started";
+  $("ivStart").hidden = IV.status === "live";
+  $("ivStart").textContent = IV.status === "ended" ? "Resume interview" : "Start interview";
+  $("ivStop").hidden = IV.status !== "live";
+  const done = IV.items.filter(it => it.a);
+  const cost = done.reduce((sum, it) => sum + ((it.usage && it.usage.cost) || 0), 0);
+  $("ivCount").textContent = `${done.length} question${done.length === 1 ? "" : "s"} · ≈${fmtUsd(cost)}`;
+  $("ivExport").href = ivUrl(IV.id, "/export") + (accessCode ? "?code=" + encodeURIComponent(accessCode) : "");
+  tickTimer();
+  renderRec();
+}
+function renderInterview() {
+  renderBar();
+  const items = IV ? IV.items : [];
+  renderHistory(items.slice(0, -1));
+  showCurrent(items.length ? items[items.length - 1] : null);
+}
+async function selectInterview(id) {
+  SELECTED = id || "";
+  store.set("ic.tab", SELECTED);
+  renderTabs();
+  if (!SELECTED) { IV = null; renderInterview(); return; }
+  try {
+    const r = await fetch(ivUrl(SELECTED), { headers: authHeaders() });
+    if (!r.ok) throw new Error();
+    const iv = await r.json();
+    if (iv.id !== SELECTED) return;   // another tab was picked meanwhile
+    IV = iv;
+  } catch { IV = null; }
+  renderInterview();
+}
+async function newInterview() {
+  const j = await post("/interviews", {});
+  if (!j.id) return;
+  await selectInterview(j.id);
+  $("ivName").focus(); $("ivName").select();
+}
+function pickDefaultTab() {
+  return IV_LIST.some(m => m.id === SELECTED) ? SELECTED : (ACTIVE || (IV_LIST[0] && IV_LIST[0].id) || "");
+}
+$("ivName").addEventListener("keydown", (e) => { if (e.key === "Enter") $("ivName").blur(); });
+$("ivName").addEventListener("change", () => {
+  const name = $("ivName").value.trim();
+  if (IV && name && name !== IV.name) post(ivUrl(IV.id, "/rename"), { name });
+});
+$("ivStart").addEventListener("click", async () => {
+  if (!IV) return;
+  if ($("recAuto").checked && CAN_RECORD && !REC) startRecording();   // must start from the click itself
+  await post(ivUrl(IV.id, "/start"));
+  if (SR && !listening) startListening();   // this device starts listening; others just follow along
+});
+$("ivStop").addEventListener("click", async () => {
+  if (!IV) return;
+  stopRecording();
+  await post(ivUrl(IV.id, "/stop"));
+  if (listening) stopListening();
+});
+let deleteArmed = null;
+$("ivDelete").addEventListener("click", async () => {
+  if (!IV) return;
+  if (!deleteArmed) {   // two taps, because this removes the saved interview on every device
+    $("ivDelete").textContent = "Tap again to delete";
+    deleteArmed = setTimeout(() => { deleteArmed = null; $("ivDelete").textContent = "Delete"; }, 3000);
+    return;
+  }
+  clearTimeout(deleteArmed); deleteArmed = null;
+  $("ivDelete").textContent = "Delete";
+  if (REC && REC.iid === IV.id) stopRecording();
+  await post(ivUrl(IV.id, "/delete"));
+});
+
+// ---------- Screen recording (desktop Chrome / Edge) ----------
+const CAN_RECORD = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia && window.MediaRecorder);
+let REC = null;   // the recording this device is making: {iid, rid, recorder, display, mic, ctx, started, bytes, chain}
+const fmtMB = (b) => b >= 1e9 ? (b / 1e9).toFixed(2) + " GB" : Math.max(0.1, b / 1e6).toFixed(1) + " MB";
+const withCode = (url, extra = {}) => {
+  const q = new URLSearchParams(extra);
+  if (accessCode) q.set("code", accessCode);
+  const qs = q.toString();
+  return qs ? url + "?" + qs : url;
+};
+function recNote(msg) { $("recNote").hidden = !msg; $("recNote").textContent = msg || ""; }
+
+async function startRecording() {
+  if (!IV || REC || !CAN_RECORD) return;
+  if (store.get("ic.recConsent", "") !== "1") { $("recConsent").hidden = false; return; }
+  const iid = IV.id;
+  let display;
+  try {
+    display = await navigator.mediaDevices.getDisplayMedia({
+      video: { frameRate: 15 }, audio: true, systemAudio: "include", selfBrowserSurface: "exclude" });
+  } catch { recNote("Screen sharing was cancelled, so nothing is being recorded."); return; }
+  let mic = null;
+  try { mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); } catch {}
+  // mix the interviewer (shared tab/system audio) with your microphone into one track
+  const ctx = new AudioContext(), dest = ctx.createMediaStreamDestination();
+  const shared = display.getAudioTracks();
+  if (shared.length) ctx.createMediaStreamSource(new MediaStream(shared)).connect(dest);
+  if (mic) ctx.createMediaStreamSource(mic).connect(dest);
+  const tracks = [...display.getVideoTracks(), ...(shared.length || mic ? dest.stream.getAudioTracks() : [])];
+  const mime = ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"].find(m => MediaRecorder.isTypeSupported(m)) || "";
+  const j = await post(ivUrl(iid, "/recordings"), { mime });
+  if (!j.id) {
+    display.getTracks().forEach(t => t.stop()); mic?.getTracks().forEach(t => t.stop()); ctx.close().catch(() => {});
+    recNote("Couldn't start the recording on your PC. Is the server running?");
+    return;
+  }
+  const recorder = new MediaRecorder(new MediaStream(tracks),
+    { ...(mime ? { mimeType: mime } : {}), videoBitsPerSecond: 1_000_000, audioBitsPerSecond: 96_000 });
+  REC = { iid, rid: j.id, recorder, display, mic, ctx, started: Date.now(), bytes: 0, chain: Promise.resolve() };
+  recorder.ondataavailable = (ev) => { if (ev.data && ev.data.size) uploadChunk(REC, ev.data); };
+  recorder.onstop = finishRecording;
+  display.getVideoTracks()[0]?.addEventListener("ended", stopRecording);   // "Stop sharing" in the browser bar
+  recorder.start(4000);   // a piece every 4 seconds, saved to the PC straight away
+  recNote(shared.length ? "" : (mic
+    ? "Recording your screen and microphone, but not the interviewer's audio. To include it, stop and share again with “Share tab audio” / “Share system audio” ticked."
+    : "Recording the screen only: no audio was shared and the microphone isn't available."));
+  renderRec();
+}
+function uploadChunk(r, blob) {
+  if (!r) return;
+  r.chain = r.chain.then(async () => {   // one at a time, in order
+    for (let attempt = 0; attempt < 4; attempt++) {
+      try {
+        const res = await fetch(ivUrl(r.iid, `/recordings/${r.rid}/chunk`),
+          { method: "POST", headers: { "Content-Type": "application/octet-stream", ...authHeaders() }, body: blob });
+        if (res.ok) { r.bytes += blob.size; return; }
+        if (res.status === 409 || res.status === 404) return;
+      } catch {}
+      await new Promise(ok => setTimeout(ok, 1000 * (attempt + 1)));
+    }
+    recNote("Part of the recording couldn't be saved. Check the server window is still open.");
+  });
+}
+function stopRecording() {
+  if (REC && REC.recorder.state !== "inactive") REC.recorder.stop();
+}
+async function finishRecording() {
+  const r = REC;
+  if (!r) return;
+  r.display.getTracks().forEach(t => t.stop());
+  r.mic?.getTracks().forEach(t => t.stop());
+  r.ctx.close().catch(() => {});
+  await r.chain;   // let the last pieces finish uploading
+  await post(ivUrl(r.iid, `/recordings/${r.rid}/finish`));
+  REC = null;
+  renderRec();
+}
+window.addEventListener("beforeunload", (e) => { if (REC) { e.preventDefault(); e.returnValue = ""; } });
+
+function renderRec() {
+  $("recRow").hidden = !CAN_RECORD;
+  const mine = REC && IV && REC.iid === IV.id;
+  $("recBtn").textContent = mine ? "■ Stop recording" : "● Record screen";
+  $("recBtn").disabled = !!REC && !mine;
+  $("recBtn").title = REC && !mine ? "This device is already recording another interview" : "";
+  $("recLive").hidden = !mine;
+  if (mine) $("recLive").textContent = `REC ${fmtDur((Date.now() - REC.started) / 1000)} · ${fmtMB(REC.bytes)}`;
+  const list = (IV && IV.recordings) || [];
+  const open = new Set([...$("recList").querySelectorAll("li[data-open]")].map(li => li.dataset.id));
+  $("recList").replaceChildren(...list.map((r, i) => {
+    const li = document.createElement("li");
+    li.dataset.id = r.id;
+    const line = document.createElement("div"); line.className = "rline";
+    const when = new Date(r.started * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    const info = document.createElement("span"); info.className = "rinfo";
+    info.textContent = `Recording ${i + 1} · ${when} · ` +
+      (r.status === "recording" ? "recording now…" : `${fmtDur(r.seconds || 0)} · ${fmtMB(r.bytes || 0)}`);
+    line.append(info);
+    if (r.status !== "recording") {
+      const src = ivUrl(IV.id, `/recordings/${r.id}`);
+      const play = document.createElement("button"); play.type = "button"; play.className = "btn small";
+      play.textContent = open.has(r.id) ? "Hide" : "Play";
+      play.addEventListener("click", () => {
+        const v = li.querySelector("video");
+        if (v) { v.pause(); v.remove(); delete li.dataset.open; play.textContent = "Play"; return; }
+        const video = document.createElement("video");
+        video.controls = true; video.preload = "metadata"; video.src = withCode(src);
+        li.append(video); li.dataset.open = "1"; play.textContent = "Hide";
+      });
+      const dl = document.createElement("a"); dl.className = "btn small"; dl.textContent = "Download";
+      dl.href = withCode(src, { download: "1" });
+      const del = document.createElement("button"); del.type = "button"; del.className = "btn small"; del.textContent = "Delete";
+      let armed = null;
+      del.addEventListener("click", async () => {
+        if (!armed) { del.textContent = "Tap again to delete"; armed = setTimeout(() => { armed = null; del.textContent = "Delete"; }, 3000); return; }
+        clearTimeout(armed);
+        await post(ivUrl(IV.id, `/recordings/${r.id}/delete`));
+      });
+      line.append(play, dl, del);
+      if (open.has(r.id)) {   // keep an open player open across refreshes
+        const video = document.createElement("video");
+        video.controls = true; video.preload = "metadata"; video.src = withCode(src);
+        li.append(line, video); li.dataset.open = "1";
+        return li;
+      }
+    }
+    li.append(line);
+    return li;
+  }));
+}
+setInterval(() => { if (REC) renderRec(); }, 1000);
+$("recBtn").addEventListener("click", () => {
+  if (REC && IV && REC.iid === IV.id) stopRecording(); else startRecording();
+});
+$("recAuto").checked = store.get("ic.recAuto", "") === "1";
+$("recAuto").addEventListener("change", () => store.set("ic.recAuto", $("recAuto").checked ? "1" : ""));
+$("recConsentYes").addEventListener("click", () => {
+  store.set("ic.recConsent", "1");
+  $("recConsent").hidden = true;
+  startRecording();
+});
+$("recConsentNo").addEventListener("click", () => { $("recConsent").hidden = true; });
+
+// ---------- Question bank ----------
+let VIEW = store.get("ic.view", "live");
+const BQ = { q: "", cat: "", src: "", star: false, iv: "" };
+let BANK_ITEMS = [], BANK_TOTAL = 0, BANK_CATS_LOADED = false;
+const OPEN_Q = new Set();
+function setView(v) {
+  VIEW = v === "bank" ? "bank" : "live";
+  store.set("ic.view", VIEW);
+  document.querySelector(".grid").hidden = VIEW !== "live";
+  $("bankView").hidden = VIEW !== "bank";
+  for (const b of document.querySelectorAll(".views button")) b.setAttribute("aria-pressed", String(b.dataset.view === VIEW));
+  if (VIEW === "bank") { loadBank(true); $("bq").focus(); }
+}
+document.querySelectorAll(".views button").forEach(b => b.addEventListener("click", () => setView(b.dataset.view)));
+
+function bankParams(extra = {}) {
+  const q = new URLSearchParams();
+  if (BQ.q) q.set("q", BQ.q);
+  if (BQ.cat) q.set("cat", BQ.cat);
+  if (BQ.src) q.set("src", BQ.src);
+  if (BQ.star) q.set("star", "1");
+  if (BQ.iv) q.set("iv", BQ.iv);
+  for (const [k, v] of Object.entries(extra)) q.set(k, v);
+  return q;
+}
+let bankSeq = 0;
+async function loadBank(reset, keepCount) {
+  const seq = ++bankSeq;
+  const limit = keepCount ? Math.max(50, BANK_ITEMS.length) : 50;
+  const offset = reset || keepCount ? 0 : BANK_ITEMS.length;
+  try {
+    const r = await fetch("/bank?" + bankParams({ offset, limit }), { headers: authHeaders() });
+    if (!r.ok) throw new Error();
+    const j = await r.json();
+    if (seq !== bankSeq) return;   // a newer search is on its way
+    BANK_ITEMS = reset || keepCount ? j.results : BANK_ITEMS.concat(j.results);
+    BANK_TOTAL = j.total;
+    fillBankFilters(j);
+    renderBank(j);
+  } catch { $("bCount").textContent = "Couldn't load the question bank. Is the server running?"; }
+}
+let bankTimer = null;
+function reloadBankSoon() { clearTimeout(bankTimer); bankTimer = setTimeout(() => loadBank(false, true), 400); }
+
+function fillBankFilters(j) {
+  const cat = $("bCat"), keep = cat.value;
+  cat.length = 1;
+  for (const [name, n] of Object.entries(j.categories)) cat.add(new Option(`${name} (${n})`, name));
+  cat.value = keep;
+  if (!BANK_CATS_LOADED) {
+    const newCat = $("bNewCat");
+    for (const name of Object.keys(j.categories)) newCat.add(new Option(name, name));
+    BANK_CATS_LOADED = true;
+  }
+  const iv = $("bIv"), keepIv = iv.value;
+  iv.length = 1;
+  for (const x of j.interviews) iv.add(new Option(x.name, x.id));
+  iv.value = keepIv;
+  iv.hidden = !j.interviews.length;
+  $("bq").placeholder = `Search ${j.all.toLocaleString()} questions and answers, e.g. “S3 encryption”, “conflict”, “Capital One”`;
+  for (const b of $("bSrc").querySelectorAll("button")) {
+    b.setAttribute("aria-pressed", String(b.dataset.s === BQ.src));
+    const n = b.dataset.s ? (j.sources[b.dataset.s] || 0) : j.all;
+    b.textContent = b.textContent.replace(/ \(\d[\d,]*\)$/, "") + ` (${n.toLocaleString()})`;
+  }
+  $("bExport").href = withCode("/bank/export", Object.fromEntries(bankParams()));
+}
+
+function bankMeta(e) {
+  const meta = document.createElement("div");
+  meta.className = "bmeta";
+  const chip = document.createElement("span"); chip.className = "chip"; chip.textContent = e.category;
+  meta.append(chip);
+  const src = document.createElement("span"); src.className = "chip src";
+  if (e.source === "asked") {
+    const names = [...new Set(e.origins.map(o => o.name))];
+    const last = e.last_asked ? new Date(e.last_asked * 1000).toLocaleDateString([], { day: "numeric", month: "short" }) : "";
+    src.textContent = `Asked ${e.times_asked}× · ${names.join(", ")}${last ? " · last " + last : ""}`;
+  } else if (e.source === "notes") {
+    src.textContent = "From notes: " + e.file;
+  } else src.textContent = "Added by me";
+  meta.append(src);
+  if (e.edited && e.source !== "mine") { const x = document.createElement("span"); x.textContent = "edited"; meta.append(x); }
+  return meta;
+}
+
+function bankItem(e) {
+  const li = document.createElement("li");
+  li.className = "panel bitem";
+  const head = document.createElement("div"); head.className = "bhead";
+  const q = document.createElement("button"); q.type = "button"; q.className = "bq"; q.textContent = e.question;
+  q.setAttribute("aria-expanded", String(OPEN_Q.has(e.id)));
+  const star = document.createElement("button"); star.type = "button"; star.className = "bstar"; star.textContent = "★";
+  star.setAttribute("aria-pressed", String(!!e.starred)); star.title = e.starred ? "Unstar" : "Star as a favourite answer";
+  head.append(q, star);
+  li.append(head, bankMeta(e));
+  const body = document.createElement("div"); body.className = "bbody"; body.hidden = !OPEN_Q.has(e.id);
+  const ans = document.createElement("div"); ans.className = "answer"; ans.innerHTML = md(e.answer || "_No answer yet. Press Edit to write one._");
+  const actions = document.createElement("div"); actions.className = "bactions";
+  const edit = document.createElement("button"); edit.type = "button"; edit.className = "btn small"; edit.textContent = "Edit answer";
+  const copy = document.createElement("button"); copy.type = "button"; copy.className = "btn small"; copy.textContent = "Copy";
+  const del = document.createElement("button"); del.type = "button"; del.className = "btn small";
+  del.textContent = e.source === "notes" ? "Hide" : "Delete";
+  actions.append(edit, copy, del);
+  body.append(ans, actions);
+  li.append(body);
+
+  q.addEventListener("click", () => {
+    body.hidden = !body.hidden;
+    q.setAttribute("aria-expanded", String(!body.hidden));
+    body.hidden ? OPEN_Q.delete(e.id) : OPEN_Q.add(e.id);
+  });
+  star.addEventListener("click", async () => {
+    e.starred = !e.starred;
+    star.setAttribute("aria-pressed", String(e.starred));
+    await post(`/bank/${e.id}/update`, { starred: e.starred });
+  });
+  copy.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(e.answer); copy.textContent = "Copied"; }
+    catch { copy.textContent = "Couldn't copy"; }
+    setTimeout(() => copy.textContent = "Copy", 1500);
+  });
+  edit.addEventListener("click", () => {
+    const ta = document.createElement("textarea"); ta.value = e.answer || "";
+    const save = document.createElement("button"); save.type = "button"; save.className = "btn primary small"; save.textContent = "Save";
+    const cancel = document.createElement("button"); cancel.type = "button"; cancel.className = "btn small"; cancel.textContent = "Cancel";
+    const row = document.createElement("div"); row.className = "bactions"; row.append(save, cancel);
+    const hint = document.createElement("p"); hint.className = "hint";
+    hint.textContent = "Saved answers are used in live interviews when this question comes up again.";
+    body.replaceChildren(ta, row, hint);
+    ta.focus();
+    cancel.addEventListener("click", () => renderBank());
+    save.addEventListener("click", async () => {
+      const j = await post(`/bank/${e.id}/update`, { answer: ta.value });
+      if (j.entry) Object.assign(e, j.entry);
+      renderBank();
+    });
+  });
+  let armed = null;
+  del.addEventListener("click", async () => {
+    if (!armed) {
+      del.textContent = "Tap again to " + (e.source === "notes" ? "hide" : "delete");
+      armed = setTimeout(() => { armed = null; del.textContent = e.source === "notes" ? "Hide" : "Delete"; }, 3000);
+      return;
+    }
+    clearTimeout(armed);
+    await post(`/bank/${e.id}/delete`);
+    BANK_ITEMS = BANK_ITEMS.filter(x => x.id !== e.id); BANK_TOTAL--;
+    renderBank();
+  });
+  return li;
+}
+
+function renderBank() {
+  $("bList").replaceChildren(...BANK_ITEMS.map(bankItem));
+  const filtered = BQ.q || BQ.cat || BQ.src || BQ.star || BQ.iv;
+  $("bCount").textContent = BANK_TOTAL
+    ? `${BANK_TOTAL.toLocaleString()} question${BANK_TOTAL === 1 ? "" : "s"}${filtered ? " match" + (BANK_TOTAL === 1 ? "es" : "") : ""}` +
+      (BANK_ITEMS.length < BANK_TOTAL ? ` · showing ${BANK_ITEMS.length}` : "") + ". Click a question to see its answer."
+    : (filtered ? "No questions match. Try fewer words or another filter." : "No questions yet. They're added as you answer interview questions, and from your notes.");
+  $("bMore").hidden = BANK_ITEMS.length >= BANK_TOTAL;
+}
+
+let searchTimer = null;
+$("bq").addEventListener("input", () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { BQ.q = $("bq").value.trim(); loadBank(true); }, 200);
+});
+$("bCat").addEventListener("change", () => { BQ.cat = $("bCat").value; loadBank(true); });
+$("bIv").addEventListener("change", () => { BQ.iv = $("bIv").value; loadBank(true); });
+$("bStar").addEventListener("change", () => { BQ.star = $("bStar").checked; loadBank(true); });
+$("bSrc").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-s]");
+  if (!b) return;
+  BQ.src = b.dataset.s;
+  loadBank(true);
+});
+$("bMore").addEventListener("click", () => loadBank(false));
+$("bAdd").addEventListener("click", () => { $("bAddForm").hidden = false; $("bNewQ").focus(); });
+$("bAddCancel").addEventListener("click", () => { $("bAddForm").hidden = true; });
+$("bAddForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const question = $("bNewQ").value.trim();
+  if (!question) { $("bNewQ").focus(); return; }
+  const j = await post("/bank", { question, answer: $("bNewA").value, category: $("bNewCat").value || null });
+  if (j.id) {
+    $("bNewQ").value = ""; $("bNewA").value = ""; $("bNewCat").value = "";
+    $("bAddForm").hidden = true;
+    OPEN_Q.add(j.id);
+    BQ.src = "mine"; loadBank(true);
+  }
+});
+
+function itemById(id) { return IV ? IV.items.find(x => x.id === id) : null; }
+
 function handleEvent(e) {
-  if (e.type === "snapshot") { renderHistory(e.history); showCurrent(e.current); }
-  else if (e.type === "question") { archiveDisplayed(); showCurrent({ id: e.id, q: e.q, a: "", done: false }); }
+  if (e.type === "snapshot") {
+    IV_LIST = e.list || []; ACTIVE = e.active;
+    renderStats(e.stats); renderRefs(e.refs);
+    selectInterview(pickDefaultTab());
+  }
+  else if (e.type === "interviews") {
+    IV_LIST = e.list || []; ACTIVE = e.active;
+    const m = IV_LIST.find(x => x.id === SELECTED);
+    if (!m) { selectInterview(pickDefaultTab()); return; }
+    if (IV && IV.id === m.id) Object.assign(IV, { name: m.name, status: m.status, started_at: m.started_at, stopped_at: m.stopped_at,
+                                                  recordings: m.recordings || [] });
+    renderTabs(); renderBar();
+  }
+  else if (e.type === "stopped") {
+    if (listening && e.interview === SELECTED) stopListening();
+    if (REC && REC.iid === e.interview) stopRecording();   // the interview ended on some device
+  }
+  else if (e.type === "refs") renderRefs(e.refs);
+  else if (e.type === "bank") { if (VIEW === "bank") reloadBankSoon(); }
+  else if (e.type === "stats") renderStats(e.stats);
+  else if (e.type === "question") {
+    if (e.interview !== SELECTED || !IV) { selectInterview(e.interview); return; }  // follow the live interview
+    const item = { id: e.id, q: e.q, a: "", done: false, sources: e.sources, ts: Date.now() / 1000 };
+    IV.items.push(item);
+    archiveDisplayed();
+    showCurrent(item);
+  }
+  else if (e.type === "searching" && e.id === currentId) {
+    setStatus("think", "Checking official docs…");
+    if (!$("answer").dataset.a) $("answer").innerHTML = '<p class="searching">Checking official docs…</p>';
+  }
   else if (e.type === "delta" && e.id === currentId) {
-    const box = $("answer");
+    const box = $("answer"), it = itemById(e.id);
+    if (!box.dataset.a) setStatus("think", "Writing answer…");
     box.dataset.a += e.text;
+    if (it) it.a = box.dataset.a;
     box.innerHTML = md(box.dataset.a);
   }
-  else if (e.type === "done" && e.id === currentId) { $("answer").className = "answer"; updateStatus(false); }
-  else if (e.type === "reset") { renderHistory([]); showCurrent(null); }
+  else if (e.type === "done" && e.interview === SELECTED) {
+    const it = itemById(e.id);
+    if (it) Object.assign(it, { a: e.a, usage: e.usage, docs: e.docs, done: true });
+    if (e.id === currentId) {
+      const box = $("answer");
+      box.dataset.a = e.a; box.innerHTML = md(e.a); box.className = "answer";
+      showUsage(e.usage); showDocs(e.docs); updateStatus(false);
+    }
+    renderBar();
+  }
   else if (e.type === "profile" && e.origin !== ORIGIN) {
     for (const k of PFIELDS) if (k in e && document.activeElement !== $(k)) $(k).value = e[k];
   }
 }
+
+// ---------- Usage: tokens, cost, budget, rate limits, speed ----------
+let STATS = null, currentUsage = null;
+let period = store.get("ic.period", "interview");
+const fmtTok = (n) => n >= 1e6 ? (n / 1e6).toFixed(2) + "M" : n >= 1e4 ? Math.round(n / 1e3) + "k" : (n || 0).toLocaleString();
+const fmtUsd = (x) => x == null ? "–" : x > 0 && x < 0.01 ? "$" + x.toFixed(4) : "$" + x.toFixed(2);
+const fmtSec = (x) => x == null ? "–" : x.toFixed(1) + " s";
+function usageLine(u) {
+  const cache = u.cached ? ` (${fmtTok(u.cached)} from cache)` : u.written ? " (resume cached for next time)" : "";
+  const searches = u.searches ? ` · ${u.searches} doc search${u.searches > 1 ? "es" : ""}` : "";
+  return `${fmtTok(u.in)} in${cache} · ${fmtTok(u.out)} out${searches} · first words ${fmtSec(u.ttft)} · done ${fmtSec(u.total)} · ≈${fmtUsd(u.cost)}`;
+}
+function showUsage(u) {
+  currentUsage = u;
+  $("ansMeta").hidden = !u;
+  $("ansMeta").textContent = u ? usageLine(u) : "";
+}
+
+function renderStats(s) {
+  if (!s) return;
+  STATS = s;
+  if (typeof s.use_refs === "boolean") $("useRefs").checked = s.use_refs;
+  if (s.docs_mode && document.activeElement !== $("docsMode")) $("docsMode").value = s.docs_mode;
+  for (const b of $("periodSeg").querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.p === period));
+  const p = s.periods[period];
+  $("uCost").textContent = fmtUsd(p.cost);
+  $("uCostSub").textContent = p.avg_cost != null ? "≈" + fmtUsd(p.avg_cost) + " per answer" : "No answers yet";
+  $("uTokens").textContent = fmtTok(p.input + p.output);
+  $("uTokensSub").textContent = `${fmtTok(p.input)} in · ${fmtTok(p.output)} out`;
+  $("uAnswers").textContent = p.answers.toLocaleString();
+  const extras = [];
+  if (p.stories) extras.push(`${p.stories} story bank${p.stories > 1 ? "s" : ""}`);
+  if (p.searches) extras.push(`${p.searches} doc search${p.searches > 1 ? "es" : ""}`);
+  $("uAnswersSub").textContent = extras.length ? "+ " + extras.join(" · ") : "\u00a0";
+  $("uSpeed").textContent = fmtSec(p.avg_ttft);
+  $("uSpeedSub").textContent = p.avg_total != null ? "full answer " + fmtSec(p.avg_total) : " ";
+
+  // Budget: what's left this month
+  const meter = $("uMeter");
+  if (s.budget > 0) {
+    const pct = s.month_spent / s.budget;
+    meter.querySelector("span").style.width = Math.min(100, pct * 100).toFixed(1) + "%";
+    meter.className = "meter" + (pct >= 1 ? " over" : pct >= 0.8 ? " warn" : "");
+    $("uBudgetText").textContent = `${fmtUsd(s.month_spent)} of ${fmtUsd(s.budget)} used this month · ` +
+      (s.budget_left >= 0 ? `${fmtUsd(s.budget_left)} left` : `${fmtUsd(-s.budget_left)} over`);
+  } else {
+    meter.querySelector("span").style.width = "0";
+    meter.className = "meter";
+    $("uBudgetText").textContent = `${fmtUsd(s.month_spent)} used this month. Set a limit to track what's left.`;
+  }
+  if (document.activeElement !== $("budgetInput")) $("budgetInput").value = s.budget ? s.budget : "";
+
+  // Rate limits reported by the API on the latest call
+  const L = s.limits || {}, parts = [];
+  for (const [key, name] of [["input-tokens", "input tokens"], ["output-tokens", "output tokens"], ["tokens", "tokens"], ["requests", "requests"]]) {
+    const rem = L[key + "-remaining"], lim = L[key + "-limit"];
+    if (rem != null && lim != null) parts.push(`${fmtTok(+rem)} of ${fmtTok(+lim)} ${name}`);
+  }
+  if (parts.length) {
+    if (s.limits_at) parts.push(`Checked ${new Date(s.limits_at * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`);
+    $("uLimits").replaceChildren(...parts.map(t => Object.assign(document.createElement("div"), { className: "limit-line", textContent: t })));
+  } else $("uLimits").textContent = "Shown after the first answer.";
+
+  // Cache savings
+  $("uCache").textContent = p.input
+    ? `${Math.round(100 * p.cache_read / p.input)}% of input tokens came from the cache (your resume and stories), saving about ${fmtUsd(p.saved)}.`
+    : "Your resume and stories are reused between questions. Savings show here.";
+
+  drawChart(s.recent || []);
+}
+
+function drawChart(recent) {
+  const box = $("uChart");
+  if (!recent.length) { box.textContent = "No calls yet."; return; }
+  const W = 400, H = 70, gap = 3, n = 20, bw = (W - gap * (n - 1)) / n;
+  const max = Math.max(...recent.map(r => r.in + r.out), 1);
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("preserveAspectRatio", "none");
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", "Tokens per call for the last calls");
+  recent.forEach((r, i) => {
+    const x = (n - recent.length + i) * (bw + gap);
+    const hin = (r.in / max) * (H - 2), hout = (r.out / max) * (H - 2);
+    const g = document.createElementNS(ns, "g");
+    const t = document.createElementNS(ns, "title");
+    t.textContent = `${r.kind === "stories" ? "Story bank" : r.label}\n${fmtTok(r.in)} in · ${fmtTok(r.out)} out · ${fmtUsd(r.cost)}` +
+      (r.ttft != null ? ` · first words ${fmtSec(r.ttft)}` : "") + (r.status !== "ok" ? ` · ${r.status}` : "");
+    const a = document.createElementNS(ns, "rect");
+    a.setAttribute("x", x); a.setAttribute("width", bw); a.setAttribute("y", H - hin); a.setAttribute("height", Math.max(hin, 1));
+    a.setAttribute("fill", "var(--accent)"); a.setAttribute("rx", 1.5);
+    const b = document.createElementNS(ns, "rect");
+    b.setAttribute("x", x); b.setAttribute("width", bw); b.setAttribute("y", H - hin - hout); b.setAttribute("height", hout);
+    b.setAttribute("fill", "var(--bar-out)"); b.setAttribute("rx", 1.5);
+    g.append(t, a, b);
+    svg.append(g);
+  });
+  box.replaceChildren(svg);
+}
+
+$("periodSeg").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-p]");
+  if (!b) return;
+  period = b.dataset.p;
+  store.set("ic.period", period);
+  renderStats(STATS);
+});
+$("budgetForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const v = parseFloat($("budgetInput").value.replace(/[$,]/g, ""));
+  const budget = isNaN(v) ? 0 : v;
+  $("budgetInput").blur();
+  await fetch("/settings", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ budget }) }).catch(() => {});
+});
+
+// ---------- Reference notes (study documents searched for technical answers) ----------
+function renderRefs(r) {
+  if (!r) return;
+  const when = r.built_at ? new Date(r.built_at * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "";
+  $("reindexBtn").disabled = !!r.building;
+  $("refStatus").textContent = r.building
+    ? "Indexing your notes…"
+    : r.files
+      ? `${r.files.toLocaleString()} documents (${r.sections.toLocaleString()} sections) from ${r.folder}, indexed ${when}.` +
+        (r.errors ? ` ${r.errors} file${r.errors > 1 ? "s" : ""} couldn't be read.` : "")
+      : `No .md, .pdf, .docx or .txt notes found in ${r.folder}.`;
+}
+$("reindexBtn").addEventListener("click", () => {
+  $("refStatus").textContent = "Indexing your notes…";
+  fetch("/refs/reindex", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: "{}" }).catch(() => {});
+});
+$("docsMode").addEventListener("change", () => {
+  fetch("/settings", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ docs_mode: $("docsMode").value }) }).catch(() => {});
+});
+$("useRefs").addEventListener("change", () => {
+  fetch("/settings", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ use_refs: $("useRefs").checked }) }).catch(() => {});
+});
 
 let events = null;
 function connectEvents() {
@@ -507,10 +1412,12 @@ async function answer(question) {
     const res = await fetch("/answer", {
       method: "POST",
       headers: { "Content-Type": "application/json", ...authHeaders() },
-      body: JSON.stringify({ question, origin: ORIGIN }),
+      body: JSON.stringify({ question, origin: ORIGIN, interview: SELECTED }),
     });
     if (res.status === 401) needCode();
-    if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(j.error || "Server error " + res.status); }
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(j.error || "Server error " + res.status);
+    if (j.interview && j.interview !== SELECTED) selectInterview(j.interview);  // a new interview was created
     // The question and answer now arrive through the live feed, on this device and every other one.
   } catch (err) {
     const msg = err instanceof TypeError ? "Can't reach the server. Make sure it's still running on your PC." : err.message;
@@ -519,17 +1426,6 @@ async function answer(question) {
   }
 }
 
-let resetArmed = null;
-$("resetBtn").addEventListener("click", async () => {
-  if (!resetArmed) {   // two taps, because this clears every device
-    $("resetBtn").textContent = "Tap again to clear on all devices";
-    resetArmed = setTimeout(() => { resetArmed = null; $("resetBtn").textContent = "New interview"; }, 3000);
-    return;
-  }
-  clearTimeout(resetArmed); resetArmed = null;
-  $("resetBtn").textContent = "New interview";
-  await fetch("/reset", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: "{}" }).catch(() => {});
-});
 
 // ---------- Resume: pick from the Resume folder or upload ----------
 const words = (t) => t.trim().split(/\s+/).filter(Boolean).length.toLocaleString();
@@ -614,6 +1510,7 @@ $("buildStories").addEventListener("click", async () => {
   }
 });
 
+setView(VIEW);
 checkStatus();
 </script>
 </body>
