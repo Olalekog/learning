@@ -55,6 +55,31 @@ grey = ended) and its number of questions.
 - Asking a question in a tab that isn't live starts it. Phone and laptop follow the live interview
   automatically, and the Usage panel's "This interview" is the live one (or the newest).
 
+## Interview analysis (scores 1–10)
+
+Each interview has an **Interview analysis** panel. Press **Analyze this interview** and Claude reviews
+every question with what you actually said, then gives:
+
+- **Scores from 1 to 10** for each answer and overall: **correctness** (accuracy, completeness),
+  **behavioral** (STAR structure, ownership, results with numbers), **composure** (pace, fillers, pauses,
+  restarts) and **communication** (clarity, structure, directness). 1–3 poor, 4–5 below the bar,
+  6–7 meets it, 8–9 strong, 10 exceptional.
+- **Feedback** and a **stronger answer** for every question, built from your resume and story bank.
+- **Strengths**, **what to improve**, and **what the interviewer focused on** (themes, difficulty).
+
+To score your answers, the app needs what you said:
+
+- **Capture my answers** (in the Listening panel, on by default): after a suggested answer appears, the
+  app records what you say as *your answer* and stops auto-answering. Press **Space** (or **My answer is
+  done**) when you finish and it listens for the next question again.
+- Or use **Add what I said / Edit** under any question to type or paste your answer, for example from the
+  recording.
+
+Composure uses measurements of each captured answer: words per minute, filler words ("um", "you know",
+"basically"), pauses over 3 seconds and restarts. Answers you didn't capture get advice but no score.
+The analysis is saved with the interview, synced to every device and included in **Export (.md)**.
+One analysis costs roughly $0.03–0.10 depending on length.
+
 ## Question bank
 
 Press **Question bank** at the top to open your knowledge base of interview questions and answers.

@@ -413,14 +413,15 @@ def doc_links(content):
 
 
 def stream_claude(system, messages, effort, max_tokens, emit, cancelled=lambda: False,
-                  kind="answer", label="", tools=None, on_search=None, interview=None):
+                  kind="answer", label="", tools=None, on_search=None, interview=None, fmt=None):
     """Stream Claude's text to emit(); errors are emitted as readable text.
     Returns the usage record for this call (None if the call never ran); record["links"] lists doc pages used."""
     started, first, total, served, status = time.time(), None, {}, MODEL, "ok"
     links, convo = [], list(messages)
     try:
         for _ in range(4):  # first request + up to 3 resumes if a search turn pauses
-            kw = dict(model=MODEL, max_tokens=max_tokens, system=system, output_config={"effort": effort},
+            kw = dict(model=MODEL, max_tokens=max_tokens, system=system,
+                      output_config={"effort": effort, **({"format": fmt} if fmt else {})},
                       betas=["server-side-fallback-2026-07-01"], fallbacks="default", messages=convo)
             if tools:
                 kw["tools"] = tools
@@ -504,13 +505,29 @@ def interview_markdown(iv):
         lines += ["---", "", f"## Q{n}. {it['q']}", ""]
         if it.get("ts"):
             lines += [f"_{time.strftime('%H:%M', time.localtime(it['ts']))}_", ""]
-        lines += [it["a"].strip(), ""]
+        lines += ["**Suggested answer:**", "", it["a"].strip(), ""]
+        if (it.get("mine") or {}).get("text"):
+            lines += ["**What I said:**", "", it["mine"]["text"].strip(), ""]
         if it.get("sources"):
             lines.append("**From your notes:** " + "; ".join(f"{s['label']} (`{s['file']}`)" for s in it["sources"]))
             lines.append("")
         if it.get("docs"):
             lines.append("**From official docs:** " + "; ".join(f"[{d['title']}]({d['url']})" for d in it["docs"]))
             lines.append("")
+    a = iv.get("analysis")
+    if a:
+        o = a["overall"]
+        lines += ["---", "", "# Analysis", "",
+                  f"**Overall {o['overall']}/10** · Correctness {o['correctness']} · Behavioral {o['behavioral']} · "
+                  f"Composure {o['composure']} · Communication {o['communication']}", "", a["summary"], "",
+                  "**Strengths**", ""] + [f"- {x}" for x in a["strengths"]] + ["", "**Improve**", ""] + \
+                 [f"- {x}" for x in a["improvements"]] + ["",
+                  f"**Interviewer focus ({a['interviewer']['difficulty']}):** {a['interviewer']['focus']}", ""]
+        for q in a["questions"]:
+            head = f"### Q{q['number']}. {q.get('question', '')}"
+            score = (f"Overall {q['overall']}/10 · Correctness {q['correctness']} · Behavioral {q['behavioral']} · "
+                     f"Composure {q['composure']} · Communication {q['communication']}") if q["captured"] else "Answer not captured"
+            lines += [head, "", f"_{score}_", "", q["feedback"], "", "**Stronger answer:** " + q["better_answer"], ""]
     return "\n".join(lines)
 
 
@@ -530,6 +547,8 @@ class Session:
                 iv = json.loads(f.read_text(encoding="utf-8"))
                 for it in iv["items"]:
                     it["done"] = True  # anything unfinished when the server stopped is final now
+                if iv.get("analysis_status") == "running":
+                    iv["analysis_status"] = "error"
                 for rec in iv.get("recordings", []):
                     if rec["status"] == "recording":
                         rec["status"] = "saved"  # the server stopped mid-recording; keep what arrived
@@ -670,6 +689,65 @@ class Session:
                 pass
         self._announce()
         return True
+
+    # ------------------------------------------------------------ what I actually said + analysis
+    def save_mine(self, iid, item_id, text, seconds=None, pauses=None):
+        with self.lock:
+            iv = self.interviews.get(iid)
+            item = next((it for it in iv["items"] if it["id"] == item_id), None) if iv else None
+            if not item:
+                return None
+            text = text.strip()
+            item["mine"] = {"text": text, "metrics": speech_metrics(text, seconds, pauses), "ts": time.time()} if text else None
+            self._save(iv)
+            mine = item["mine"]
+        self.broadcast({"type": "mine", "interview": iid, "id": item_id, "mine": mine})
+        return mine or {}
+
+    def analyze(self, iid):
+        with self.lock:
+            iv = self.interviews.get(iid)
+            if not iv or iv.get("analysis_status") == "running":
+                return False
+            iv["analysis_status"] = "running"
+            snapshot, profile = json.loads(json.dumps(iv)), dict(self.profile)
+        self.broadcast({"type": "analysis", "interview": iid, "status": "running"})
+        threading.Thread(target=self._run_analysis, args=(iid, snapshot, profile), daemon=True).start()
+        return True
+
+    def _run_analysis(self, iid, iv, profile):
+        system, messages, items = analysis_request(iv, profile)
+        out = []
+        rec = stream_claude(system, messages, ANALYSIS_EFFORT, 16000, out.append, kind="analysis",
+                            label="Analysis: " + iv["name"], interview=iid, fmt={"type": "json_schema", "schema": ANALYSIS_SCHEMA})
+        text, result, error = "".join(out), None, None
+        try:
+            result = json.loads(text)
+            clamp = lambda v: max(1, min(10, int(v)))  # scored answers are always 1-10
+            for q in result["questions"]:
+                for k in SCORES:
+                    q[k] = clamp(q[k]) if q.get("captured") else 0
+                if 1 <= q["number"] <= len(items):  # attach the question text and item id
+                    q["question"], q["item"] = items[q["number"] - 1]["q"], items[q["number"] - 1]["id"]
+            rated = [q for q in result["questions"] if q.get("captured")]
+            for k in SCORES:  # overall = average of the captured answers, so it always matches the details
+                result["overall"][k] = round(sum(q[k] for q in rated) / len(rated)) if rated else 0
+            result.update(created=time.time(), model=MODEL, captured=len(rated), total=len(result["questions"]),
+                          cost=rec["cost"] if rec else None)
+        except (ValueError, KeyError, TypeError):
+            error = text.strip()[:400] if text.strip().startswith("**Error") else \
+                "The analysis didn't come back in the expected form. Please try again."
+        with self.lock:
+            live = self.interviews.get(iid)
+            if live:
+                live["analysis_status"] = "error" if error else "done"
+                if result and not error:
+                    live["analysis"] = result
+                self._save(live)
+        self.broadcast({"type": "analysis", "interview": iid, "status": "error" if error else "done",
+                        "analysis": None if error else result, "error": error})
+        if rec:
+            self.broadcast_stats()
 
     # ------------------------------------------------------------ screen recordings
     def recording_path(self, iid, rid):
@@ -850,6 +928,118 @@ def backfill_bank():
                 BANK.add_asked(it["q"], it["a"], iv["id"], iv["name"], it["id"], it.get("ts") or iv["created"])
 
 
+ANALYSIS_EFFORT = os.environ.get("COPILOT_ANALYSIS_EFFORT", "medium")
+
+ANALYSIS_PROMPT = """You are an experienced hiring manager and interview coach reviewing a real interview. \
+You get each question the interviewer asked and, when it was captured, what the candidate actually said, \
+with speech measurements. The candidate's resume, target role and story bank are attached.
+
+Rate every captured answer from 1 to 10 on four dimensions:
+- correctness: technical accuracy and completeness; for behavioral questions, whether the story really \
+answers what was asked and is credible.
+- behavioral: STAR structure (situation, task, action, result), ownership ("I" not only "we"), concrete \
+results with numbers, relevance. For technical questions, rate how well they used real experience as evidence.
+- composure: calm, confident, steady delivery. Use the measurements: comfortable pace is about 120-160 \
+words per minute; more than 3 filler words per 100 words, several long pauses or many restarts lower the \
+score. Speech recognition drops some fillers, so don't penalise what you can't see.
+- communication: clarity, structure, conciseness, answering the question directly, no rambling.
+Also give "overall" (1-10) for the answer.
+
+Scale: 1-3 poor, 4-5 below the bar, 6-7 meets the bar, 8-9 strong, 10 exceptional. Be honest and \
+specific; quote short phrases from the answer when useful. Don't inflate scores.
+
+For each question also give: feedback (2-4 sentences: what worked, what to fix) and better_answer (a \
+stronger answer the candidate could say, about 120 words, first person, using only facts from their \
+resume or story bank; for gaps write [fill in: ...]).
+
+If an answer was not captured, set captured to false and all scores to 0, and still give feedback on how \
+to approach the question and a better_answer.
+
+Then the whole interview: overall scores (average of captured answers, rounded), a 2-3 sentence summary, \
+3-5 strengths, 3-5 improvements (most important first), and what the interviewer focused on: main themes, \
+what they seemed to probe for, and the difficulty (easy, moderate, hard)."""
+
+SCORE = {"type": "integer", "description": "1 (poor) to 10 (exceptional); 0 if the answer wasn't captured"}
+SCORES = {k: SCORE for k in ("correctness", "behavioral", "composure", "communication", "overall")}
+ANALYSIS_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "overall": {"type": "object", "properties": SCORES, "required": list(SCORES), "additionalProperties": False},
+        "summary": {"type": "string"},
+        "strengths": {"type": "array", "items": {"type": "string"}},
+        "improvements": {"type": "array", "items": {"type": "string"}},
+        "interviewer": {
+            "type": "object",
+            "properties": {"themes": {"type": "array", "items": {"type": "string"}},
+                           "focus": {"type": "string"},
+                           "difficulty": {"type": "string", "enum": ["easy", "moderate", "hard"]}},
+            "required": ["themes", "focus", "difficulty"], "additionalProperties": False},
+        "questions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {"number": {"type": "integer"},
+                               "type": {"type": "string", "enum": ["technical", "behavioral", "leadership", "other"]},
+                               "captured": {"type": "boolean"},
+                               **SCORES,
+                               "feedback": {"type": "string"},
+                               "better_answer": {"type": "string"}},
+                "required": ["number", "type", "captured", *SCORES, "feedback", "better_answer"],
+                "additionalProperties": False}},
+    },
+    "required": ["overall", "summary", "strengths", "improvements", "interviewer", "questions"],
+    "additionalProperties": False,
+}
+
+FILLERS = re.compile(r"\b(um+|uh+|erm+|er|ah+|hmm+|you know|i mean|basically|actually|kind of|sort of|literally|so yeah)\b", re.I)
+
+
+def speech_metrics(text, seconds=None, pauses=None):
+    """Simple delivery measurements from what was said."""
+    words = re.findall(r"[A-Za-z0-9']+", text)
+    n = len(words)
+    fillers = [m.group(0).lower() for m in FILLERS.finditer(text)]
+    lower = [w.lower() for w in words]
+    restarts = sum(1 for a, b in zip(lower, lower[1:]) if a == b and a not in ("very", "really", "that", "had"))
+    m = {"words": n, "fillers": len(fillers), "filler_words": sorted(set(fillers)),
+         "fillers_per_100": round(100 * len(fillers) / n, 1) if n else 0, "restarts": restarts}
+    if seconds:
+        m["seconds"] = round(seconds)
+        m["wpm"] = round(n / (seconds / 60)) if seconds > 5 else None
+    if pauses is not None:
+        m["long_pauses"] = int(pauses)
+    return m
+
+
+def analysis_request(iv, profile):
+    items = [it for it in iv["items"] if it.get("a") or it.get("mine")]
+    parts = [f"Interview: {iv['name']}"]
+    for n, it in enumerate(items, 1):
+        mine = it.get("mine") or {}
+        said = (mine.get("text") or "").strip()
+        block = [f"### Question {n}", f"Interviewer: {it['q']}"]
+        if said:
+            block.append(f"Candidate said: {said}")
+            met = mine.get("metrics") or {}
+            facts = [f"{met.get('words', 0)} words"]
+            if met.get("wpm"):
+                facts.append(f"{met['wpm']} words/min over {met.get('seconds')} s")
+            facts.append(f"{met.get('fillers', 0)} filler words ({met.get('fillers_per_100', 0)} per 100 words)")
+            if met.get("long_pauses") is not None:
+                facts.append(f"{met['long_pauses']} pauses longer than 3 s")
+            facts.append(f"{met.get('restarts', 0)} repeated-word restarts")
+            block.append("Measurements: " + ", ".join(facts))
+        else:
+            block.append("Candidate said: (not captured)")
+        parts.append("\n".join(block))
+    system = [
+        {"type": "text", "text": ANALYSIS_PROMPT},
+        {"type": "text", "text": candidate_context(profile.get("profile", ""), profile.get("role", ""),
+                                                   profile.get("stories", ""))},
+    ]
+    return system, [{"role": "user", "content": "\n\n".join(parts)}], items
+
+
 def story_request(data):
     content = f"<resume>\n{str(data.get('profile', '')).strip()}\n</resume>"
     role = str(data.get("role", "")).strip()
@@ -1025,6 +1215,23 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path == "/interviews":
             self._json(200, {"id": SESSION.create(str(data.get("name", "")))})
+            return
+        if path.startswith("/interviews/") and "/items/" in path:
+            parts = path.split("/")  # ['', 'interviews', iid, 'items', item, 'mine']
+            if len(parts) == 6 and parts[5] == "mine":
+                mine = SESSION.save_mine(parts[2], parts[4], str(data.get("text", "")),
+                                         data.get("seconds"), data.get("pauses"))
+                self._json(200, {"mine": mine}) if mine is not None else self._json(404, {"error": "Question not found."})
+            else:
+                self._json(404, {"error": "Not found"})
+            return
+        if path.startswith("/interviews/") and path.endswith("/analyze"):
+            if not have_key():
+                self._json(500, {"error": "No API key set. Set ANTHROPIC_API_KEY and restart the server."})
+            elif SESSION.analyze(path.split("/")[2]):
+                self._json(202, {"ok": True})
+            else:
+                self._json(409, {"error": "This interview is already being analysed, or doesn't exist."})
             return
         if path.startswith("/interviews/") and "/recordings" in path:
             parts = path.split("/")  # ['', 'interviews', iid, 'recordings'(, rid, action)]
