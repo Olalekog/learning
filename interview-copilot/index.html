@@ -48,7 +48,7 @@ header h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
 @media (max-width: 860px) {
   .grid { grid-template-columns: minmax(0, 1fr); }
   .col { display: contents; }
-  #pSessions { order: 0; } #pListen { order: 1; } #pAnswer { order: 2; } #pAsk { order: 3; } #pHistory { order: 4; } #pProfile { order: 5; } #pUsage { order: 6; }
+  #pSessions { order: 0; } #pListen { order: 1; } #pAnswer { order: 2; } #pAsk { order: 3; } #pHistory { order: 4; } #pAnalysis { order: 5; } #pProfile { order: 6; } #pUsage { order: 7; }
   .wrap { padding-top: 12px; gap: 12px; }
   .btn { padding: 11px 16px; }
   .answer { font-size: 17px; }
@@ -190,6 +190,37 @@ label.btn { display: inline-block; }
 .bbody .answer { font-size: 15px; }
 .bbody textarea { min-height: 200px; font-size: 14px; }
 .bactions { display: flex; gap: 8px; flex-wrap: wrap; }
+/* My answers + analysis */
+.mode-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+.mode { font-size: 13px; font-weight: 600; border-radius: 99px; padding: 3px 10px; background: var(--accent-soft); color: var(--accent); }
+.mode.me { background: var(--live-soft); color: var(--live); }
+.mine { margin: 12px 0 0; padding: 10px 12px; border-radius: 8px; border: 1px dashed var(--line); font-size: 14px; display: grid; gap: 6px; }
+.mine b { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.mine .said { white-space: pre-wrap; }
+.mine textarea { min-height: 110px; font-size: 14px; }
+.mine .met { font: 12px var(--f-mono); color: var(--muted); }
+.an-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 1100px) { .an-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .an-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.an-tiles .tile .v { font-size: 26px; }
+.an-tiles .tile .v small { font-size: 13px; color: var(--muted); font-weight: 500; }
+.an-tiles .tile.main { outline: 2px solid var(--accent-soft); }
+.bar { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; margin-top: 6px; }
+.bar > span { display: block; height: 100%; border-radius: 99px; }
+.s-low { color: var(--live); } .s-mid { color: var(--warn); } .s-ok, .s-high { color: var(--ok); }
+.bar .s-low { background: var(--live); } .bar .s-mid { background: var(--warn); } .bar .s-ok, .bar .s-high { background: var(--ok); }
+.an-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 700px) { .an-cols { grid-template-columns: minmax(0, 1fr); } }
+.an-cols ul { margin: 6px 0 0; padding-left: 1.2em; } .an-cols li { margin: 4px 0; }
+.an-report { display: grid; gap: 14px; }
+.an-report h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0; }
+.an-q { border-top: 1px solid var(--line); padding-top: 10px; }
+.an-q summary { cursor: pointer; display: flex; gap: 10px; align-items: baseline; }
+.an-q summary .qt { flex: 1; min-width: 0; font-weight: 600; }
+.an-q summary .sc { font-weight: 700; font-variant-numeric: tabular-nums; }
+.an-q .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.an-q .chips span { font-size: 12px; border-radius: 99px; padding: 2px 9px; background: var(--bg); font-variant-numeric: tabular-nums; }
+.an-q .better { background: var(--bg); border-radius: 8px; padding: 8px 12px; }
 a.btn { text-decoration: none; color: inherit; display: inline-block; }
 .check { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; }
 .ans-meta { margin: 10px 0 0; font: 12px var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -248,6 +279,10 @@ a.btn { text-decoration: none; color: inherit; display: inline-block; }
           <button id="clearBtn" class="btn">Clear</button>
         </div>
         <div id="transcript" class="transcript" aria-live="polite"><span class="empty">The interviewer's words appear here.</span></div>
+        <div class="mode-row">
+          <span id="modeChip" class="mode">Listening for the question</span>
+          <label class="check"><input id="captureMine" type="checkbox"> Capture my answers (for analysis)</label>
+        </div>
         <div class="row">
           <label><input id="auto" type="checkbox" checked> Auto-answer after a pause of</label>
           <input id="pause" type="range" min="0.8" max="4" step="0.2" value="1.8" aria-label="Pause length in seconds">
@@ -361,6 +396,7 @@ a.btn { text-decoration: none; color: inherit; display: inline-block; }
         <div id="answer" class="answer empty">Press <strong>Start listening</strong> and let the interviewer talk. When they pause, a suggested answer streams in here. Tap <strong>Answer now</strong><span class="key-hint"> (or press <kbd>Space</kbd>)</span> to answer immediately.</div>
         <div id="ansSources" class="sources" hidden></div>
         <div id="ansDocs" class="sources" hidden></div>
+        <div id="ansMine" class="mine" hidden></div>
         <p id="ansMeta" class="ans-meta" hidden></p>
       </section>
       <section class="panel" id="pHistory">
@@ -368,6 +404,14 @@ a.btn { text-decoration: none; color: inherit; display: inline-block; }
           <h2>Earlier questions in this interview</h2>
         </div>
         <div id="history" class="history"></div>
+      </section>
+      <section class="panel" id="pAnalysis">
+        <div class="hist-head">
+          <h2>Interview analysis</h2>
+          <button id="anBtn" class="btn small primary" type="button">Analyze this interview</button>
+        </div>
+        <p id="anStatus" class="hint"></p>
+        <div id="anReport" class="an-report" hidden></div>
       </section>
       <section class="panel" id="pUsage">
         <div class="hist-head">
@@ -540,7 +584,12 @@ if (!SR) {
 
 function renderTranscript() {
   const t = $("transcript");
-  if (!finalText && !interimText) { t.innerHTML = '<span class="empty">The interviewer\'s words appear here.</span>'; return; }
+  if (!finalText && !interimText) {
+    t.innerHTML = typeof MODE !== "undefined" && MODE === "me"
+      ? '<span class="empty">Your answer appears here as you speak.</span>'
+      : '<span class="empty">The interviewer\'s words appear here.</span>';
+    return;
+  }
   t.textContent = finalText;
   if (interimText) { const s = document.createElement("span"); s.className = "interim"; s.textContent = " " + interimText; t.appendChild(s); }
   t.scrollTop = t.scrollHeight;
@@ -560,8 +609,15 @@ function startListening() {
       else interimText += r[0].transcript;
     }
     renderTranscript();
-    // New speech while an answer streams = interviewer still talking; keep the answer, just restart the pause timer.
     clearTimeout(silenceTimer);
+    if (MODE === "me") {   // recording my answer: measure timing, never auto-answer
+      const now = Date.now();
+      if (!MINE.first) MINE.first = now;
+      if (MINE.last && now - MINE.last > 3000) MINE.pauses++;
+      MINE.last = now;
+      return;
+    }
+    // New speech while an answer streams = interviewer still talking; keep the answer, just restart the pause timer.
     if ($("auto").checked) silenceTimer = setTimeout(autoAnswer, Number($("pause").value) * 1000);
   };
   recog.onerror = (e) => {
@@ -582,6 +638,7 @@ function startListening() {
 }
 
 function stopListening() {
+  if (MODE === "me") finishMine();
   listening = false;
   clearTimeout(silenceTimer);
   if (recog) { recog.onend = null; try { recog.stop(); } catch {} recog = null; }
@@ -599,12 +656,51 @@ function autoAnswer() {
   const q = heardText();
   if (q.split(/\s+/).length >= 3) answer(q);
 }
-$("answerBtn").addEventListener("click", () => { const q = heardText(); if (q) answer(q); });
+$("answerBtn").addEventListener("click", () => {
+  if (MODE === "me") { finishMine(); return; }
+  const q = heardText(); if (q) answer(q);
+});
 document.addEventListener("keydown", (e) => {
   if (e.code === "Space" && !["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(document.activeElement.tagName)) {
-    e.preventDefault(); const q = heardText(); if (q) answer(q);
+    e.preventDefault();
+    if (MODE === "me") { finishMine(); return; }
+    const q = heardText(); if (q) answer(q);
   }
 });
+
+// ---------- Capture my answers: after a suggestion appears, what I say is saved as my answer ----------
+let MODE = "interviewer";
+const MINE = { iid: null, id: null, first: 0, last: 0, pauses: 0 };
+$("captureMine").checked = store.get("ic.captureMine", "1") === "1";
+$("captureMine").addEventListener("change", () => {
+  store.set("ic.captureMine", $("captureMine").checked ? "1" : "");
+  if (!$("captureMine").checked && MODE === "me") finishMine();
+});
+function updateMode() {
+  const me = MODE === "me";
+  $("modeChip").className = "mode" + (me ? " me" : "");
+  $("modeChip").textContent = me ? "Recording your answer · press Space when done" : "Listening for the question";
+  $("answerBtn").firstChild.textContent = me ? "My answer is done " : "Answer now ";
+  renderTranscript();
+}
+function startMine(iid, id) {
+  if (MODE === "me") finishMine();
+  Object.assign(MINE, { iid, id, first: 0, last: 0, pauses: 0 });
+  MODE = "me";
+  finalText = ""; interimText = "";
+  updateMode();
+}
+function finishMine() {
+  if (MODE !== "me") return;
+  const text = heardText();
+  if (text && MINE.id) {
+    const seconds = MINE.first && MINE.last ? (MINE.last - MINE.first) / 1000 : null;
+    post(ivUrl(MINE.iid, `/items/${MINE.id}/mine`), { text, seconds, pauses: MINE.pauses });
+  }
+  MODE = "interviewer";
+  finalText = ""; interimText = "";
+  updateMode();
+}
 $("askForm").addEventListener("submit", (e) => {
   e.preventDefault(); const q = $("askInput").value.trim(); if (q) { $("askInput").value = ""; answer(q); }
 });
@@ -692,7 +788,52 @@ function showSources(list) {
 }
 let currentSources = null;
 
-function histItem(q, a, usage, sources, docs) {
+function metricsLine(m) {
+  if (!m) return "";
+  const bits = [`${m.words} words`];
+  if (m.wpm) bits.push(`${m.wpm} words/min`);
+  bits.push(`${m.fillers} filler${m.fillers === 1 ? "" : "s"}` + (m.filler_words && m.filler_words.length ? ` (${m.filler_words.join(", ")})` : ""));
+  if (m.long_pauses != null) bits.push(`${m.long_pauses} long pause${m.long_pauses === 1 ? "" : "s"}`);
+  if (m.restarts) bits.push(`${m.restarts} restart${m.restarts === 1 ? "" : "s"}`);
+  return bits.join(" · ");
+}
+function mineNode(item, box) {
+  box = box || document.createElement("div");
+  box.className = "mine";
+  const title = document.createElement("b"); title.textContent = "What I said";
+  const mine = item.mine;
+  const said = document.createElement("div"); said.className = "said";
+  said.textContent = mine && mine.text ? mine.text : "Not captured. Add it so this answer can be analysed.";
+  if (!(mine && mine.text)) said.classList.add("muted");
+  const met = document.createElement("div"); met.className = "met"; met.textContent = metricsLine(mine && mine.metrics);
+  const edit = document.createElement("button"); edit.type = "button"; edit.className = "btn small";
+  edit.textContent = mine && mine.text ? "Edit" : "Add what I said";
+  edit.addEventListener("click", () => {
+    const ta = document.createElement("textarea"); ta.value = (mine && mine.text) || "";
+    ta.placeholder = "Type or paste what you actually said (e.g. from the recording).";
+    const save = document.createElement("button"); save.type = "button"; save.className = "btn small primary"; save.textContent = "Save";
+    const cancel = document.createElement("button"); cancel.type = "button"; cancel.className = "btn small"; cancel.textContent = "Cancel";
+    const row = document.createElement("div"); row.className = "bactions"; row.append(save, cancel);
+    box.replaceChildren(title, ta, row);
+    ta.focus();
+    cancel.addEventListener("click", () => mineNode(item, box));
+    save.addEventListener("click", async () => {
+      const j = await post(ivUrl(IV.id, `/items/${item.id}/mine`), { text: ta.value });
+      if (j.mine !== undefined) item.mine = j.mine && j.mine.text ? j.mine : null;
+      mineNode(item, box);
+    });
+  });
+  const row = document.createElement("div"); row.className = "bactions"; row.append(edit);
+  box.replaceChildren(title, said, ...(met.textContent ? [met] : []), row);
+  return box;
+}
+function showMine(item) {
+  const box = $("ansMine");
+  box.hidden = !item || !item.done;
+  if (!box.hidden) mineNode(item, box);
+}
+
+function histItem(q, a, usage, sources, docs, item) {
   const d = document.createElement("details");
   d.className = "hist";
   const s = document.createElement("summary"); s.textContent = q;
@@ -700,19 +841,20 @@ function histItem(q, a, usage, sources, docs) {
   d.append(s, body);
   if (sources && sources.length) d.append(sourcesNode(sources));
   if (docs && docs.length) d.append(docsNode(docs));
+  if (item && item.done !== false) d.append(mineNode(item));
   if (usage) { const m = document.createElement("p"); m.className = "ans-meta"; m.textContent = usageLine(usage); d.append(m); }
   return d;
 }
 function renderHistory(list) {
   const h = $("history");
-  h.replaceChildren(...list.slice().reverse().map(it => histItem(it.q, it.a, it.usage, it.sources, it.docs)));
+  h.replaceChildren(...list.slice().reverse().map(it => histItem(it.q, it.a, it.usage, it.sources, it.docs, it)));
   if (!list.length) h.innerHTML = '<p class="hint" id="histEmpty">Earlier questions in this interview collect here, on every device.</p>';
 }
 function archiveDisplayed() {
   const q = $("curQ").dataset.q, a = $("answer").dataset.a;
   if (!q || !a || !currentId) return;
   $("histEmpty")?.remove();
-  $("history").prepend(histItem(q, a, currentUsage, currentSources, currentDocs));
+  $("history").prepend(histItem(q, a, currentUsage, currentSources, currentDocs, itemById(currentId)));
 }
 function updateStatus(writing) {
   if (writing) setStatus("think", "Writing answer…");
@@ -728,6 +870,7 @@ function showCurrent(cur) {
     showUsage(null);
     showSources(null);
     showDocs(null);
+    showMine(null);
     updateStatus(false);
     return;
   }
@@ -741,6 +884,7 @@ function showCurrent(cur) {
   showUsage(cur.usage || null);
   showSources(cur.sources || null);
   showDocs(cur.docs || null);
+  showMine(cur.id ? itemById(cur.id) : null);
   updateStatus(!cur.done);
 }
 
@@ -807,6 +951,7 @@ function renderInterview() {
   const items = IV ? IV.items : [];
   renderHistory(items.slice(0, -1));
   showCurrent(items.length ? items[items.length - 1] : null);
+  renderAnalysis();
 }
 async function selectInterview(id) {
   SELECTED = id || "";
@@ -1198,6 +1343,88 @@ $("bAddForm").addEventListener("submit", async (e) => {
   }
 });
 
+// ---------- Interview analysis ----------
+const scoreClass = (v) => v >= 9 ? "s-high" : v >= 7 ? "s-ok" : v >= 5 ? "s-mid" : "s-low";
+const DIMS = [["correctness", "Correctness"], ["behavioral", "Behavioral"], ["composure", "Composure"], ["communication", "Communication"]];
+function el(tag, cls, text) { const x = document.createElement(tag); if (cls) x.className = cls; if (text != null) x.textContent = text; return x; }
+function scoreTile(label, v, main) {
+  const t = el("div", "tile" + (main ? " main" : ""));
+  t.append(el("div", "k", label));
+  const val = el("div", "v " + (v ? scoreClass(v) : ""));
+  val.append(v ? String(v) : "–", el("small", null, v ? " /10" : ""));
+  const bar = el("div", "bar"); const fill = el("span", v ? scoreClass(v) : ""); fill.style.width = (v ? v * 10 : 0) + "%"; bar.append(fill);
+  t.append(val, bar);
+  return t;
+}
+function renderAnalysis() {
+  const st = $("anStatus"), rep = $("anReport"), btn = $("anBtn");
+  if (!IV) { $("pAnalysis").hidden = true; return; }
+  $("pAnalysis").hidden = false;
+  const answered = IV.items.filter(it => it.a || it.mine);
+  const captured = answered.filter(it => it.mine && it.mine.text).length;
+  const a = IV.analysis, status = IV.analysis_status;
+  btn.disabled = status === "running" || !answered.length;
+  btn.textContent = status === "running" ? "Analysing…" : a ? "Re-analyze" : "Analyze this interview";
+  const capturedLine = `${captured} of ${answered.length} answer${answered.length === 1 ? "" : "s"} captured.`;
+  if (status === "running") st.textContent = "Reviewing every question and answer… this takes about a minute.";
+  else if (status === "error") st.textContent = (IV.analysis_error || "The analysis failed.") + " Press the button to try again.";
+  else if (!answered.length) st.textContent = "Scores each of your answers from 1 to 10 for correctness, behavioral, composure and communication. Answer some questions first.";
+  else if (!a) st.textContent = capturedLine + (captured < answered.length
+    ? " Answers you didn't capture get advice but no score. Add them under each question (“Add what I said”), or tick “Capture my answers” while listening."
+    : " Ready to analyse.");
+  else st.textContent = `Analysed ${new Date(a.created * 1000).toLocaleString([], { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })} · ` +
+    `${a.captured} of ${a.total} answers scored` + (a.cost ? ` · ≈${fmtUsd(a.cost)}` : "") + `. ${captured !== a.captured ? "Your answers changed since then, so re-analyse for updated scores." : ""}`;
+  rep.hidden = !a;
+  if (!a) { rep.replaceChildren(); return; }
+
+  const tiles = el("div", "an-tiles");
+  tiles.append(scoreTile("Overall", a.overall.overall, true), ...DIMS.map(([k, label]) => scoreTile(label, a.overall[k])));
+  const summary = el("p", null, a.summary);
+  const cols = el("div", "an-cols");
+  for (const [title, list] of [["Strengths", a.strengths], ["Improve next time", a.improvements]]) {
+    const c = el("div"); c.append(el("h3", null, title));
+    const ul = el("ul"); for (const x of list) ul.append(el("li", null, x));
+    c.append(ul); cols.append(c);
+  }
+  const focus = el("div");
+  focus.append(el("h3", null, "What the interviewer focused on"));
+  const chips = el("div", "bmeta");
+  chips.append(el("span", "chip", "Difficulty: " + a.interviewer.difficulty));
+  for (const t of a.interviewer.themes) chips.append(el("span", "chip src", t));
+  focus.append(chips, el("p", null, a.interviewer.focus));
+  const qs = el("div");
+  qs.append(el("h3", null, "Question by question"));
+  for (const q of a.questions) {
+    const d = el("details", "an-q");
+    const sum = el("summary");
+    sum.append(el("span", "qt", `Q${q.number}. ${q.question || ""}`),
+               el("span", "sc " + (q.captured ? scoreClass(q.overall) : ""), q.captured ? `${q.overall}/10` : "not captured"));
+    d.append(sum);
+    if (q.captured) {
+      const cs = el("div", "chips");
+      for (const [k, label] of DIMS) { const c = el("span", scoreClass(q[k]), `${label} ${q[k]}`); cs.append(c); }
+      d.append(cs);
+    }
+    d.append(el("p", null, q.feedback));
+    const item = IV.items.find(it => it.id === q.item);
+    if (item && item.mine && item.mine.text) {
+      const said = el("div", "mine"); said.append(el("b", null, "What I said"), el("div", "said", item.mine.text));
+      const m = metricsLine(item.mine.metrics); if (m) said.append(el("div", "met", m));
+      d.append(said);
+    }
+    const better = el("div", "better"); better.append(el("h3", null, "Stronger answer")); better.insertAdjacentHTML("beforeend", md(q.better_answer));
+    d.append(better);
+    qs.append(d);
+  }
+  rep.replaceChildren(tiles, summary, cols, focus, qs);
+}
+$("anBtn").addEventListener("click", async () => {
+  if (!IV) return;
+  IV.analysis_status = "running"; renderAnalysis();
+  const j = await post(ivUrl(IV.id, "/analyze"));
+  if (j.error) { IV.analysis_status = "error"; IV.analysis_error = j.error; renderAnalysis(); }
+});
+
 function itemById(id) { return IV ? IV.items.find(x => x.id === id) : null; }
 
 function handleEvent(e) {
@@ -1214,6 +1441,20 @@ function handleEvent(e) {
                                                   recordings: m.recordings || [] });
     renderTabs(); renderBar();
   }
+  else if (e.type === "mine" && e.interview === SELECTED && IV) {
+    const it = itemById(e.id);
+    if (it) {
+      it.mine = e.mine;
+      if (e.id === currentId) showMine(it); else renderHistory(IV.items.slice(0, -1));
+      renderAnalysis();
+    }
+  }
+  else if (e.type === "analysis" && e.interview === SELECTED && IV) {
+    IV.analysis_status = e.status;
+    if (e.analysis) IV.analysis = e.analysis;
+    IV.analysis_error = e.error || null;
+    renderAnalysis();
+  }
   else if (e.type === "stopped") {
     if (listening && e.interview === SELECTED) stopListening();
     if (REC && REC.iid === e.interview) stopRecording();   // the interview ended on some device
@@ -1224,9 +1465,10 @@ function handleEvent(e) {
   else if (e.type === "question") {
     if (e.interview !== SELECTED || !IV) { selectInterview(e.interview); return; }  // follow the live interview
     const item = { id: e.id, q: e.q, a: "", done: false, sources: e.sources, ts: Date.now() / 1000 };
-    IV.items.push(item);
     archiveDisplayed();
+    IV.items.push(item);
     showCurrent(item);
+    if (listening && $("captureMine").checked) startMine(e.interview, e.id);
   }
   else if (e.type === "searching" && e.id === currentId) {
     setStatus("think", "Checking official docs…");
@@ -1246,8 +1488,10 @@ function handleEvent(e) {
       const box = $("answer");
       box.dataset.a = e.a; box.innerHTML = md(e.a); box.className = "answer";
       showUsage(e.usage); showDocs(e.docs); updateStatus(false);
+      if (it) showMine(it);
     }
     renderBar();
+    renderAnalysis();
   }
   else if (e.type === "profile" && e.origin !== ORIGIN) {
     for (const k of PFIELDS) if (k in e && document.activeElement !== $(k)) $(k).value = e[k];
