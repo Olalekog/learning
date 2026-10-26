@@ -48,7 +48,7 @@ header h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
 @media (max-width: 860px) {
   .grid { grid-template-columns: minmax(0, 1fr); }
   .col { display: contents; }
-  #pSessions { order: 0; } #pListen { order: 1; } #pAnswer { order: 2; } #pAsk { order: 3; } #pHistory { order: 4; } #pAnalysis { order: 5; } #pProfile { order: 6; } #pUsage { order: 7; }
+  #pSessions { order: 0; } #pListen { order: 1; } #pAnswer { order: 2; } #pAsk { order: 3; } #pHistory { order: 4; } #pProfile { order: 5; }
   .wrap { padding-top: 12px; gap: 12px; }
   .btn { padding: 11px 16px; }
   .answer { font-size: 17px; }
@@ -221,6 +221,11 @@ label.btn { display: inline-block; }
 .an-q .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
 .an-q .chips span { font-size: 12px; border-radius: 99px; padding: 2px 9px; background: var(--bg); font-variant-numeric: tabular-nums; }
 .an-q .better { background: var(--bg); border-radius: 8px; padding: 8px 12px; }
+/* Analysis and Usage pages */
+.view-page { display: grid; gap: 12px; max-width: 980px; width: 100%; margin: 0 auto; min-width: 0; }
+.view-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.view-bar select { flex: 1 1 240px; min-width: 0; max-width: 420px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); padding: 8px; font-size: 15px; }
+.views { flex-wrap: wrap; }
 a.btn { text-decoration: none; color: inherit; display: inline-block; }
 .check { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; }
 .ans-meta { margin: 10px 0 0; font: 12px var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -256,7 +261,7 @@ a.btn { text-decoration: none; color: inherit; display: inline-block; }
     <span id="status" class="pill"><span class="dot"></span><span id="statusText">Not listening</span></span>
     <span id="sync" class="sync" title="Questions and answers appear on every device that has this page open">Connecting…</span>
     <nav class="views" aria-label="View">
-      <button type="button" data-view="live" aria-pressed="true">Interview</button><button type="button" data-view="bank" aria-pressed="false">Question bank</button>
+      <button type="button" data-view="live" aria-pressed="true">Interview</button><button type="button" data-view="bank" aria-pressed="false">Question bank</button><button type="button" data-view="analysis" aria-pressed="false">Analysis</button><button type="button" data-view="usage" aria-pressed="false">Usage</button>
     </nav>
     <span id="meta" class="meta"></span>
   </header>
@@ -368,6 +373,7 @@ a.btn { text-decoration: none; color: inherit; display: inline-block; }
           <div class="iv-actions">
             <button id="ivStart" class="btn primary" type="button">Start interview</button>
             <button id="ivStop" class="btn stop" type="button" hidden>Stop interview</button>
+            <button id="ivAnalysis" class="btn small" type="button">Analysis</button>
             <a id="ivExport" class="btn small" href="#" download>Export (.md)</a>
             <button id="ivDelete" class="btn small" type="button">Delete</button>
           </div>
@@ -405,50 +411,6 @@ a.btn { text-decoration: none; color: inherit; display: inline-block; }
         </div>
         <div id="history" class="history"></div>
       </section>
-      <section class="panel" id="pAnalysis">
-        <div class="hist-head">
-          <h2>Interview analysis</h2>
-          <button id="anBtn" class="btn small primary" type="button">Analyze this interview</button>
-        </div>
-        <p id="anStatus" class="hint"></p>
-        <div id="anReport" class="an-report" hidden></div>
-      </section>
-      <section class="panel" id="pUsage">
-        <div class="hist-head">
-          <h2>Usage</h2>
-          <div class="seg" id="periodSeg">
-            <button type="button" data-p="interview">This interview</button><button type="button" data-p="today">Today</button><button type="button" data-p="month">This month</button><button type="button" data-p="all">All time</button>
-          </div>
-        </div>
-        <div class="tiles">
-          <div class="tile"><div class="k">Cost (estimated)</div><div class="v" id="uCost">$0.00</div><div class="s" id="uCostSub">&nbsp;</div></div>
-          <div class="tile"><div class="k">Tokens used</div><div class="v" id="uTokens">0</div><div class="s" id="uTokensSub">&nbsp;</div></div>
-          <div class="tile"><div class="k">Answers</div><div class="v" id="uAnswers">0</div><div class="s" id="uAnswersSub">&nbsp;</div></div>
-          <div class="tile"><div class="k">First words after</div><div class="v" id="uSpeed">–</div><div class="s" id="uSpeedSub">&nbsp;</div></div>
-        </div>
-        <div class="ublock">
-          <div class="lbl"><strong>Monthly budget</strong> <span id="uBudgetText" class="muted"></span></div>
-          <div class="meter" id="uMeter"><span></span></div>
-          <form class="budget-form" id="budgetForm">
-            <label for="budgetInput">Monthly limit $</label>
-            <input id="budgetInput" inputmode="decimal" placeholder="e.g. 10">
-            <button class="btn small" type="submit">Save</button>
-          </form>
-        </div>
-        <div class="ublock">
-          <div class="lbl"><strong>API rate limit left</strong> <span class="muted">(per minute, from Anthropic)</span></div>
-          <div id="uLimits" class="muted">Shown after the first answer.</div>
-        </div>
-        <div class="ublock">
-          <div class="lbl"><strong>Cache</strong></div>
-          <div id="uCache" class="muted">Your resume and stories are reused between questions. Savings show here.</div>
-        </div>
-        <div class="ublock">
-          <div class="lbl"><strong>Last 20 calls</strong> <span class="legend"><span><i style="background:var(--accent)"></i>input</span><span><i style="background:var(--bar-out)"></i>output</span></span></div>
-          <div id="uChart" class="muted">No calls yet.</div>
-        </div>
-        <p class="hint">Costs are estimates from Anthropic's published prices. Your exact credit balance is at console.anthropic.com → Settings → Billing.</p>
-      </section>
     </div>
   </div>
 
@@ -475,6 +437,61 @@ a.btn { text-decoration: none; color: inherit; display: inline-block; }
     </div>
     <ul id="bList" class="bank-list"></ul>
     <button id="bMore" class="btn" type="button" hidden>Show more</button>
+  </section>
+
+  <section id="analysisView" class="view-page" hidden>
+    <div class="panel view-bar">
+      <label for="anPick" class="lbl">Interview</label>
+      <select id="anPick" aria-label="Interview to analyse"></select>
+      <span id="anPickInfo" class="muted"></span>
+    </div>
+    <section class="panel" id="pAnalysis">
+      <div class="hist-head">
+        <h2>Interview analysis</h2>
+        <button id="anBtn" class="btn small primary" type="button">Analyze this interview</button>
+      </div>
+      <p id="anStatus" class="hint"></p>
+      <div id="anReport" class="an-report" hidden></div>
+    </section>
+  </section>
+
+  <section id="usageView" class="view-page" hidden>
+    <section class="panel" id="pUsage">
+      <div class="hist-head">
+        <h2>Usage</h2>
+        <div class="seg" id="periodSeg">
+          <button type="button" data-p="interview">This interview</button><button type="button" data-p="today">Today</button><button type="button" data-p="month">This month</button><button type="button" data-p="all">All time</button>
+        </div>
+      </div>
+      <div class="tiles">
+        <div class="tile"><div class="k">Cost (estimated)</div><div class="v" id="uCost">$0.00</div><div class="s" id="uCostSub">&nbsp;</div></div>
+        <div class="tile"><div class="k">Tokens used</div><div class="v" id="uTokens">0</div><div class="s" id="uTokensSub">&nbsp;</div></div>
+        <div class="tile"><div class="k">Answers</div><div class="v" id="uAnswers">0</div><div class="s" id="uAnswersSub">&nbsp;</div></div>
+        <div class="tile"><div class="k">First words after</div><div class="v" id="uSpeed">–</div><div class="s" id="uSpeedSub">&nbsp;</div></div>
+      </div>
+      <div class="ublock">
+        <div class="lbl"><strong>Monthly budget</strong> <span id="uBudgetText" class="muted"></span></div>
+        <div class="meter" id="uMeter"><span></span></div>
+        <form class="budget-form" id="budgetForm">
+          <label for="budgetInput">Monthly limit $</label>
+          <input id="budgetInput" inputmode="decimal" placeholder="e.g. 10">
+          <button class="btn small" type="submit">Save</button>
+        </form>
+      </div>
+      <div class="ublock">
+        <div class="lbl"><strong>API rate limit left</strong> <span class="muted">(per minute, from Anthropic)</span></div>
+        <div id="uLimits" class="muted">Shown after the first answer.</div>
+      </div>
+      <div class="ublock">
+        <div class="lbl"><strong>Cache</strong></div>
+        <div id="uCache" class="muted">Your resume and stories are reused between questions. Savings show here.</div>
+      </div>
+      <div class="ublock">
+        <div class="lbl"><strong>Last 20 calls</strong> <span class="legend"><span><i style="background:var(--accent)"></i>input</span><span><i style="background:var(--bar-out)"></i>output</span></span></div>
+        <div id="uChart" class="muted">No calls yet.</div>
+      </div>
+      <p class="hint">Costs are estimates from Anthropic's published prices. Your exact credit balance is at console.anthropic.com → Settings → Billing.</p>
+    </section>
   </section>
 </div>
 
@@ -920,6 +937,7 @@ function renderTabs() {
   add.type = "button"; add.className = "tab add"; add.textContent = "+ New interview";
   add.addEventListener("click", newInterview);
   $("tabs").replaceChildren(...tabs, add);
+  if (typeof VIEW !== "undefined" && VIEW === "analysis") fillAnalysisPicker();
   $("tabs").querySelector('[aria-selected="true"]')?.scrollIntoView({ block: "nearest", inline: "nearest" });
 }
 function tickTimer() {
@@ -1155,14 +1173,34 @@ let VIEW = store.get("ic.view", "live");
 const BQ = { q: "", cat: "", src: "", star: false, iv: "" };
 let BANK_ITEMS = [], BANK_TOTAL = 0, BANK_CATS_LOADED = false;
 const OPEN_Q = new Set();
+const VIEWS = ["live", "bank", "analysis", "usage"];
 function setView(v) {
-  VIEW = v === "bank" ? "bank" : "live";
+  VIEW = VIEWS.includes(v) ? v : "live";
   store.set("ic.view", VIEW);
   document.querySelector(".grid").hidden = VIEW !== "live";
   $("bankView").hidden = VIEW !== "bank";
+  $("analysisView").hidden = VIEW !== "analysis";
+  $("usageView").hidden = VIEW !== "usage";
   for (const b of document.querySelectorAll(".views button")) b.setAttribute("aria-pressed", String(b.dataset.view === VIEW));
   if (VIEW === "bank") { loadBank(true); $("bq").focus(); }
+  if (VIEW === "analysis") { fillAnalysisPicker(); renderAnalysis(); }
+  window.scrollTo(0, 0);
 }
+// Analysis page: pick which interview to review (same selection as the Interview tab)
+function fillAnalysisPicker() {
+  const pick = $("anPick");
+  pick.replaceChildren(...IV_LIST.map(m => {
+    const status = m.status === "live" ? " · live" : m.status === "ended" ? "" : " · not started";
+    const when = m.started_at ? " · " + new Date(m.started_at * 1000).toLocaleDateString([], { day: "numeric", month: "short" }) : "";
+    return new Option(`${m.name}${when}${status} (${m.count} question${m.count === 1 ? "" : "s"})`, m.id);
+  }));
+  if (!IV_LIST.length) pick.add(new Option("No interviews yet", ""));
+  pick.value = SELECTED || "";
+  pick.disabled = !IV_LIST.length;
+  $("anPickInfo").textContent = IV_LIST.length ? "" : "Start an interview on the Interview tab first.";
+}
+$("anPick").addEventListener("change", () => selectInterview($("anPick").value));
+$("ivAnalysis").addEventListener("click", () => setView("analysis"));
 document.querySelectorAll(".views button").forEach(b => b.addEventListener("click", () => setView(b.dataset.view)));
 
 function bankParams(extra = {}) {
@@ -1358,8 +1396,11 @@ function scoreTile(label, v, main) {
 }
 function renderAnalysis() {
   const st = $("anStatus"), rep = $("anReport"), btn = $("anBtn");
-  if (!IV) { $("pAnalysis").hidden = true; return; }
-  $("pAnalysis").hidden = false;
+  if (!IV) {
+    st.textContent = "Pick an interview above to see or create its analysis.";
+    btn.disabled = true; rep.hidden = true; rep.replaceChildren();
+    return;
+  }
   const answered = IV.items.filter(it => it.a || it.mine);
   const captured = answered.filter(it => it.mine && it.mine.text).length;
   const a = IV.analysis, status = IV.analysis_status;
