@@ -57,7 +57,8 @@ grey = ended) and its number of questions.
 
 ## Interview analysis (scores 1–10)
 
-Each interview has an **Interview analysis** panel. Press **Analyze this interview** and Claude reviews
+Open the **Analysis** tab at the top (or press **Analysis** in an interview), pick the interview and press
+**Analyze this interview**. Claude reviews
 every question with what you actually said, then gives:
 
 - **Scores from 1 to 10** for each answer and overall: **correctness** (accuracy, completeness),
@@ -181,7 +182,7 @@ the Anthropic Console. Change the sites with `OFFICIAL_DOCS_DOMAINS=site1.com,si
 
 ## Usage and cost
 
-The **Usage** panel shows, for this interview, today, this month or all time:
+The **Usage** tab at the top shows, for this interview, today, this month or all time:
 
 - **Cost (estimated)** and average cost per answer, from Anthropic's published prices.
 - **Tokens used** (input and output), number of answers and story banks built.
