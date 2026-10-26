@@ -54,6 +54,7 @@ header h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
   .answer { font-size: 17px; }
   .answer-card { padding: 16px; }
   .meta { margin-left: 0; width: 100%; }
+  .views { order: 5; }
 }
 @media (hover: none) { kbd, .key-hint { display: none; } }
 .code-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
@@ -163,6 +164,32 @@ label.btn { display: inline-block; }
 .recordings .rline { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-variant-numeric: tabular-nums; }
 .recordings .rinfo { color: var(--muted); }
 .recordings video { width: 100%; max-height: 360px; border-radius: 8px; background: #000; }
+/* View switch + question bank */
+.views { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.views button { border: 0; background: var(--panel); color: var(--muted); padding: 6px 12px; font-weight: 600; cursor: pointer; font-size: 13px; }
+.views button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.bank { display: grid; gap: 12px; }
+.bank-tools { display: grid; gap: 10px; }
+.bank-tools input[type=search], .bank-add input { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); padding: 10px 12px; font-size: 16px; }
+.bank-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.bank-filters select { border: 1px solid var(--line); border-radius: 8px; background: var(--bg); padding: 6px 8px; max-width: 100%; }
+.bank-add { display: grid; gap: 8px; border-top: 1px solid var(--line); padding-top: 10px; }
+.bank-add textarea { min-height: 120px; }
+.bank-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.bitem { padding: 12px 14px; display: grid; gap: 6px; }
+.bhead { display: flex; gap: 10px; align-items: flex-start; }
+.bq { flex: 1; min-width: 0; text-align: left; background: none; border: 0; padding: 0; font: 600 15px/1.4 var(--f-body); color: var(--ink); cursor: pointer; }
+.bq:hover { color: var(--accent); }
+.bstar { background: none; border: 0; font-size: 18px; line-height: 1; cursor: pointer; color: var(--line); padding: 0 2px; }
+.bstar[aria-pressed="true"] { color: var(--warn); }
+.bmeta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 12px; color: var(--muted); }
+.chip { background: var(--accent-soft); color: var(--accent); border-radius: 99px; padding: 1px 8px; font-weight: 600; }
+.chip.src { background: var(--bg); color: var(--muted); font-weight: 500; overflow-wrap: anywhere; min-width: 0; }
+.bitem, .bank-list, .bbody, .bbody .answer { min-width: 0; overflow-wrap: anywhere; }
+.bbody { display: grid; gap: 8px; padding-top: 6px; border-top: 1px dashed var(--line); }
+.bbody .answer { font-size: 15px; }
+.bbody textarea { min-height: 200px; font-size: 14px; }
+.bactions { display: flex; gap: 8px; flex-wrap: wrap; }
 a.btn { text-decoration: none; color: inherit; display: inline-block; }
 .check { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; }
 .ans-meta { margin: 10px 0 0; font: 12px var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -197,6 +224,9 @@ a.btn { text-decoration: none; color: inherit; display: inline-block; }
     <h1>Interview Copilot</h1>
     <span id="status" class="pill"><span class="dot"></span><span id="statusText">Not listening</span></span>
     <span id="sync" class="sync" title="Questions and answers appear on every device that has this page open">Connecting…</span>
+    <nav class="views" aria-label="View">
+      <button type="button" data-view="live" aria-pressed="true">Interview</button><button type="button" data-view="bank" aria-pressed="false">Question bank</button>
+    </nav>
     <span id="meta" class="meta"></span>
   </header>
 
@@ -377,6 +407,31 @@ a.btn { text-decoration: none; color: inherit; display: inline-block; }
       </section>
     </div>
   </div>
+
+  <section id="bankView" class="bank" hidden>
+    <div class="panel bank-tools">
+      <input id="bq" type="search" placeholder="Search questions and answers, e.g. “S3 encryption”, “conflict”, “Capital One”" autocomplete="off" aria-label="Search the question bank">
+      <div class="bank-filters">
+        <select id="bCat" aria-label="Category"><option value="">All categories</option></select>
+        <div class="seg" id="bSrc">
+          <button type="button" data-s="">All</button><button type="button" data-s="asked">Asked in interviews</button><button type="button" data-s="notes">From my notes</button><button type="button" data-s="mine">Added by me</button>
+        </div>
+        <label class="check"><input type="checkbox" id="bStar"> ★ Starred</label>
+        <select id="bIv" aria-label="Interview"><option value="">Any interview</option></select>
+        <button id="bAdd" class="btn small" type="button">+ Add question</button>
+        <a id="bExport" class="btn small" href="/bank/export" download>Export (.md)</a>
+      </div>
+      <form id="bAddForm" class="bank-add" hidden>
+        <input id="bNewQ" placeholder="Question, e.g. Why do you want to leave your current role?" maxlength="300" autocomplete="off">
+        <select id="bNewCat" aria-label="Category"><option value="">Category: decide for me</option></select>
+        <textarea id="bNewA" placeholder="Your answer (Markdown works: **bold**, - bullets)"></textarea>
+        <div class="bactions"><button class="btn primary small" type="submit">Save to bank</button><button id="bAddCancel" class="btn small" type="button">Cancel</button></div>
+      </form>
+      <p id="bCount" class="hint">Loading your question bank…</p>
+    </div>
+    <ul id="bList" class="bank-list"></ul>
+    <button id="bMore" class="btn" type="button" hidden>Show more</button>
+  </section>
 </div>
 
 <script>
@@ -459,6 +514,7 @@ function checkStatus() {
     loadResumeList();
     loadProfile();
     connectEvents();
+    if (VIEW === "bank") loadBank(true);
     if (SR && !window.isSecureContext) warn("The microphone only works on https:// links or on the PC itself. Use the tunnel link from start-mobile.bat, or tap the keyboard's mic and dictate into “Type a question”.");
   }).catch(() => warn("Can't reach the server. Make sure it's still running on your PC."));
 }
@@ -949,6 +1005,199 @@ $("recConsentYes").addEventListener("click", () => {
 });
 $("recConsentNo").addEventListener("click", () => { $("recConsent").hidden = true; });
 
+// ---------- Question bank ----------
+let VIEW = store.get("ic.view", "live");
+const BQ = { q: "", cat: "", src: "", star: false, iv: "" };
+let BANK_ITEMS = [], BANK_TOTAL = 0, BANK_CATS_LOADED = false;
+const OPEN_Q = new Set();
+function setView(v) {
+  VIEW = v === "bank" ? "bank" : "live";
+  store.set("ic.view", VIEW);
+  document.querySelector(".grid").hidden = VIEW !== "live";
+  $("bankView").hidden = VIEW !== "bank";
+  for (const b of document.querySelectorAll(".views button")) b.setAttribute("aria-pressed", String(b.dataset.view === VIEW));
+  if (VIEW === "bank") { loadBank(true); $("bq").focus(); }
+}
+document.querySelectorAll(".views button").forEach(b => b.addEventListener("click", () => setView(b.dataset.view)));
+
+function bankParams(extra = {}) {
+  const q = new URLSearchParams();
+  if (BQ.q) q.set("q", BQ.q);
+  if (BQ.cat) q.set("cat", BQ.cat);
+  if (BQ.src) q.set("src", BQ.src);
+  if (BQ.star) q.set("star", "1");
+  if (BQ.iv) q.set("iv", BQ.iv);
+  for (const [k, v] of Object.entries(extra)) q.set(k, v);
+  return q;
+}
+let bankSeq = 0;
+async function loadBank(reset, keepCount) {
+  const seq = ++bankSeq;
+  const limit = keepCount ? Math.max(50, BANK_ITEMS.length) : 50;
+  const offset = reset || keepCount ? 0 : BANK_ITEMS.length;
+  try {
+    const r = await fetch("/bank?" + bankParams({ offset, limit }), { headers: authHeaders() });
+    if (!r.ok) throw new Error();
+    const j = await r.json();
+    if (seq !== bankSeq) return;   // a newer search is on its way
+    BANK_ITEMS = reset || keepCount ? j.results : BANK_ITEMS.concat(j.results);
+    BANK_TOTAL = j.total;
+    fillBankFilters(j);
+    renderBank(j);
+  } catch { $("bCount").textContent = "Couldn't load the question bank. Is the server running?"; }
+}
+let bankTimer = null;
+function reloadBankSoon() { clearTimeout(bankTimer); bankTimer = setTimeout(() => loadBank(false, true), 400); }
+
+function fillBankFilters(j) {
+  const cat = $("bCat"), keep = cat.value;
+  cat.length = 1;
+  for (const [name, n] of Object.entries(j.categories)) cat.add(new Option(`${name} (${n})`, name));
+  cat.value = keep;
+  if (!BANK_CATS_LOADED) {
+    const newCat = $("bNewCat");
+    for (const name of Object.keys(j.categories)) newCat.add(new Option(name, name));
+    BANK_CATS_LOADED = true;
+  }
+  const iv = $("bIv"), keepIv = iv.value;
+  iv.length = 1;
+  for (const x of j.interviews) iv.add(new Option(x.name, x.id));
+  iv.value = keepIv;
+  iv.hidden = !j.interviews.length;
+  $("bq").placeholder = `Search ${j.all.toLocaleString()} questions and answers, e.g. “S3 encryption”, “conflict”, “Capital One”`;
+  for (const b of $("bSrc").querySelectorAll("button")) {
+    b.setAttribute("aria-pressed", String(b.dataset.s === BQ.src));
+    const n = b.dataset.s ? (j.sources[b.dataset.s] || 0) : j.all;
+    b.textContent = b.textContent.replace(/ \(\d[\d,]*\)$/, "") + ` (${n.toLocaleString()})`;
+  }
+  $("bExport").href = withCode("/bank/export", Object.fromEntries(bankParams()));
+}
+
+function bankMeta(e) {
+  const meta = document.createElement("div");
+  meta.className = "bmeta";
+  const chip = document.createElement("span"); chip.className = "chip"; chip.textContent = e.category;
+  meta.append(chip);
+  const src = document.createElement("span"); src.className = "chip src";
+  if (e.source === "asked") {
+    const names = [...new Set(e.origins.map(o => o.name))];
+    const last = e.last_asked ? new Date(e.last_asked * 1000).toLocaleDateString([], { day: "numeric", month: "short" }) : "";
+    src.textContent = `Asked ${e.times_asked}× · ${names.join(", ")}${last ? " · last " + last : ""}`;
+  } else if (e.source === "notes") {
+    src.textContent = "From notes: " + e.file;
+  } else src.textContent = "Added by me";
+  meta.append(src);
+  if (e.edited && e.source !== "mine") { const x = document.createElement("span"); x.textContent = "edited"; meta.append(x); }
+  return meta;
+}
+
+function bankItem(e) {
+  const li = document.createElement("li");
+  li.className = "panel bitem";
+  const head = document.createElement("div"); head.className = "bhead";
+  const q = document.createElement("button"); q.type = "button"; q.className = "bq"; q.textContent = e.question;
+  q.setAttribute("aria-expanded", String(OPEN_Q.has(e.id)));
+  const star = document.createElement("button"); star.type = "button"; star.className = "bstar"; star.textContent = "★";
+  star.setAttribute("aria-pressed", String(!!e.starred)); star.title = e.starred ? "Unstar" : "Star as a favourite answer";
+  head.append(q, star);
+  li.append(head, bankMeta(e));
+  const body = document.createElement("div"); body.className = "bbody"; body.hidden = !OPEN_Q.has(e.id);
+  const ans = document.createElement("div"); ans.className = "answer"; ans.innerHTML = md(e.answer || "_No answer yet. Press Edit to write one._");
+  const actions = document.createElement("div"); actions.className = "bactions";
+  const edit = document.createElement("button"); edit.type = "button"; edit.className = "btn small"; edit.textContent = "Edit answer";
+  const copy = document.createElement("button"); copy.type = "button"; copy.className = "btn small"; copy.textContent = "Copy";
+  const del = document.createElement("button"); del.type = "button"; del.className = "btn small";
+  del.textContent = e.source === "notes" ? "Hide" : "Delete";
+  actions.append(edit, copy, del);
+  body.append(ans, actions);
+  li.append(body);
+
+  q.addEventListener("click", () => {
+    body.hidden = !body.hidden;
+    q.setAttribute("aria-expanded", String(!body.hidden));
+    body.hidden ? OPEN_Q.delete(e.id) : OPEN_Q.add(e.id);
+  });
+  star.addEventListener("click", async () => {
+    e.starred = !e.starred;
+    star.setAttribute("aria-pressed", String(e.starred));
+    await post(`/bank/${e.id}/update`, { starred: e.starred });
+  });
+  copy.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(e.answer); copy.textContent = "Copied"; }
+    catch { copy.textContent = "Couldn't copy"; }
+    setTimeout(() => copy.textContent = "Copy", 1500);
+  });
+  edit.addEventListener("click", () => {
+    const ta = document.createElement("textarea"); ta.value = e.answer || "";
+    const save = document.createElement("button"); save.type = "button"; save.className = "btn primary small"; save.textContent = "Save";
+    const cancel = document.createElement("button"); cancel.type = "button"; cancel.className = "btn small"; cancel.textContent = "Cancel";
+    const row = document.createElement("div"); row.className = "bactions"; row.append(save, cancel);
+    const hint = document.createElement("p"); hint.className = "hint";
+    hint.textContent = "Saved answers are used in live interviews when this question comes up again.";
+    body.replaceChildren(ta, row, hint);
+    ta.focus();
+    cancel.addEventListener("click", () => renderBank());
+    save.addEventListener("click", async () => {
+      const j = await post(`/bank/${e.id}/update`, { answer: ta.value });
+      if (j.entry) Object.assign(e, j.entry);
+      renderBank();
+    });
+  });
+  let armed = null;
+  del.addEventListener("click", async () => {
+    if (!armed) {
+      del.textContent = "Tap again to " + (e.source === "notes" ? "hide" : "delete");
+      armed = setTimeout(() => { armed = null; del.textContent = e.source === "notes" ? "Hide" : "Delete"; }, 3000);
+      return;
+    }
+    clearTimeout(armed);
+    await post(`/bank/${e.id}/delete`);
+    BANK_ITEMS = BANK_ITEMS.filter(x => x.id !== e.id); BANK_TOTAL--;
+    renderBank();
+  });
+  return li;
+}
+
+function renderBank() {
+  $("bList").replaceChildren(...BANK_ITEMS.map(bankItem));
+  const filtered = BQ.q || BQ.cat || BQ.src || BQ.star || BQ.iv;
+  $("bCount").textContent = BANK_TOTAL
+    ? `${BANK_TOTAL.toLocaleString()} question${BANK_TOTAL === 1 ? "" : "s"}${filtered ? " match" + (BANK_TOTAL === 1 ? "es" : "") : ""}` +
+      (BANK_ITEMS.length < BANK_TOTAL ? ` · showing ${BANK_ITEMS.length}` : "") + ". Click a question to see its answer."
+    : (filtered ? "No questions match. Try fewer words or another filter." : "No questions yet. They're added as you answer interview questions, and from your notes.");
+  $("bMore").hidden = BANK_ITEMS.length >= BANK_TOTAL;
+}
+
+let searchTimer = null;
+$("bq").addEventListener("input", () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { BQ.q = $("bq").value.trim(); loadBank(true); }, 200);
+});
+$("bCat").addEventListener("change", () => { BQ.cat = $("bCat").value; loadBank(true); });
+$("bIv").addEventListener("change", () => { BQ.iv = $("bIv").value; loadBank(true); });
+$("bStar").addEventListener("change", () => { BQ.star = $("bStar").checked; loadBank(true); });
+$("bSrc").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-s]");
+  if (!b) return;
+  BQ.src = b.dataset.s;
+  loadBank(true);
+});
+$("bMore").addEventListener("click", () => loadBank(false));
+$("bAdd").addEventListener("click", () => { $("bAddForm").hidden = false; $("bNewQ").focus(); });
+$("bAddCancel").addEventListener("click", () => { $("bAddForm").hidden = true; });
+$("bAddForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const question = $("bNewQ").value.trim();
+  if (!question) { $("bNewQ").focus(); return; }
+  const j = await post("/bank", { question, answer: $("bNewA").value, category: $("bNewCat").value || null });
+  if (j.id) {
+    $("bNewQ").value = ""; $("bNewA").value = ""; $("bNewCat").value = "";
+    $("bAddForm").hidden = true;
+    OPEN_Q.add(j.id);
+    BQ.src = "mine"; loadBank(true);
+  }
+});
+
 function itemById(id) { return IV ? IV.items.find(x => x.id === id) : null; }
 
 function handleEvent(e) {
@@ -970,6 +1219,7 @@ function handleEvent(e) {
     if (REC && REC.iid === e.interview) stopRecording();   // the interview ended on some device
   }
   else if (e.type === "refs") renderRefs(e.refs);
+  else if (e.type === "bank") { if (VIEW === "bank") reloadBankSoon(); }
   else if (e.type === "stats") renderStats(e.stats);
   else if (e.type === "question") {
     if (e.interview !== SELECTED || !IV) { selectInterview(e.interview); return; }  // follow the live interview
@@ -1260,6 +1510,7 @@ $("buildStories").addEventListener("click", async () => {
   }
 });
 
+setView(VIEW);
 checkStatus();
 </script>
 </body>

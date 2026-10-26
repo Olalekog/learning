@@ -55,6 +55,28 @@ grey = ended) and its number of questions.
 - Asking a question in a tab that isn't live starts it. Phone and laptop follow the live interview
   automatically, and the Usage panel's "This interview" is the live one (or the newest).
 
+## Question bank
+
+Press **Question bank** at the top to open your knowledge base of interview questions and answers.
+It has three sources:
+
+- **Asked in interviews:** every answered question is added automatically, with the company/interview
+  and date. Repeat questions are merged and counted ("Asked 3× · Capital One, United Airlines").
+  Questions stay in the bank even if you delete the interview.
+- **From my notes:** about 1,200 prepared Q&A found in your notes (answer banks, company guides, AWS,
+  Terraform, Kubernetes…). These refresh when you press **Re-index**.
+- **Added by me:** press **+ Add question** to write your own.
+
+Search finds questions and answers by keyword, including company names. Filter by category
+(Behavioral, Leadership, AWS, Kubernetes, Terraform / IaC, Security, Networking…), source, ★ Starred or
+interview. Click a question to see its answer, then **Edit answer**, **Copy**, ★ star it, or
+**Delete**. Deleting a notes entry only hides it in the bank; your files aren't touched.
+**Export (.md)** saves the current list grouped by category.
+
+**Your polished answers come back live:** when an interview question closely matches one you edited,
+starred or added, that answer is given to Claude to follow, and "Question bank" appears in the answer's
+sources. Stored in `data/bank.json` (not in git).
+
 ## Screen recording
 
 Each interview tab has **● Record screen** (desktop Chrome or Edge; phone browsers can't record the screen).

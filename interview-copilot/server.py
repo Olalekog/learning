@@ -25,6 +25,7 @@ from urllib.parse import parse_qs, unquote, urlsplit
 
 import anthropic
 
+import bank
 import refs
 
 PORT = int(os.environ.get("PORT", "8765"))
@@ -42,6 +43,7 @@ RESUME_TYPES = (".docx", ".pdf", ".md", ".txt")
 REFERENCE_DIR = Path(os.environ.get("REFERENCE_DIR", HERE.parent))
 REFERENCE_SKIP = refs.DEFAULT_SKIP | {x.strip() for x in os.environ.get("REFERENCE_SKIP", "").split(",") if x.strip()}
 LIBRARY = refs.Library(REFERENCE_DIR, REFERENCE_SKIP)
+BANK = bank.Bank(HERE / "data" / "bank.json")  # question bank: asked + notes + your own
 # Official documentation Claude may search live (subdomains included, e.g. docs.aws.amazon.com).
 OFFICIAL_DOCS = [d.strip() for d in os.environ.get("OFFICIAL_DOCS_DOMAINS", ",".join([
     "aws.amazon.com",                    # AWS docs, whitepapers, FAQs
@@ -104,6 +106,11 @@ commands and the candidate's own phrasing and examples. Fill gaps with accurate 
 tightened for speaking.
 - If a note is wrong or outdated, give the correct answer instead.
 Ignore notes that don't fit. Never mention "notes", "documents" or "sources" in the spoken answer.
+
+## Saved answers
+If a <saved_answer> is attached, it is the candidate's own polished answer to this question from their \
+question bank. Follow it closely (same story, points and numbers), tightened for speaking. It takes \
+priority over reference notes.
 
 ## Official documentation search
 When the web_search tool is available, it searches only official AWS, Azure, Google Cloud and \
@@ -205,7 +212,7 @@ def candidate_context(profile, role, stories):
     return "\n\n".join(parts) or "<resume>\n(The candidate has not added a resume yet.)\n</resume>"
 
 
-def answer_request(question, profile, history, notes=None):
+def answer_request(question, profile, history, notes=None, saved=None):
     """System prompt + candidate context (cached between questions), then the live question."""
     system = [
         {"type": "text", "text": ANSWER_PROMPT},
@@ -220,6 +227,8 @@ def answer_request(question, profile, history, notes=None):
     if history:
         lines = [f"Q: {h['q']}\nA: {h['a']}" for h in history[-4:]]
         context.append("<earlier_in_this_interview>\n" + "\n\n".join(lines) + "\n</earlier_in_this_interview>")
+    if saved:
+        context.append(f'<saved_answer question="{saved["question"]}">\n{saved["answer"]}\n</saved_answer>')
     if notes:
         body = "\n\n".join(f'<note source="{n["file"]} › {n["label"]}">\n{n["text"]}\n</note>' for n in notes)
         context.append(f"<reference_notes>\n{body}\n</reference_notes>")
@@ -746,6 +755,9 @@ class Session:
                     # vague follow-up ("why is that?"): borrow the topic of the last question
                     notes = LIBRARY.search(question + " " + earlier[-1]["q"])
             sources = [{"file": n["file"], "label": n["label"]} for n in notes]
+            saved = BANK.best_saved_answer(question)
+            if saved:
+                sources.insert(0, {"file": "Question bank", "label": saved["question"]})
             item = {"id": uuid.uuid4().hex[:12], "q": question, "a": "", "done": False, "ts": time.time(),
                     "sources": sources}
             iv["items"].append(item)
@@ -753,11 +765,11 @@ class Session:
             cancel, profile = self.cancel, dict(self.profile)
         self.broadcast({"type": "question", "interview": iid, "id": item["id"], "q": question,
                         "origin": origin, "sources": sources})
-        threading.Thread(target=self._write_answer, args=(iv, item, cancel, profile, earlier, notes),
+        threading.Thread(target=self._write_answer, args=(iv, item, cancel, profile, earlier, notes, saved),
                          daemon=True).start()
         return item["id"]
 
-    def _write_answer(self, iv, item, cancel, profile, earlier, notes):
+    def _write_answer(self, iv, item, cancel, profile, earlier, notes, saved=None):
         iid = iv["id"]
 
         def emit(text):
@@ -765,7 +777,7 @@ class Session:
                 item["a"] += text
             self.broadcast({"type": "delta", "interview": iid, "id": item["id"], "text": text})
 
-        system, messages = answer_request(item["q"], profile, earlier, notes)
+        system, messages = answer_request(item["q"], profile, earlier, notes, saved)
         mode = METRICS.settings.get("docs_mode", "auto")
         tools = [docs_tool()] if mode == "always" or (mode == "auto" and not notes) else None
         rec = stream_claude(system, messages, EFFORT, 4000, emit, cancel.is_set, kind="answer", label=item["q"],
@@ -789,6 +801,9 @@ class Session:
         self.broadcast({"type": "done", "interview": iid, "id": item["id"], "a": item["a"],
                         "usage": summary, "docs": docs})
         self._announce()
+        if item["a"].strip() and rec and rec["status"] == "ok" and iid in self.interviews:
+            BANK.add_asked(item["q"], item["a"], iid, iv["name"], item["id"], item["ts"])
+            self.broadcast({"type": "bank"})
         if rec:
             self.broadcast_stats()
 
@@ -818,8 +833,21 @@ def reindex_library():
         st = LIBRARY.status()
         print(f"Reference notes: {st['files']} documents, {st['sections']} sections indexed "
               f"in {st['build_seconds']} s from {st['folder']}", flush=True)
+        n = BANK.load_notes(LIBRARY)
+        print(f"Question bank: {n} questions from your notes", flush=True)
         SESSION.broadcast({"type": "refs", "refs": st})
+        SESSION.broadcast({"type": "bank"})
     threading.Thread(target=run, daemon=True).start()
+
+
+def backfill_bank():
+    """Put questions from interviews saved before the bank existed into it (safe to repeat)."""
+    with SESSION.lock:
+        ivs = [json.loads(json.dumps(iv)) for iv in SESSION.interviews.values()]
+    for iv in ivs:
+        for it in iv["items"]:
+            if it.get("a", "").strip():
+                BANK.add_asked(it["q"], it["a"], iv["id"], iv["name"], it["id"], it.get("ts") or iv["created"])
 
 
 def story_request(data):
@@ -894,6 +922,16 @@ class Handler(BaseHTTPRequestHandler):
                                     f"{iv['name']} {stamp}.webm" if "download" in url.query else None)
             else:
                 self._json(200, iv)
+        elif url.path == "/bank":
+            q = parse_qs(url.query)
+            arg = lambda k, d="": (q.get(k) or [d])[0]
+            self._json(200, BANK.search(arg("q"), arg("cat"), arg("src"), arg("star") == "1", arg("iv"),
+                                        int(arg("offset", "0") or 0), min(int(arg("limit", "50") or 50), 200)))
+        elif url.path == "/bank/export":
+            q = parse_qs(url.query)
+            arg = lambda k, d="": (q.get(k) or [d])[0]
+            res = BANK.search(arg("q"), arg("cat"), arg("src"), arg("star") == "1", arg("iv"), 0, 100000)
+            self._download(BANK.markdown(res["results"]), "Interview question bank")
         elif url.path == "/refs":
             self._json(200, LIBRARY.status())
         elif url.path == "/resumes":
@@ -942,7 +980,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         path = urlsplit(self.path).path
         if path not in ("/answer", "/stories", "/extract", "/profile", "/settings", "/refs/reindex", "/interviews") \
-                and not path.startswith("/interviews/"):
+                and not path.startswith("/interviews/") and path != "/bank" and not path.startswith("/bank/"):
             self._json(404, {"error": "Not found"})
             return
         if not self._authorized():
@@ -1016,6 +1054,26 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(200, {"ok": True})
             else:
                 self._json(404, {"error": "That interview doesn't exist any more."})
+            return
+        if path == "/bank":
+            eid = BANK.add_mine(str(data.get("question", "")), str(data.get("answer", "")), data.get("category"))
+            if eid:
+                SESSION.broadcast({"type": "bank"})
+                self._json(200, {"id": eid})
+            else:
+                self._json(400, {"error": "Type a question first."})
+            return
+        if path.startswith("/bank/"):
+            parts = path.split("/")  # ['', 'bank', id, action]
+            if len(parts) == 4 and parts[3] in ("update", "delete"):
+                ok = BANK.update(parts[2], data) if parts[3] == "update" else BANK.delete(parts[2])
+                if ok:
+                    SESSION.broadcast({"type": "bank"})
+                    self._json(200, {"ok": True, "entry": BANK.get(parts[2])})
+                else:
+                    self._json(404, {"error": "That question isn't in the bank any more."})
+            else:
+                self._json(404, {"error": "Not found"})
             return
         if path == "/refs/reindex":
             reindex_library()
@@ -1177,6 +1235,7 @@ if __name__ == "__main__":
     print(f"Interview Copilot running at http://localhost:{PORT}  (model: {MODEL}, effort: {EFFORT})")
     if ACCESS_CODE:
         print(f"Access code: {ACCESS_CODE}")
+    backfill_bank()
     print(f"Indexing reference notes in {REFERENCE_DIR} ...")
     reindex_library()
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
