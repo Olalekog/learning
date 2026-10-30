@@ -328,6 +328,15 @@ a.btn { text-decoration: none; color: inherit; display: inline-block; }
           <label class="check"><input id="captureMine" type="checkbox"> Capture my answers (for analysis)</label>
         </div>
         <div class="row">
+          <label for="chatWatch">Questions in the chat</label>
+          <select id="chatWatch">
+            <option value="questions">Answer questions I copy (Ctrl+C)</option>
+            <option value="any">Answer any text I copy</option>
+            <option value="off">Off</option>
+          </select>
+        </div>
+        <p class="hint" id="chatInfo"></p>
+        <div class="row">
           <label><input id="auto" type="checkbox" checked> Auto-answer after a pause of</label>
           <input id="pause" type="range" min="0.8" max="4" step="0.2" value="1.8" aria-label="Pause length in seconds">
           <output id="pauseOut">1.8 s</output>
@@ -896,7 +905,7 @@ function showCurrent(cur) {
     return;
   }
   $("curQ").hidden = false;
-  $("curQ").innerHTML = "<strong>Question:</strong> ";
+  $("curQ").innerHTML = cur.via === "chat" ? "<strong>Question (from chat):</strong> " : "<strong>Question:</strong> ";
   $("curQ").append(cur.q);
   $("curQ").dataset.q = cur.q;
   box.dataset.a = cur.a;
@@ -1502,12 +1511,14 @@ function handleEvent(e) {
   else if (e.type === "stats") renderStats(e.stats);
   else if (e.type === "question") {
     if (e.interview !== SELECTED || !IV) { selectInterview(e.interview); return; }  // follow the live interview
-    const item = { id: e.id, q: e.q, a: "", done: false, sources: e.sources, ts: Date.now() / 1000 };
+    const item = { id: e.id, q: e.q, a: "", done: false, sources: e.sources, ts: Date.now() / 1000, via: e.via };
+    if (e.via === "chat") chatHint("✓ Answering the question you copied from the chat.");
     archiveDisplayed();
     IV.items.push(item);
     showCurrent(item);
     if (listening && $("captureMine").checked) startMine(e.interview, e.id);
   }
+  else if (e.type === "chat") chatHint("Ignored what you just copied: " + e.reason + ".");
   else if (e.type === "searching" && e.id === currentId) {
     setStatus("think", "Checking official docs…");
     if (!$("answer").dataset.a) $("answer").innerHTML = '<p class="searching">Checking official docs…</p>';
@@ -1558,6 +1569,10 @@ function renderStats(s) {
   STATS = s;
   if (typeof s.use_refs === "boolean") $("useRefs").checked = s.use_refs;
   if (s.docs_mode && document.activeElement !== $("docsMode")) $("docsMode").value = s.docs_mode;
+  if (s.chat_watch && document.activeElement !== $("chatWatch")) $("chatWatch").value = s.chat_watch;
+  CHAT_OK = !!s.chat_available;
+  $("chatWatch").disabled = !CHAT_OK;
+  chatHint();
   for (const b of $("periodSeg").querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.p === period));
   const p = s.periods[period];
   $("uCost").textContent = fmtUsd(p.cost);
@@ -1671,6 +1686,27 @@ $("reindexBtn").addEventListener("click", () => {
 $("docsMode").addEventListener("change", () => {
   fetch("/settings", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ docs_mode: $("docsMode").value }) }).catch(() => {});
+});
+// Questions the interviewer types in the Teams/Zoom/Slack chat: copied on the PC, answered by the server
+let CHAT_OK = true, chatTimer = null;
+function chatHint(note) {
+  const info = $("chatInfo");
+  clearTimeout(chatTimer);
+  if (note) {
+    info.textContent = note;
+    chatTimer = setTimeout(() => chatHint(), 8000);
+    return;
+  }
+  info.textContent = !CHAT_OK
+    ? "Works only when the server runs on a Windows PC."
+    : $("chatWatch").value === "off" ? "Off. Paste chat questions into “Type a question” instead."
+    : "On the PC running the app: select the interviewer's message in Teams, Zoom or Slack and press Ctrl+C. "
+      + "Works while an interview is live.";
+}
+$("chatWatch").addEventListener("change", () => {
+  chatHint();
+  fetch("/settings", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ chat_watch: $("chatWatch").value }) }).catch(() => {});
 });
 $("useRefs").addEventListener("change", () => {
   fetch("/settings", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },

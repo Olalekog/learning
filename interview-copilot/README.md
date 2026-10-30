@@ -56,6 +56,24 @@ state ("● Live", "Not started", or ended), date and number of questions. Choos
 - Asking a question in an interview that isn't live starts it. Phone and laptop follow the live
   interview automatically, and the Usage tab's "This interview" is the live one (or the newest).
 
+## Questions typed in the chat (Teams, Zoom, Slack)
+
+When the interviewer types a question in the meeting chat, select their message on the PC running the app and press
+**Ctrl+C**. The answer appears right away on the laptop and the phone. You don't need to paste anything or switch windows.
+
+- It only works while an interview is **live** and only on the Windows PC running the server. Copying on your phone
+  does nothing.
+- The chat app's name and time lines ("Jane Doe 10:32 AM", "From Jane to Everyone:") are removed.
+- **Questions in the chat** (Listening panel):
+  - **Answer questions I copy** (default): only text that reads like a question ("…?", "Tell me…",
+    "Explain…", "Design…").
+  - **Answer any text I copy**, e.g. a topic like "Kubernetes ingress vs service mesh".
+  - **Off**.
+- These copies are ignored: passwords, links, file paths, emails, code, long documents, small talk ("Can you hear
+  me?"), the question you just asked, and text copied from an answer or the question bank. The panel says
+  why it ignored a copy. The copied text itself is never shown or saved.
+- Chat questions are marked "Question (from chat)" and "*Asked in the chat*" in the export.
+
 ## Interview analysis (scores 1–10)
 
 Open the **Analysis** tab at the top (or press **Analysis** in an interview), pick the interview and press

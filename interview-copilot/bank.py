@@ -50,6 +50,11 @@ CATEGORY_RES = [(name, re.compile(pat, re.I)) for name, pat in CATEGORIES]
 CATEGORY_NAMES = [name for name, _ in CATEGORIES] + ["General"]
 
 
+def norm_text(text):
+    """Lower-case words only, for comparing text regardless of markdown and spacing."""
+    return " ".join(re.findall(r"[a-z0-9]+", (text or "").lower()))
+
+
 def clean_question(text):
     text = re.sub(r"<[^>]+>", "", text or "")
     text = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", text)
@@ -169,6 +174,15 @@ class Bank:
             out.append({**e, **{k: v for k, v in o.items() if k != "hidden"}})
         out.extend(self.entries.values())
         return out
+
+    def has_answer_text(self, text):
+        """True if text is part of an answer in the bank (e.g. copied with the bank's Copy button)."""
+        needle = norm_text(text)
+        if len(needle) < 10:
+            return False
+        with self.lock:
+            entries = self._all()
+        return any(needle in norm_text(e.get("answer", "")) for e in entries)
 
     # ------------------------------------------------------------ adding
     def add_asked(self, question, answer, interview_id, interview_name, item_id, ts):

@@ -26,6 +26,7 @@ from urllib.parse import parse_qs, unquote, urlsplit
 import anthropic
 
 import bank
+import chatwatch
 import refs
 
 PORT = int(os.environ.get("PORT", "8765"))
@@ -363,7 +364,9 @@ class Metrics:
                 "budget_left": round(budget - spent, 4) if budget else None,
                 "limits": limits, "limits_at": limits_at, "recent": recent, "model": MODEL,
                 "use_refs": self.settings.get("use_refs", True),
-                "docs_mode": self.settings.get("docs_mode", "auto")}
+                "docs_mode": self.settings.get("docs_mode", "auto"),
+                "chat_watch": self.settings.get("chat_watch", "questions"),
+                "chat_available": chatwatch.ClipboardWatcher.available()}
 
 
 METRICS = Metrics()
@@ -502,7 +505,7 @@ def interview_markdown(iv):
     lines.append(f"- **Questions:** {len(items)}  ·  **Estimated cost:** ${cost:.2f}")
     lines.append("")
     for n, it in enumerate(items, 1):
-        lines += ["---", "", f"## Q{n}. {it['q']}", ""]
+        lines += ["---", "", f"## Q{n}. {it['q']}", ""] + (["*Asked in the chat*", ""] if it.get("via") == "chat" else [])
         if it.get("ts"):
             lines += [f"_{time.strftime('%H:%M', time.localtime(it['ts']))}_", ""]
         lines += ["**Suggested answer:**", "", it["a"].strip(), ""]
@@ -814,8 +817,8 @@ class Session:
         return True
 
     # ------------------------------------------------------------ questions and answers
-    def ask(self, question, origin, iid):
-        """Answer in interview iid (started automatically if it isn't live)."""
+    def ask(self, question, origin, iid, via=None):
+        """Answer in interview iid (started automatically if it isn't live). via="chat": copied from a chat."""
         with self.lock:
             iv = self.interviews.get(iid)
         if not iv:
@@ -838,11 +841,13 @@ class Session:
                 sources.insert(0, {"file": "Question bank", "label": saved["question"]})
             item = {"id": uuid.uuid4().hex[:12], "q": question, "a": "", "done": False, "ts": time.time(),
                     "sources": sources}
+            if via:
+                item["via"] = via
             iv["items"].append(item)
             self.cancel, self.writing = threading.Event(), (iid, item)
             cancel, profile = self.cancel, dict(self.profile)
         self.broadcast({"type": "question", "interview": iid, "id": item["id"], "q": question,
-                        "origin": origin, "sources": sources})
+                        "origin": origin, "sources": sources, "via": via})
         threading.Thread(target=self._write_answer, args=(iv, item, cancel, profile, earlier, notes, saved),
                          daemon=True).start()
         return item["id"]
@@ -884,6 +889,30 @@ class Session:
             self.broadcast({"type": "bank"})
         if rec:
             self.broadcast_stats()
+
+    def from_chat(self, text):
+        """Text copied on this PC: answer it if it's an interview question and an interview is live."""
+        mode = METRICS.settings.get("chat_watch", "questions")
+        with self.lock:
+            iv = self.interviews.get(self.active) if self.active else None
+            if mode == "off" or not iv:
+                return
+            recent = iv["items"][-30:]
+        question, reason = chatwatch.check(text, mode)
+        if question:
+            key = bank.norm_text(question)
+            if any(bank.norm_text(it["q"]) == key for it in recent[-5:]):
+                reason, question = "already answered", None
+            elif any(key in bank.norm_text(it.get("a", "")) for it in recent) or BANK.has_answer_text(question):
+                reason, question = "copied from an answer", None
+        if not question:
+            # the copied text itself is never sent: it could be a password
+            self.broadcast({"type": "chat", "status": "ignored", "reason": reason})
+            return
+        if not have_key():
+            self.broadcast({"type": "chat", "status": "ignored", "reason": "no API key set"})
+            return
+        self.ask(question, "chat", iv["id"], via="chat")
 
     def broadcast_stats(self):
         self.broadcast({"type": "stats", "stats": METRICS.stats(self.stats_focus())})
@@ -1294,6 +1323,8 @@ class Handler(BaseHTTPRequestHandler):
                     METRICS.update_settings(use_refs=bool(data["use_refs"]))
                 if data.get("docs_mode") in DOCS_MODES:
                     METRICS.update_settings(docs_mode=data["docs_mode"])
+                if data.get("chat_watch") in chatwatch.MODES:
+                    METRICS.update_settings(chat_watch=data["chat_watch"])
             except (TypeError, ValueError):
                 self._json(400, {"error": "Budget must be a number, e.g. 10"})
                 return
@@ -1443,6 +1474,9 @@ if __name__ == "__main__":
     if ACCESS_CODE:
         print(f"Access code: {ACCESS_CODE}")
     backfill_bank()
+    if chatwatch.ClipboardWatcher.available():
+        chatwatch.ClipboardWatcher(SESSION.from_chat).start()
+        print("Chat questions: copy an interviewer's question (Ctrl+C) during a live interview to answer it.")
     print(f"Indexing reference notes in {REFERENCE_DIR} ...")
     reindex_library()
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
