@@ -134,16 +134,9 @@ label.btn { display: inline-block; }
 .sources .host { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
 .answer .searching { color: var(--muted); font-style: italic; font-size: 16px; }
 .inline select.mode { flex: 0 1 auto; }
-/* Interview tabs */
-.tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 12px; border-bottom: 1px solid var(--line); scrollbar-width: thin; }
-.tab { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; max-width: 240px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 13px; }
-.tab[aria-selected="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
-.tab.add { color: var(--accent); background: none; border-style: dashed; }
-.tname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tcount { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--muted); background: var(--panel); border-radius: 99px; padding: 0 6px; }
-.tdot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; background: var(--line); }
-.tdot.live { background: var(--live); animation: pulse 1.2s infinite; }
-.tdot.ended { background: var(--muted); }
+/* Interview picker */
+.iv-pick { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--line); }
+.iv-pick select { flex: 1 1 260px; min-width: 0; max-width: 560px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); padding: 8px 10px; font-size: 15px; }
 .iv-bar { display: grid; gap: 10px; }
 .iv-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .iv-name { flex: 1 1 220px; min-width: 0; font: 600 18px var(--f-body); color: var(--ink); background: transparent; border: 1px solid transparent; border-radius: 8px; padding: 4px 6px; margin-left: -6px; }
@@ -226,6 +219,13 @@ label.btn { display: inline-block; }
 .view-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .view-bar select { flex: 1 1 240px; min-width: 0; max-width: 420px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); padding: 8px; font-size: 15px; }
 .views { flex-wrap: wrap; }
+/* Interview tabs bar across the top */
+@media (min-width: 861px) {
+  #pSessions .iv-bar { grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 16px; }
+  #pSessions .iv-top, #pSessions .iv-info { grid-column: 1; }
+  #pSessions .iv-actions { grid-column: 2; grid-row: 1 / span 2; justify-content: flex-end; }
+  #pSessions .rec-row, #pSessions #recConsent, #pSessions #recNote, #pSessions #recList { grid-column: 1 / -1; }
+}
 a.btn { text-decoration: none; color: inherit; display: inline-block; }
 .check { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; }
 .ans-meta { margin: 10px 0 0; font: 12px var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -274,6 +274,45 @@ a.btn { text-decoration: none; color: inherit; display: inline-block; }
     <button class="btn primary" type="submit">Unlock</button>
   </form>
 
+  <section class="panel" id="pSessions">
+    <div class="iv-pick">
+      <label for="ivPick" class="lbl">Interview</label>
+      <select id="ivPick" aria-label="Choose an existing interview"></select>
+      <button id="ivNew" class="btn primary" type="button">+ New interview</button>
+    </div>
+    <p id="ivEmpty" class="hint">No interviews yet. Press <strong>+ New interview</strong> to create one.</p>
+    <div id="ivBar" class="iv-bar" hidden>
+      <div class="iv-top">
+        <input id="ivName" class="iv-name" aria-label="Interview name" maxlength="80" autocomplete="off">
+        <span id="ivState" class="pill"><span class="dot"></span><span id="ivStateText">Not started</span></span>
+      </div>
+      <div class="iv-info"><span id="ivTime"></span><span id="ivCount"></span></div>
+      <div class="iv-actions">
+        <button id="ivStart" class="btn primary" type="button">Start interview</button>
+        <button id="ivStop" class="btn stop" type="button" hidden>Stop interview</button>
+        <button id="ivAnalysis" class="btn small" type="button">Analysis</button>
+        <a id="ivExport" class="btn small" href="#" download>Export (.md)</a>
+        <button id="ivDelete" class="btn small" type="button">Delete</button>
+      </div>
+      <div class="rec-row" id="recRow">
+        <button id="recBtn" class="btn small rec" type="button">● Record screen</button>
+        <span id="recLive" class="rec-live" hidden></span>
+        <label class="check" id="recAutoLabel"><input type="checkbox" id="recAuto"> Record when I start the interview</label>
+      </div>
+      <div id="recConsent" class="consent" hidden>
+        <p><strong>Before you record:</strong> recording a call usually needs the other people's permission
+        (in some places by law), and some employers don't allow it. Only record if everyone has agreed.</p>
+        <p class="hint">When the browser asks what to share, choose the meeting tab or your screen and tick
+        <strong>Share tab audio</strong> / <strong>Share system audio</strong> so the interviewer is recorded too.</p>
+        <div class="iv-actions">
+          <button id="recConsentYes" class="btn small primary" type="button">Everyone agreed – start recording</button>
+          <button id="recConsentNo" class="btn small" type="button">Cancel</button>
+        </div>
+      </div>
+      <p id="recNote" class="rec-note" hidden></p>
+      <ul id="recList" class="recordings"></ul>
+    </div>
+  </section>
   <div class="grid">
     <div class="col">
       <section class="panel" id="pListen">
@@ -361,41 +400,6 @@ a.btn { text-decoration: none; color: inherit; display: inline-block; }
     </div>
 
     <div class="col">
-      <section class="panel" id="pSessions">
-        <div class="tabs" id="tabs" role="tablist" aria-label="Interviews"></div>
-        <p id="ivEmpty" class="hint">No interviews yet. Press <strong>+ New interview</strong> to start one.</p>
-        <div id="ivBar" class="iv-bar" hidden>
-          <div class="iv-top">
-            <input id="ivName" class="iv-name" aria-label="Interview name" maxlength="80" autocomplete="off">
-            <span id="ivState" class="pill"><span class="dot"></span><span id="ivStateText">Not started</span></span>
-          </div>
-          <div class="iv-info"><span id="ivTime"></span><span id="ivCount"></span></div>
-          <div class="iv-actions">
-            <button id="ivStart" class="btn primary" type="button">Start interview</button>
-            <button id="ivStop" class="btn stop" type="button" hidden>Stop interview</button>
-            <button id="ivAnalysis" class="btn small" type="button">Analysis</button>
-            <a id="ivExport" class="btn small" href="#" download>Export (.md)</a>
-            <button id="ivDelete" class="btn small" type="button">Delete</button>
-          </div>
-          <div class="rec-row" id="recRow">
-            <button id="recBtn" class="btn small rec" type="button">● Record screen</button>
-            <span id="recLive" class="rec-live" hidden></span>
-            <label class="check" id="recAutoLabel"><input type="checkbox" id="recAuto"> Record when I start the interview</label>
-          </div>
-          <div id="recConsent" class="consent" hidden>
-            <p><strong>Before you record:</strong> recording a call usually needs the other people's permission
-            (in some places by law), and some employers don't allow it. Only record if everyone has agreed.</p>
-            <p class="hint">When the browser asks what to share, choose the meeting tab or your screen and tick
-            <strong>Share tab audio</strong> / <strong>Share system audio</strong> so the interviewer is recorded too.</p>
-            <div class="iv-actions">
-              <button id="recConsentYes" class="btn small primary" type="button">Everyone agreed – start recording</button>
-              <button id="recConsentNo" class="btn small" type="button">Cancel</button>
-            </div>
-          </div>
-          <p id="recNote" class="rec-note" hidden></p>
-          <ul id="recList" class="recordings"></ul>
-        </div>
-      </section>
       <section class="panel answer-card" id="pAnswer">
         <h2>Suggested answer</h2>
         <p id="curQ" class="q" hidden></p>
@@ -920,25 +924,19 @@ async function post(path, body = {}) {
     return await r.json().catch(() => ({}));
   } catch { warn("Can't reach the server. Make sure it's still running on your PC."); return {}; }
 }
+function interviewLabel(m) {
+  const status = m.status === "live" ? "● Live · " : m.status === "ready" ? "Not started · " : "";
+  const when = m.started_at || m.created
+    ? " · " + new Date((m.started_at || m.created) * 1000).toLocaleDateString([], { day: "numeric", month: "short" }) : "";
+  return `${status}${m.name}${when} · ${m.count} question${m.count === 1 ? "" : "s"}`;
+}
 function renderTabs() {
-  const tabs = IV_LIST.map(m => {
-    const b = document.createElement("button");
-    b.type = "button"; b.className = "tab"; b.setAttribute("role", "tab");
-    b.setAttribute("aria-selected", String(m.id === SELECTED));
-    b.title = (m.status === "live" ? "Live now" : m.status === "ended" ? "Ended" : "Not started") + ` · ${m.count} question${m.count === 1 ? "" : "s"}`;
-    const dot = document.createElement("span"); dot.className = "tdot " + m.status;
-    const name = document.createElement("span"); name.className = "tname"; name.textContent = m.name;
-    const c = document.createElement("span"); c.className = "tcount"; c.textContent = m.count;
-    b.append(dot, name, c);
-    b.addEventListener("click", () => selectInterview(m.id));
-    return b;
-  });
-  const add = document.createElement("button");
-  add.type = "button"; add.className = "tab add"; add.textContent = "+ New interview";
-  add.addEventListener("click", newInterview);
-  $("tabs").replaceChildren(...tabs, add);
+  const pick = $("ivPick");
+  pick.replaceChildren(...IV_LIST.map(m => new Option(interviewLabel(m), m.id)));
+  if (!IV_LIST.length) pick.add(new Option("No interviews yet: press + New interview", ""));
+  pick.value = SELECTED || "";
+  pick.disabled = !IV_LIST.length;
   if (typeof VIEW !== "undefined" && VIEW === "analysis") fillAnalysisPicker();
-  $("tabs").querySelector('[aria-selected="true"]')?.scrollIntoView({ block: "nearest", inline: "nearest" });
 }
 function tickTimer() {
   if (!IV || !IV.started_at) { $("ivTime").textContent = IV ? "Not started yet" : ""; return; }
@@ -991,6 +989,8 @@ async function newInterview() {
   await selectInterview(j.id);
   $("ivName").focus(); $("ivName").select();
 }
+$("ivPick").addEventListener("change", () => selectInterview($("ivPick").value));
+$("ivNew").addEventListener("click", newInterview);
 function pickDefaultTab() {
   return IV_LIST.some(m => m.id === SELECTED) ? SELECTED : (ACTIVE || (IV_LIST[0] && IV_LIST[0].id) || "");
 }
@@ -1178,6 +1178,7 @@ function setView(v) {
   VIEW = VIEWS.includes(v) ? v : "live";
   store.set("ic.view", VIEW);
   document.querySelector(".grid").hidden = VIEW !== "live";
+  $("pSessions").hidden = VIEW !== "live";
   $("bankView").hidden = VIEW !== "bank";
   $("analysisView").hidden = VIEW !== "analysis";
   $("usageView").hidden = VIEW !== "usage";
@@ -1189,11 +1190,7 @@ function setView(v) {
 // Analysis page: pick which interview to review (same selection as the Interview tab)
 function fillAnalysisPicker() {
   const pick = $("anPick");
-  pick.replaceChildren(...IV_LIST.map(m => {
-    const status = m.status === "live" ? " · live" : m.status === "ended" ? "" : " · not started";
-    const when = m.started_at ? " · " + new Date(m.started_at * 1000).toLocaleDateString([], { day: "numeric", month: "short" }) : "";
-    return new Option(`${m.name}${when}${status} (${m.count} question${m.count === 1 ? "" : "s"})`, m.id);
-  }));
+  pick.replaceChildren(...IV_LIST.map(m => new Option(interviewLabel(m), m.id)));
   if (!IV_LIST.length) pick.add(new Option("No interviews yet", ""));
   pick.value = SELECTED || "";
   pick.disabled = !IV_LIST.length;

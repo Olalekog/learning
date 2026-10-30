@@ -39,21 +39,22 @@ Notes:
 - iPhone listening is less reliable than Android; tap **Answer now** if auto-answer doesn't fire.
 - In a real interview: keep the call on your laptop and put the phone near the laptop speaker.
 
-## Interview sessions (tabs)
+## Interview sessions
 
-Each interview gets its own tab at the top of the page, with a dot showing its state (red = live,
-grey = ended) and its number of questions.
+At the top of the Interview page, the **Interview** dropdown lists every saved interview with its
+state ("● Live", "Not started", or ended), date and number of questions. Choose one to open it.
 
-- **+ New interview** makes a tab. Click its name to rename it, e.g. "Capital One – Cloud Engineer".
+- **+ New interview** (next to the dropdown) creates one. Click its name to rename it, e.g.
+  "Capital One – Cloud Engineer".
 - **Start interview** makes it live and turns on listening on that device. **Stop interview** ends it on
   every device. Only one interview is live at a time: starting another ends the current one.
   An ended interview can be resumed.
 - Every question and answer is **saved on your PC** as it happens (`data/interviews/`), with the notes
   and official docs used and its cost, so nothing is lost if the server restarts.
-- Click any tab to read a past interview. **Export (.md)** downloads it as a Markdown document.
-  **Delete** (tap twice) removes it.
-- Asking a question in a tab that isn't live starts it. Phone and laptop follow the live interview
-  automatically, and the Usage panel's "This interview" is the live one (or the newest).
+- Choose any past interview in the dropdown to read it. **Export (.md)** downloads it as a Markdown
+  document. **Delete** (tap twice) removes it.
+- Asking a question in an interview that isn't live starts it. Phone and laptop follow the live
+  interview automatically, and the Usage tab's "This interview" is the live one (or the newest).
 
 ## Interview analysis (scores 1–10)
 
